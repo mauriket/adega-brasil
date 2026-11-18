@@ -1,27 +1,42 @@
 (() => {
   const $ = (id) => document.getElementById(id);
-  const brl = (v) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-  const norm = (s) => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  const brl = (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const norm = Geo.norm;
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   const store = {
     get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
 
-  // ---------- Estado ----------
-  let carrinho = store.get("adega_carrinho", {}); // { id: qtd }
-  let categoriaAtiva = "Todas";
-  let frete = null; // { valor, cep, cidade, uf, bairro, rua } | null
-  const produtoPorId = Object.fromEntries(PRODUTOS.map((p) => [p.id, p]));
+  const D = window.DADOS;
+  if (!D) {
+    document.querySelector("main").innerHTML = '<p class="empty">Não foi possível carregar os produtos. Atualize a página.</p>';
+    return;
+  }
+  const LOJA = D.loja;
+  const FRETE = D.frete;
 
-  // remove itens que não existem mais no catálogo
+  // ---------- Produtos ----------
+  const PRODUTOS = D.produtos.filter((p) => p.ativo !== false);
+  const produtoPorId = Object.fromEntries(PRODUTOS.map((p) => [p.id, p]));
+  const temPromo = (p) => Number(p.precoPromo) > 0 && Number(p.precoPromo) < Number(p.preco);
+  const precoFinal = (p) => (temPromo(p) ? Number(p.precoPromo) : Number(p.preco));
+  const desconto = (p) => Math.round((1 - p.precoPromo / p.preco) * 100);
+
+  // ---------- Estado ----------
+  let carrinho = store.get("adega_carrinho", {});
   for (const id in carrinho) if (!produtoPorId[id]) delete carrinho[id];
+  let categoriaAtiva = "Todas";
+  let enderecoCep = null; // endereço vindo do CEP
+  let frete = null;       // { valor, km, metodo, estimado }
+  let calcId = 0;
 
   // ---------- Cabeçalho ----------
-  document.title = CONFIG.nomeLoja;
-  $("logoImg").alt = CONFIG.nomeLoja;
-  $("pagamento").innerHTML = CONFIG.pagamentos.map((p) => `<option>${p}</option>`).join("");
-  $("retiradaMsg").textContent = "Retirada em: " + CONFIG.enderecoLoja;
+  document.title = LOJA.nome;
+  $("logoImg").alt = LOJA.nome;
+  $("pagamento").innerHTML = LOJA.pagamentos.map((p) => `<option>${esc(p)}</option>`).join("");
+  $("retiradaMsg").textContent = "Retirada em: " + LOJA.endereco;
 
   // ---------- Idade ----------
   if (!store.get("adega_18", false)) $("ageGate").hidden = false;
@@ -30,8 +45,9 @@
     $("ageGate").classList.add("out");
     setTimeout(() => { $("ageGate").hidden = true; }, 400);
   };
+  $("ageNo").onclick = () => { document.querySelector(".age-modal p").textContent = "Desculpe, o acesso é permitido apenas para maiores de 18 anos."; };
 
-  // ---------- Bolhas no topo ----------
+  // ---------- Bolhas no fundo ----------
   for (let i = 0; i < 22; i++) {
     const s = document.createElement("span");
     const tam = 6 + Math.random() * 22;
@@ -39,24 +55,23 @@
     $("bubbles").appendChild(s);
   }
 
-  // ---------- Topo encolhe ao rolar ----------
   const topbar = document.querySelector(".topbar");
   window.addEventListener("scroll", () => topbar.classList.toggle("scrolled", window.scrollY > 20), { passive: true });
-  $("ageNo").onclick = () => { document.querySelector(".age-modal p").textContent = "Desculpe, o acesso é permitido apenas para maiores de 18 anos."; };
 
-  // ---------- Catálogo ----------
-  const categorias = ["Todas", ...new Set(PRODUTOS.map((p) => p.categoria))];
+  // ---------- Categorias ----------
+  const categorias = ["Todas", ...D.categorias.filter((c) => PRODUTOS.some((p) => p.categoria === c))];
+  PRODUTOS.forEach((p) => { if (!categorias.includes(p.categoria)) categorias.push(p.categoria); });
 
   function renderCategorias() {
     $("categorias").innerHTML = categorias
-      .map((c) => `<button class="chip ${c === categoriaAtiva ? "active" : ""}" data-cat="${c}">${c}</button>`)
+      .map((c) => `<button class="chip ${c === categoriaAtiva ? "active" : ""}" data-cat="${esc(c)}">${esc(c)}</button>`)
       .join("");
   }
   $("categorias").addEventListener("click", (e) => {
     const b = e.target.closest(".chip"); if (!b) return;
-    categoriaAtiva = b.dataset.cat; renderCategorias(); renderCatalogo();
+    categoriaAtiva = b.dataset.cat; renderCategorias(); renderTudo();
   });
-  $("busca").addEventListener("input", renderCatalogo);
+  $("busca").addEventListener("input", renderTudo);
 
   // ---------- Animação de entrada dos cards ----------
   const vistos = new Set();
@@ -65,27 +80,49 @@
         entries.forEach((en) => {
           if (!en.isIntersecting) return;
           en.target.classList.add("in");
-          vistos.add(Number(en.target.dataset.id));
+          vistos.add(en.target.dataset.key);
           observer.unobserve(en.target);
         });
       }, { threshold: 0.12 })
     : null;
 
-  function cardHTML(p, i) {
+  function imgHTML(p) {
+    return p.imagem
+      ? `<img src="${esc(p.imagem)}" alt="${esc(p.nome)}" loading="lazy" onerror="this.style.visibility='hidden'">`
+      : `<span>${p.emoji || "🍾"}</span>`;
+  }
+
+  function cardHTML(p, i, secao) {
     const qtd = carrinho[p.id] || 0;
-    const img = p.imagem ? `<img src="${p.imagem}" alt="${p.nome}" loading="lazy">` : `<span>${p.emoji || "🍾"}</span>`;
+    const key = secao + "-" + p.id;
+    const visto = vistos.has(key) || !observer;
+    const selos = [
+      temPromo(p) ? `<span class="selo selo-off">-${desconto(p)}%</span>` : "",
+      p.destaque && secao !== "dest" ? `<span class="selo selo-dest">⭐ Destaque</span>` : "",
+    ].join("");
     const acao = qtd
       ? `<div class="qty"><button data-act="dec" data-id="${p.id}">−</button><span>${qtd}</span><button data-act="inc" data-id="${p.id}">+</button></div>`
       : `<button class="btn btn-primary" data-act="inc" data-id="${p.id}">Adicionar</button>`;
-    const visto = vistos.has(p.id) || !observer;
-    return `<article class="card${visto ? " in" : ""}" data-id="${p.id}" style="--d:${visto ? 0 : i % 8}">
-      <div class="card-img">${img}</div>
+    return `<article class="card${visto ? " in" : ""}" data-key="${key}" style="--d:${visto ? 0 : i % 8}">
+      <div class="card-img">${imgHTML(p)}<div class="selos">${selos}</div></div>
       <div class="card-body">
-        <div class="card-name">${p.nome}</div>
-        <div class="card-price">${brl(p.preco)}</div>
+        <div class="card-name">${esc(p.nome)}</div>
+        ${p.descricao ? `<div class="card-desc">${esc(p.descricao)}</div>` : ""}
+        <div class="card-price">${temPromo(p) ? `<s>${brl(p.preco)}</s>` : ""}${brl(precoFinal(p))}</div>
         ${acao}
       </div>
     </article>`;
+  }
+
+  function renderEspeciais(filtrando) {
+    const promo = PRODUTOS.filter((p) => p.promoDia);
+    const dest = PRODUTOS.filter((p) => p.destaque);
+    $("secPromo").hidden = filtrando || !promo.length;
+    $("secDestaques").hidden = filtrando || !dest.length;
+    if (!filtrando) {
+      $("gridPromo").innerHTML = promo.map((p, i) => cardHTML(p, i, "promo")).join("");
+      $("gridDestaques").innerHTML = dest.map((p, i) => cardHTML(p, i, "dest")).join("");
+    }
   }
 
   function renderCatalogo() {
@@ -95,22 +132,47 @@
     );
     const grupos = {};
     lista.forEach((p) => (grupos[p.categoria] ||= []).push(p));
-    $("catalogo").innerHTML = Object.entries(grupos)
-      .map(([cat, itens]) => `<h2 class="cat-title">${cat}</h2><div class="grid">${itens.map(cardHTML).join("")}</div>`)
+    const ordem = categorias.filter((c) => grupos[c]);
+    $("catalogo").innerHTML = ordem
+      .map((cat) => `<h2 class="cat-title">${esc(cat)}</h2><div class="grid">${grupos[cat].map((p, i) => cardHTML(p, i, "cat")).join("")}</div>`)
       .join("");
     $("semResultados").hidden = lista.length > 0;
+  }
+
+  function renderTudo() {
+    const filtrando = categoriaAtiva !== "Todas" || norm($("busca").value) !== "";
+    renderEspeciais(filtrando);
+    renderCatalogo();
     if (observer) document.querySelectorAll(".card:not(.in)").forEach((c) => observer.observe(c));
   }
 
+  // ---------- Contagem regressiva da promoção do dia ----------
+  function tickPromo() {
+    const agora = new Date();
+    const fim = new Date(agora); fim.setHours(24, 0, 0, 0);
+    const s = Math.max(0, Math.floor((fim - agora) / 1000));
+    const pad = (n) => String(n).padStart(2, "0");
+    $("contador").textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+  }
+  tickPromo();
+  setInterval(tickPromo, 1000);
+
   // ---------- Produto voando até o carrinho ----------
-  function voar(origem, conteudo) {
+  function voar(origem, p) {
     const alvo = $("openCart").getBoundingClientRect();
     const r = origem.getBoundingClientRect();
-    const el = document.createElement("div");
-    el.className = "fly";
-    el.textContent = conteudo;
-    el.style.left = r.left + r.width / 2 - 24 + "px";
-    el.style.top = r.top + r.height / 2 - 30 + "px";
+    let el;
+    if (p.imagem) {
+      el = document.createElement("img");
+      el.src = p.imagem;
+      el.className = "fly fly-img";
+    } else {
+      el = document.createElement("div");
+      el.className = "fly";
+      el.textContent = p.emoji || "🍾";
+    }
+    el.style.left = r.left + r.width / 2 - 28 + "px";
+    el.style.top = r.top + r.height / 2 - 28 + "px";
     document.body.appendChild(el);
     const dx = alvo.left + alvo.width / 2 - (r.left + r.width / 2);
     const dy = alvo.top + alvo.height / 2 - (r.top + r.height / 2);
@@ -148,31 +210,28 @@
     if (novo <= 0) delete carrinho[id]; else carrinho[id] = novo;
     if (delta > 0 && atual === 0) toast("Adicionado ao carrinho");
     store.set("adega_carrinho", carrinho);
-    renderCatalogo(); renderCarrinho();
+    renderTudo(); renderCarrinho();
   }
 
   document.addEventListener("click", (e) => {
     const b = e.target.closest("[data-act]"); if (!b) return;
     const id = Number(b.dataset.id);
     const card = b.closest(".card");
-    if (b.dataset.act === "inc" && card) {
-      const p = produtoPorId[id];
-      voar(card.querySelector(".card-img"), p.emoji || "🍾");
-    }
+    if (b.dataset.act === "inc" && card) voar(card.querySelector(".card-img"), produtoPorId[id]);
     if (b.dataset.act === "inc") alterar(id, 1);
     if (b.dataset.act === "dec") alterar(id, -1);
-    if (b.dataset.act === "del") alterar(id, -(carrinho[id] || 0));
   });
 
   const itens = () => Object.entries(carrinho).map(([id, q]) => ({ ...produtoPorId[id], qtd: q }));
-  const subtotal = () => itens().reduce((s, i) => s + i.preco * i.qtd, 0);
+  const subtotal = () => itens().reduce((s, i) => s + precoFinal(i) * i.qtd, 0);
   const qtdTotal = () => itens().reduce((s, i) => s + i.qtd, 0);
   const isRetirada = () => document.querySelector('input[name="tipoEntrega"]:checked').value === "retirada";
+  const kmTxt = (km) => km.toFixed(1).replace(".", ",") + " km";
 
   function valorFrete() {
     if (isRetirada()) return 0;
     if (!frete) return null;
-    const lim = CONFIG.frete.freteGratisAcima;
+    const lim = Number(FRETE.freteGratisAcima) || 0;
     if (lim > 0 && subtotal() >= lim) return 0;
     return frete.valor;
   }
@@ -194,8 +253,8 @@
     $("cartItems").innerHTML = lista
       .map(
         (i, idx) => `<div class="cart-item" style="--d:${idx}">
-        <div class="ci-emoji">${i.emoji || "🍾"}</div>
-        <div><div class="ci-name">${i.nome}</div><div class="ci-price">${brl(i.preco)} · <b>${brl(i.preco * i.qtd)}</b></div></div>
+        <div class="ci-emoji">${i.imagem ? `<img src="${esc(i.imagem)}" alt="">` : i.emoji || "🍾"}</div>
+        <div><div class="ci-name">${esc(i.nome)}</div><div class="ci-price">${brl(precoFinal(i))} · <b>${brl(precoFinal(i) * i.qtd)}</b></div></div>
         <div class="qty"><button data-act="dec" data-id="${i.id}">−</button><span>${i.qtd}</span><button data-act="inc" data-id="${i.id}">+</button></div>
       </div>`
       )
@@ -213,11 +272,16 @@
     $("tTotal").textContent = brl(total);
     $("floatTotal").textContent = brl(total);
 
-    const lim = CONFIG.frete.freteGratisAcima;
-    if (!isRetirada() && frete && lim > 0 && sub < lim) {
-      $("freteMsg").innerHTML = `${frete.bairro} - ${frete.cidade}: frete <b>${brl(frete.valor)}</b>. Faltam ${brl(lim - sub)} para frete grátis!`;
-    } else if (!isRetirada() && frete) {
-      $("freteMsg").innerHTML = `${frete.bairro} - ${frete.cidade}: <b>frete grátis!</b>`;
+    if (!isRetirada() && frete) {
+      const lim = Number(FRETE.freteGratisAcima) || 0;
+      const onde = $("bairro").value.trim() || enderecoCep.cidade;
+      const dist = frete.km != null ? ` · ${kmTxt(frete.km)}` : "";
+      if (lim > 0 && sub >= lim) {
+        msgFrete(`${esc(onde)}${dist}: <b>frete grátis!</b>`, "ok");
+      } else {
+        const falta = lim > 0 ? ` Faltam ${brl(lim - sub)} para frete grátis!` : "";
+        msgFrete(`${esc(onde)}${dist}: frete <b>${brl(frete.valor)}</b>.${falta}`, "ok");
+      }
     }
     $("erro").textContent = "";
   }
@@ -226,7 +290,10 @@
   function abrir() {
     const d = $("cartDrawer");
     d.classList.add("open", "anim");
-    setTimeout(() => d.classList.remove("anim"), 900); $("cartOverlay").hidden = false; $("cartDrawer").setAttribute("aria-hidden", "false"); }
+    setTimeout(() => d.classList.remove("anim"), 900);
+    $("cartOverlay").hidden = false;
+    d.setAttribute("aria-hidden", "false");
+  }
   function fechar() { $("cartDrawer").classList.remove("open"); $("cartOverlay").hidden = true; $("cartDrawer").setAttribute("aria-hidden", "true"); }
   $("openCart").onclick = abrir;
   $("floatingCart").onclick = abrir;
@@ -234,7 +301,7 @@
   $("cartOverlay").onclick = fechar;
   document.addEventListener("keydown", (e) => e.key === "Escape" && fechar());
 
-  // ---------- Entrega / Frete ----------
+  // ---------- Entrega / Frete por KM ----------
   document.querySelectorAll('input[name="tipoEntrega"]').forEach((r) =>
     r.addEventListener("change", () => {
       $("blocoEntrega").hidden = isRetirada();
@@ -247,101 +314,89 @@
     let v = e.target.value.replace(/\D/g, "").slice(0, 8);
     if (v.length > 5) v = v.slice(0, 5) + "-" + v.slice(5);
     e.target.value = v;
-    if (v.length === 9) calcularFrete();
+    if (v.length === 9) buscarCep();
   });
-  $("cep").addEventListener("keydown", (e) => e.key === "Enter" && calcularFrete());
-  $("calcFrete").onclick = calcularFrete;
+  $("cep").addEventListener("keydown", (e) => e.key === "Enter" && buscarCep());
+  $("calcFrete").onclick = buscarCep;
 
   function msgFrete(txt, cls) {
     $("freteMsg").className = "hint " + (cls || "");
     $("freteMsg").innerHTML = txt;
   }
 
-  async function calcularFrete() {
+  async function buscarCep() {
     const cep = $("cep").value.replace(/\D/g, "");
-    frete = null;
+    frete = null; enderecoCep = null;
     $("enderecoCampos").hidden = true;
     if (cep.length !== 8) { msgFrete("Digite um CEP válido com 8 dígitos.", "bad"); renderCarrinho(); return; }
 
-    msgFrete("Buscando CEP...");
-    let dados = await buscarCep(cep);
+    msgFrete('<span class="spin"></span> Buscando CEP...');
+    const id = ++calcId;
+    let end = await Geo.buscarCep(cep);
+    if (id !== calcId) return;
     let manual = false;
 
-    if (!dados) {
-      const [ini, fim] = CONFIG.frete.faixaCep || [];
+    if (!end) {
+      const [ini, fim] = FRETE.faixaCep || [];
       if (ini && cep >= ini && cep <= fim) {
-        // CEP da cidade que não está nas bases: aceita e pede rua/bairro
-        dados = { localidade: CONFIG.frete.cidade, uf: CONFIG.frete.uf || "", bairro: "", logradouro: "" };
+        end = { rua: "", bairro: "", cidade: FRETE.cidade, uf: FRETE.uf };
         manual = true;
       } else {
         msgFrete("CEP não encontrado. Confira os números e tente de novo.", "bad"); renderCarrinho(); return;
       }
     }
 
-    const cidade = dados.localidade;
-    let valor = null;
-
-    if (norm(cidade) === norm(CONFIG.frete.cidade)) {
-      valor = taxaDoBairro(dados.bairro);
-    } else {
-      const chave = Object.keys(CONFIG.frete.outrasCidades).find((c) => norm(c) === norm(cidade));
-      if (chave) valor = CONFIG.frete.outrasCidades[chave];
-    }
-
-    if (valor === null) {
-      msgFrete(`Desculpe, ainda não entregamos em ${cidade} - ${dados.uf}. Você pode escolher <b>Retirar na loja</b>.`, "bad");
-      renderCarrinho(); return;
-    }
-
-    frete = { valor, cep: $("cep").value, cidade, uf: dados.uf, bairro: dados.bairro || "Bairro não informado", rua: dados.logradouro };
-    $("rua").value = dados.logradouro || "";
-    $("bairro").value = dados.bairro || "";
-    $("bairro").readOnly = !!dados.bairro; // CEP geral de cidade não traz bairro
+    enderecoCep = { ...end, cep: $("cep").value };
+    $("rua").value = end.rua || "";
+    $("bairro").value = end.bairro || "";
+    $("bairro").readOnly = !!end.bairro;
     $("enderecoCampos").hidden = false;
-    $("freteMsg").className = "hint ok";
-    renderCarrinho();
-    if (manual) {
-      $("freteMsg").innerHTML = `CEP de ${cidade} aceito! Digite sua <b>rua</b> e <b>bairro</b> abaixo. Frete: <b>${brl(valorFrete())}</b>`;
+
+    if (manual || (!end.rua && !end.bairro && end.lat == null)) {
+      msgFrete(`CEP de ${esc(end.cidade)} aceito! Digite sua <b>rua</b> e <b>bairro</b> para calcularmos o frete.`);
+      renderCarrinho();
+      $("rua").focus();
+      return;
     }
-    (dados.logradouro ? $("numero") : $("rua")).focus();
+    await calcularDistancia();
+    (end.rua ? $("numero") : $("rua")).focus();
   }
 
-  function taxaDoBairro(bairro) {
-    const chave = Object.keys(CONFIG.frete.bairros).find((b) => norm(b) === norm(bairro));
-    return chave ? CONFIG.frete.bairros[chave] : CONFIG.frete.taxaPadrao;
-  }
-
-  // Consulta o CEP no ViaCEP e, se falhar, na BrasilAPI
-  async function buscarCep(cep) {
-    const comTempo = (url) => {
-      const ctrl = "AbortController" in window ? new AbortController() : null;
-      const t = ctrl && setTimeout(() => ctrl.abort(), 6000);
-      return fetch(url, ctrl ? { signal: ctrl.signal } : {}).finally(() => t && clearTimeout(t));
-    };
-    try {
-      const r = await comTempo(`https://viacep.com.br/ws/${cep}/json/`);
-      if (r.ok) {
-        const d = await r.json();
-        if (d && !d.erro && d.localidade) return d;
-      }
-    } catch {}
-    try {
-      const r = await comTempo(`https://brasilapi.com.br/api/cep/v1/${cep}`);
-      if (r.ok) {
-        const d = await r.json();
-        if (d && d.city) return { localidade: d.city, uf: d.state, bairro: d.neighborhood || "", logradouro: d.street || "" };
-      }
-    } catch {}
-    return null;
-  }
-
-  // Se o cliente digitar/alterar o bairro, recalcula a taxa
-  $("bairro").addEventListener("input", () => {
-    if (!frete || norm(frete.cidade) !== norm(CONFIG.frete.cidade)) return;
-    frete.valor = taxaDoBairro($("bairro").value);
-    frete.bairro = $("bairro").value.trim() || "Bairro não informado";
+  async function calcularDistancia() {
+    if (!enderecoCep) return;
+    const id = ++calcId;
+    frete = null;
+    msgFrete('<span class="spin"></span> Calculando distância até você...');
     renderCarrinho();
-  });
+    const end = {
+      rua: $("rua").value.trim(),
+      bairro: $("bairro").value.trim(),
+      cidade: enderecoCep.cidade,
+      uf: enderecoCep.uf,
+      // coordenadas do CEP só valem se a rua não foi alterada
+      lat: $("rua").value.trim() === (enderecoCep.rua || "") ? enderecoCep.lat : undefined,
+      lng: $("rua").value.trim() === (enderecoCep.rua || "") ? enderecoCep.lng : undefined,
+    };
+    const r = await Geo.calcularFrete(end, FRETE);
+    if (id !== calcId) return;
+    if (!r.ok) {
+      frete = null;
+      if (r.motivo === "longe") {
+        msgFrete(`Você está a ${kmTxt(r.km)} da loja — entregamos até ${FRETE.raioMaximoKm} km. Escolha <b>Retirar na loja</b>.`, "bad");
+      } else {
+        msgFrete(`Desculpe, não entregamos em ${esc(end.cidade)}. Você pode escolher <b>Retirar na loja</b>.`, "bad");
+      }
+      renderCarrinho();
+      return;
+    }
+    frete = r;
+    renderCarrinho();
+  }
+
+  // Se o cliente mudar rua/bairro, recalcula
+  ["rua", "bairro"].forEach((campo) => $(campo).addEventListener("change", () => {
+    if (enderecoCep && ($("rua").value.trim() || $("bairro").value.trim())) calcularDistancia();
+  }));
 
   $("pagamento").addEventListener("change", () => {
     $("troco").hidden = norm($("pagamento").value) !== "dinheiro";
@@ -356,25 +411,27 @@
     const nome = $("nome").value.trim();
 
     if (!lista.length) return erro("Seu carrinho está vazio.");
-    if (sub < CONFIG.pedidoMinimo) return erro(`Pedido mínimo de ${brl(CONFIG.pedidoMinimo)}.`);
+    if (sub < Number(LOJA.pedidoMinimo || 0)) return erro(`Pedido mínimo de ${brl(LOJA.pedidoMinimo)}.`);
     if (!retirada) {
-      if (!frete) return erro("Informe um CEP válido para calcular o frete.");
+      if (!enderecoCep) return erro("Informe seu CEP.");
       if (!$("rua").value.trim()) return erro("Informe a rua.");
       if (!$("numero").value.trim()) return erro("Informe o número do endereço.");
       if (!$("bairro").value.trim()) return erro("Informe o bairro.");
+      if (!frete) return erro("Aguarde o cálculo do frete (ou confira o endereço).");
     }
     if (!nome) return erro("Informe seu nome.");
 
     const f = valorFrete() || 0;
     const total = sub + f;
     const L = [];
-    L.push(`*🍷 NOVO PEDIDO - ${CONFIG.nomeLoja.toUpperCase()}*`, "");
+    L.push(`*🍺 NOVO PEDIDO - ${LOJA.nome.toUpperCase()}*`, "");
     L.push(`*Cliente:* ${nome}`);
     if ($("telefone").value.trim()) L.push(`*Telefone:* ${$("telefone").value.trim()}`);
     L.push("", "*🛒 Itens:*");
-    lista.forEach((i) => L.push(`• ${i.qtd}x ${i.nome} — ${brl(i.preco * i.qtd)}`));
+    lista.forEach((i) => L.push(`• ${i.qtd}x ${i.nome} — ${brl(precoFinal(i) * i.qtd)}${temPromo(i) ? " (promo)" : ""}`));
     L.push("", `*Subtotal:* ${brl(sub)}`);
-    L.push(`*Frete:* ${retirada ? "Retirada na loja" : f === 0 ? "Grátis" : brl(f)}`);
+    const dist = !retirada && frete && frete.km != null ? ` (${kmTxt(frete.km)})` : "";
+    L.push(`*Frete:* ${retirada ? "Retirada na loja" : f === 0 ? "Grátis" : brl(f)}${dist}`);
     L.push(`*TOTAL: ${brl(total)}*`, "");
 
     if (retirada) {
@@ -384,8 +441,8 @@
       let end = `${$("rua").value.trim()}, ${$("numero").value.trim()}`;
       if ($("complemento").value.trim()) end += ` - ${$("complemento").value.trim()}`;
       L.push(end);
-      L.push(`${$("bairro").value.trim()} - ${frete.cidade}/${frete.uf}`);
-      L.push(`CEP: ${frete.cep}`);
+      L.push(`${$("bairro").value.trim()} - ${enderecoCep.cidade}/${enderecoCep.uf}`);
+      L.push(`CEP: ${enderecoCep.cep}`);
       if ($("referencia").value.trim()) L.push(`Referência: ${$("referencia").value.trim()}`);
     }
 
@@ -393,8 +450,8 @@
     if (!$("troco").hidden && $("troco").value.trim()) L.push(`Troco para: ${$("troco").value.trim()}`);
     if ($("obs").value.trim()) L.push("", `*📝 Obs:* ${$("obs").value.trim()}`);
 
-    const url = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(L.join("\n"))}`;
-    window.open(url, "_blank");
+    const numero = String(LOJA.whatsapp).replace(/\D/g, "");
+    window.open(`https://wa.me/${numero}?text=${encodeURIComponent(L.join("\n"))}`, "_blank");
   };
 
   // ---------- Toast ----------
@@ -408,6 +465,6 @@
 
   // ---------- Início ----------
   renderCategorias();
-  renderCatalogo();
+  renderTudo();
   renderCarrinho();
 })();

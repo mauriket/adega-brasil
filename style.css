@@ -331,3 +331,40 @@ main, .footer { position: relative; z-index: 1; }
   .card { opacity: 1; transform: none; }
   .bubbles { display: none; }
 }
+
+/* ============ Promoções e destaques ============ */
+.selos { position: absolute; top: 8px; left: 8px; right: 8px; display: flex; flex-wrap: wrap; gap: 4px; pointer-events: none; }
+.selo { font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 999px; line-height: 1.4; }
+.selo-off { background: #e11d48; color: #fff; animation: pulseOff 1.6s ease-in-out infinite; }
+.selo-dest { background: rgba(10,10,10,.75); color: var(--gold); border: 1px solid rgba(255,194,14,.5); }
+.card-price s { color: var(--muted); font-size: 13px; font-weight: 600; margin-right: 6px; }
+.card-desc { font-size: 12px; color: var(--muted); margin-top: -4px; }
+
+.sec-promo {
+  position: relative; margin-top: 26px; padding: 18px; border-radius: 22px;
+  background: linear-gradient(rgba(20,20,20,.92), rgba(20,20,20,.92)) padding-box,
+              linear-gradient(120deg, #ffd84d, #f59e0b, #e11d48, #ffc20e) border-box;
+  border: 2px solid transparent; background-size: 100% 100%, 300% 300%;
+  animation: bordaGira 6s linear infinite;
+}
+.sec-promo-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.sec-promo-head h2 { margin: 0; font-size: 22px; font-weight: 900; text-transform: uppercase; }
+.sec-promo-head h2 { animation: fogo 1.8s ease-in-out infinite; }
+.contador-box { font-size: 13px; color: var(--muted); background: var(--bg); border: 1px solid var(--border); padding: 6px 12px; border-radius: 999px; }
+.contador-box b { color: var(--gold); font-family: "Montserrat", sans-serif; font-size: 15px; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
+
+.carrossel {
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(175px, 210px); gap: 14px;
+  overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 2px 12px; scrollbar-width: thin; scrollbar-color: var(--gold) transparent;
+}
+.carrossel .card { scroll-snap-align: start; }
+
+.ci-emoji img { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; display: block; margin: 0 auto; }
+.fly-img { width: 56px; height: 56px; object-fit: cover; border-radius: 12px; }
+
+.spin { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--gold); border-right-color: transparent; border-radius: 50%; animation: girar .7s linear infinite; vertical-align: -2px; margin-right: 4px; }
+
+@keyframes pulseOff { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+@keyframes bordaGira { to { background-position: 0 0, 300% 0; } }
+@keyframes fogo { 0%, 100% { text-shadow: 0 0 0 rgba(255,140,0,0); } 50% { text-shadow: 0 0 18px rgba(255,140,0,.7); } }
+@keyframes girar { to { transform: rotate(360deg); } }

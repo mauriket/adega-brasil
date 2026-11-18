@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Painel Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin">
+
+  <header class="a-top">
+    <div class="a-top-inner">
+      <div class="a-brand">
+        <img src="img/logo.png" alt="Logo">
+        <div><strong>Painel Admin</strong><small id="statusTxt">Carregando…</small></div>
+      </div>
+      <div class="a-top-actions">
+        <a href="index.html" target="_blank" class="btn btn-ghost">👁️ Ver site</a>
+        <button class="btn btn-primary" id="btnPublicar">🚀 Publicar no site</button>
+      </div>
+    </div>
+    <nav class="a-tabs" id="tabs">
+      <button data-tab="produtos" class="active">🍺 Produtos</button>
+      <button data-tab="categorias">🏷️ Categorias</button>
+      <button data-tab="frete">🛵 Frete por KM</button>
+      <button data-tab="loja">💬 Loja e WhatsApp</button>
+      <button data-tab="github">🔑 Conexão</button>
+    </nav>
+  </header>
+
+  <main class="a-main">
+
+    <!-- PRODUTOS -->
+    <section class="a-tab" id="tab-produtos">
+      <div class="a-bar">
+        <input type="search" id="pBusca" placeholder="Buscar produto…">
+        <select id="pFiltro"></select>
+        <button class="btn btn-primary" id="pNovo">+ Novo produto</button>
+      </div>
+      <div class="a-resumo" id="pResumo"></div>
+      <div class="a-list" id="pLista"></div>
+    </section>
+
+    <!-- CATEGORIAS -->
+    <section class="a-tab" id="tab-categorias" hidden>
+      <div class="a-card">
+        <h2>Categorias</h2>
+        <p class="a-help">A ordem aqui é a ordem em que aparecem no site. Renomear muda automaticamente todos os produtos da categoria.</p>
+        <div class="a-bar">
+          <input type="text" id="cNova" placeholder="Nome da nova categoria">
+          <button class="btn btn-primary" id="cAdd">+ Adicionar</button>
+        </div>
+        <div id="cLista"></div>
+      </div>
+    </section>
+
+    <!-- FRETE -->
+    <section class="a-tab" id="tab-frete" hidden>
+      <div class="a-card">
+        <h2>📍 Localização da loja</h2>
+        <p class="a-help">O frete é calculado pela distância de carro entre a loja e o endereço do cliente.</p>
+        <div class="a-grid2">
+          <label>CEP da loja<input type="text" id="fLojaCep" inputmode="numeric" maxlength="9" placeholder="00000-000"></label>
+          <label>Número / referência (opcional)<input type="text" id="fLojaRua" placeholder="Rua da loja (se o CEP não trouxer)"></label>
+        </div>
+        <button class="btn btn-secondary" id="fLocalizar">🔎 Localizar loja pelo CEP</button>
+        <p class="hint" id="fLocMsg"></p>
+        <div class="a-grid2">
+          <label>Latitude<input type="number" step="any" id="fLat"></label>
+          <label>Longitude<input type="number" step="any" id="fLng"></label>
+        </div>
+        <a href="#" target="_blank" id="fMapa" class="a-link">🗺️ Conferir no mapa</a>
+      </div>
+
+      <div class="a-card">
+        <h2>💰 Valores</h2>
+        <div class="a-grid3">
+          <label>Preço por KM (R$)<input type="number" step="0.01" min="0" id="fPrecoKm"></label>
+          <label>Taxa fixa de saída (R$)<input type="number" step="0.01" min="0" id="fTaxaFixa"></label>
+          <label>Frete mínimo (R$)<input type="number" step="0.01" min="0" id="fTaxaMin"></label>
+          <label>Entrega até (KM) <small>0 = sem limite</small><input type="number" step="0.1" min="0" id="fRaio"></label>
+          <label>Frete grátis acima de (R$) <small>0 = desligado</small><input type="number" step="0.01" min="0" id="fGratis"></label>
+          <label>Taxa se não localizar o endereço (R$)<input type="number" step="0.01" min="0" id="fPadrao"></label>
+        </div>
+        <div class="a-formula" id="fFormula"></div>
+      </div>
+
+      <div class="a-card">
+        <h2>🧪 Testar frete</h2>
+        <div class="a-bar">
+          <input type="text" id="fTesteCep" inputmode="numeric" maxlength="9" placeholder="CEP de um cliente">
+          <button class="btn btn-secondary" id="fTestar">Calcular</button>
+        </div>
+        <p class="hint" id="fTesteMsg"></p>
+      </div>
+    </section>
+
+    <!-- LOJA -->
+    <section class="a-tab" id="tab-loja" hidden>
+      <div class="a-card">
+        <h2>💬 WhatsApp que recebe os pedidos</h2>
+        <label>Número com DDD<input type="tel" id="lWhats" placeholder="(62) 99999-9999"></label>
+        <p class="hint" id="lWhatsMsg"></p>
+        <a href="#" target="_blank" class="btn btn-whats a-w-auto" id="lWhatsTeste">Testar este número</a>
+      </div>
+      <div class="a-card">
+        <h2>🏪 Dados da loja</h2>
+        <div class="a-grid2">
+          <label>Nome da loja<input type="text" id="lNome"></label>
+          <label>Frase (slogan)<input type="text" id="lSlogan"></label>
+          <label>Endereço para retirada<input type="text" id="lEndereco"></label>
+          <label>Pedido mínimo (R$)<input type="number" step="0.01" min="0" id="lMinimo"></label>
+        </div>
+        <label>Formas de pagamento <small>(separe por vírgula)</small><input type="text" id="lPagamentos"></label>
+      </div>
+    </section>
+
+    <!-- GITHUB -->
+    <section class="a-tab" id="tab-github" hidden>
+      <div class="a-card">
+        <h2>🔑 Conexão para publicar</h2>
+        <p class="a-help">O site fica no GitHub. Para o botão <b>Publicar</b> funcionar, este aparelho precisa de uma chave do GitHub (só uma vez). A chave fica salva <b>só neste navegador</b>.</p>
+        <ol class="a-passos">
+          <li>Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" class="a-link">github.com/settings/personal-access-tokens/new</a></li>
+          <li><b>Token name:</b> painel adega · <b>Expiration:</b> escolha "No expiration" ou 1 ano</li>
+          <li><b>Repository access:</b> "Only select repositories" → escolha <b id="gRepoNome">adega-brasil</b></li>
+          <li><b>Permissions → Repository permissions → Contents:</b> "Read and write"</li>
+          <li>Clique em <b>Generate token</b>, copie e cole abaixo</li>
+        </ol>
+        <div class="a-grid3">
+          <label>Usuário<input type="text" id="gOwner"></label>
+          <label>Repositório<input type="text" id="gRepo"></label>
+          <label>Branch<input type="text" id="gBranch"></label>
+        </div>
+        <label>Chave (token)<input type="password" id="gToken" placeholder="github_pat_…" autocomplete="off"></label>
+        <div class="a-bar">
+          <button class="btn btn-primary" id="gSalvar">Salvar e testar</button>
+          <button class="btn btn-ghost" id="gEsquecer">Remover chave deste aparelho</button>
+        </div>
+        <p class="hint" id="gMsg"></p>
+      </div>
+      <div class="a-card">
+        <h2>💾 Cópia de segurança</h2>
+        <p class="a-help">Baixe todos os produtos e configurações num arquivo (data.js).</p>
+        <button class="btn btn-secondary" id="gBaixar">⬇️ Baixar data.js</button>
+        <button class="btn btn-ghost" id="gDescartar">Descartar alterações não publicadas</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal de produto -->
+  <div class="overlay" id="mOverlay" hidden></div>
+  <div class="a-modal" id="mProduto" hidden>
+    <div class="a-modal-head">
+      <h2 id="mTitulo">Produto</h2>
+      <button class="icon-btn" id="mFechar" aria-label="Fechar">✕</button>
+    </div>
+    <div class="a-modal-body">
+      <div class="a-foto">
+        <div class="a-foto-prev" id="mFotoPrev"></div>
+        <div class="a-foto-acoes">
+          <label class="btn btn-secondary">📷 Escolher imagem<input type="file" accept="image/*" id="mFoto" hidden></label>
+          <button class="btn btn-ghost" id="mFotoRemover">Remover imagem</button>
+          <small class="a-help">A imagem é reduzida automaticamente. Sem imagem, aparece o emoji.</small>
+        </div>
+      </div>
+      <label>Nome<input type="text" id="mNome" placeholder="Ex: Heineken Long Neck 330ml"></label>
+      <div class="a-grid2">
+        <label>Categoria<select id="mCategoria"></select></label>
+        <label>Emoji<input type="text" id="mEmoji" maxlength="4" placeholder="🍺"></label>
+        <label>Preço (R$)<input type="number" step="0.01" min="0" id="mPreco"></label>
+        <label>Preço promocional (R$) <small>0 = sem promoção</small><input type="number" step="0.01" min="0" id="mPromo"></label>
+      </div>
+      <label>Descrição (opcional)<input type="text" id="mDesc" placeholder="Ex: Gelada, pack com 6"></label>
+      <div class="a-toggles">
+        <label class="a-switch"><input type="checkbox" id="mDestaque"><span></span> ⭐ Destaque</label>
+        <label class="a-switch"><input type="checkbox" id="mPromoDia"><span></span> 🔥 Promoção do dia</label>
+        <label class="a-switch"><input type="checkbox" id="mAtivo"><span></span> 👁️ Aparece no site</label>
+      </div>
+      <p class="error" id="mErro"></p>
+    </div>
+    <div class="a-modal-foot">
+      <button class="btn btn-ghost" id="mCancelar">Cancelar</button>
+      <button class="btn btn-primary" id="mSalvar">Salvar produto</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');</script>
+  <script src="geo.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
