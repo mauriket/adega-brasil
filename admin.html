@@ -1,198 +1,347 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
-  <title>Painel Admin</title>
+  <title>Painel da Adega</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="admin.css">
+  <script>try { document.documentElement.dataset.theme = localStorage.getItem("adega_admin_tema") || "dark"; } catch (e) {}</script>
 </head>
-<body class="admin">
+<body>
+  <div class="bg" aria-hidden="true"><i class="g1"></i><i class="g2"></i><i class="g3"></i></div>
 
-  <header class="a-top">
-    <div class="a-top-inner">
-      <div class="a-brand">
-        <img src="img/logo.png" alt="Logo">
-        <div><strong>Painel Admin</strong><small id="statusTxt">Carregando…</small></div>
-      </div>
-      <div class="a-top-actions">
-        <a href="index.html" target="_blank" class="btn btn-ghost">👁️ Ver site</a>
-        <button class="btn btn-primary" id="btnPublicar">🚀 Publicar no site</button>
-      </div>
-    </div>
-    <nav class="a-tabs" id="tabs">
-      <button data-tab="produtos" class="active">🍺 Produtos</button>
-      <button data-tab="categorias">🏷️ Categorias</button>
-      <button data-tab="frete">🛵 Frete por KM</button>
-      <button data-tab="loja">💬 Loja e WhatsApp</button>
-      <button data-tab="github">🔑 Conexão</button>
+  <!-- ===== Topo ===== -->
+  <header class="top">
+    <a class="brand" href="#inicio" data-go="inicio">
+      <img src="img/logo.png" alt="">
+      <span>Painel</span>
+    </a>
+    <nav class="nav" id="nav" aria-label="Seções">
+      <span class="nav-pill" id="navPill" aria-hidden="true"></span>
+      <button data-tab="inicio">Início</button>
+      <button data-tab="produtos">Produtos</button>
+      <button data-tab="promocoes">Promoções</button>
+      <button data-tab="categorias">Categorias</button>
+      <button data-tab="frete">Frete</button>
+      <button data-tab="loja">Loja</button>
     </nav>
+    <div class="top-act">
+      <span class="status" id="status"><i></i><b id="statusTxt">Carregando…</b></span>
+      <button class="btn accent" id="btnPublicar"><span data-ico="send"></span><span class="lbl">Publicar</span><em class="pub-dot" id="pubDot" hidden></em></button>
+    </div>
   </header>
 
-  <main class="a-main">
+  <!-- ===== Dock ===== -->
+  <aside class="dock" aria-label="Atalhos">
+    <button class="dk" data-acao="buscar" title="Buscar produto"><span data-ico="search"></span></button>
+    <button class="dk" data-acao="novoProduto" title="Novo produto"><span data-ico="plus"></span></button>
+    <button class="dk" data-acao="novaPromo" title="Nova promoção"><span data-ico="percent"></span></button>
+    <span class="dk-sep"></span>
+    <a class="dk" href="index.html" target="_blank" title="Ver site"><span data-ico="eye"></span></a>
+    <button class="dk" data-acao="conexao" title="Conexão com o site" id="dkConexao"><span data-ico="key"></span></button>
+    <button class="dk" data-acao="tema" title="Tema claro/escuro"><span data-ico="moon"></span></button>
+  </aside>
 
-    <!-- PRODUTOS -->
-    <section class="a-tab" id="tab-produtos">
-      <div class="a-bar">
-        <input type="search" id="pBusca" placeholder="Buscar produto…">
-        <select id="pFiltro"></select>
-        <button class="btn btn-primary" id="pNovo">+ Novo produto</button>
+  <main class="app" id="main">
+    <!-- Aviso: sem conexão -->
+    <div class="aviso" id="avisoConexao" hidden>
+      <span data-ico="alert" data-ico-size="22"></span>
+      <div><b>Suas alterações ainda NÃO vão para o site.</b> Elas ficam só neste aparelho até você conectar o painel ao GitHub (uma vez só, leva 2 minutos).</div>
+      <button class="btn accent sm" data-acao="conexao">Conectar agora</button>
+    </div>
+
+    <!-- Cabeçalho da página -->
+    <div class="page-head">
+      <h1 class="titulo" id="titulo">Início</h1>
+      <dl class="kpis" id="kpis"></dl>
+    </div>
+
+    <!-- ===== INÍCIO ===== -->
+    <section class="tab" id="tab-inicio">
+      <div class="grid-inicio">
+        <article class="card c-pub">
+          <header><h2>Publicação</h2></header>
+          <div id="inicioPub"></div>
+        </article>
+        <article class="card c-promo-agora">
+          <header><h2>Promoções agora</h2><button class="circ sm" data-go="promocoes" title="Ver todas"><span data-ico="arrow"></span></button></header>
+          <div id="inicioPromos"></div>
+        </article>
+        <article class="card c-atalhos">
+          <header><h2>Atalhos</h2></header>
+          <div class="atalhos">
+            <button class="tile" data-acao="novoProduto"><span data-ico="plus" data-ico-size="22"></span>Novo produto</button>
+            <button class="tile" data-acao="novaPromo"><span data-ico="percent" data-ico-size="22"></span>Nova promoção</button>
+            <button class="tile" data-go="frete"><span data-ico="truck" data-ico-size="22"></span>Valores do frete</button>
+            <button class="tile" data-go="loja"><span data-ico="chat" data-ico-size="22"></span>Trocar WhatsApp</button>
+          </div>
+        </article>
+        <article class="card c-dest">
+          <header><h2>Em destaque no site</h2><button class="circ sm" data-go="produtos" title="Produtos"><span data-ico="arrow"></span></button></header>
+          <div id="inicioDest"></div>
+        </article>
       </div>
-      <div class="a-resumo" id="pResumo"></div>
-      <div class="a-list" id="pLista"></div>
     </section>
 
-    <!-- CATEGORIAS -->
-    <section class="a-tab" id="tab-categorias" hidden>
-      <div class="a-card">
-        <h2>Categorias</h2>
-        <p class="a-help">A ordem aqui é a ordem em que aparecem no site. Renomear muda automaticamente todos os produtos da categoria.</p>
-        <div class="a-bar">
-          <input type="text" id="cNova" placeholder="Nome da nova categoria">
-          <button class="btn btn-primary" id="cAdd">+ Adicionar</button>
+    <!-- ===== PRODUTOS ===== -->
+    <section class="tab" id="tab-produtos" hidden>
+      <div class="toolbar">
+        <label class="search"><span data-ico="search"></span><input type="search" id="pBusca" placeholder="Buscar produto…"></label>
+        <button class="btn accent" data-acao="novoProduto"><span data-ico="plus"></span>Novo produto</button>
+      </div>
+      <div class="chips" id="pChips"></div>
+      <div class="lista" id="pLista"></div>
+    </section>
+
+    <!-- ===== PROMOÇÕES ===== -->
+    <section class="tab" id="tab-promocoes" hidden>
+      <div class="toolbar">
+        <label class="search"><span data-ico="search"></span><input type="search" id="prBusca" placeholder="Buscar promoção…"></label>
+        <button class="btn accent" data-acao="novaPromo"><span data-ico="plus"></span>Nova promoção</button>
+      </div>
+      <div class="chips" id="prChips"></div>
+      <div class="promo-grid" id="prLista"></div>
+    </section>
+
+    <!-- ===== CATEGORIAS ===== -->
+    <section class="tab" id="tab-categorias" hidden>
+      <article class="card">
+        <header><h2>Categorias do catálogo</h2></header>
+        <p class="help">A ordem aqui é a ordem no site. Renomear atualiza os produtos e as promoções da categoria.</p>
+        <div class="toolbar">
+          <label class="search"><span data-ico="layers"></span><input type="text" id="cNova" placeholder="Nome da nova categoria"></label>
+          <button class="btn accent" id="cAdd"><span data-ico="plus"></span>Adicionar</button>
         </div>
         <div id="cLista"></div>
+      </article>
+    </section>
+
+    <!-- ===== FRETE ===== -->
+    <section class="tab" id="tab-frete" hidden>
+      <div class="grid-2">
+        <article class="card">
+          <header><h2>Localização da loja</h2></header>
+          <p class="help">O frete é calculado pela distância de carro entre a loja e o cliente.</p>
+          <div class="campos-2">
+            <label class="f">CEP da loja<input type="text" id="fLojaCep" inputmode="numeric" maxlength="9" placeholder="00000-000"></label>
+            <label class="f">Rua (se o CEP não trouxer)<input type="text" id="fLojaRua"></label>
+          </div>
+          <button class="btn ghost" id="fLocalizar"><span data-ico="pin"></span>Localizar pelo CEP</button>
+          <p class="hint" id="fLocMsg"></p>
+          <div class="campos-2">
+            <label class="f">Latitude<input type="number" step="any" id="fLat"></label>
+            <label class="f">Longitude<input type="number" step="any" id="fLng"></label>
+          </div>
+          <a href="#" target="_blank" id="fMapa" class="link"><span data-ico="pin"></span>Conferir no mapa</a>
+        </article>
+        <article class="card">
+          <header><h2>Valores</h2></header>
+          <div class="campos-2">
+            <label class="f">Preço por KM (R$)<input type="number" step="0.01" min="0" id="fPrecoKm"></label>
+            <label class="f">Taxa fixa de saída (R$)<input type="number" step="0.01" min="0" id="fTaxaFixa"></label>
+            <label class="f">Frete mínimo (R$)<input type="number" step="0.01" min="0" id="fTaxaMin"></label>
+            <label class="f">Entrega até (KM) <small>0 = sem limite</small><input type="number" step="0.1" min="0" id="fRaio"></label>
+            <label class="f">Frete grátis acima de (R$) <small>0 = desligado</small><input type="number" step="0.01" min="0" id="fGratis"></label>
+            <label class="f">Se não achar o endereço (R$)<input type="number" step="0.01" min="0" id="fPadrao"></label>
+          </div>
+          <div class="formula" id="fFormula"></div>
+        </article>
+        <article class="card span-2">
+          <header><h2>Testar frete</h2></header>
+          <div class="toolbar">
+            <label class="search"><span data-ico="pin"></span><input type="text" id="fTesteCep" inputmode="numeric" maxlength="9" placeholder="CEP de um cliente"></label>
+            <button class="btn ghost" id="fTestar">Calcular</button>
+          </div>
+          <p class="hint" id="fTesteMsg"></p>
+        </article>
       </div>
     </section>
 
-    <!-- FRETE -->
-    <section class="a-tab" id="tab-frete" hidden>
-      <div class="a-card">
-        <h2>📍 Localização da loja</h2>
-        <p class="a-help">O frete é calculado pela distância de carro entre a loja e o endereço do cliente.</p>
-        <div class="a-grid2">
-          <label>CEP da loja<input type="text" id="fLojaCep" inputmode="numeric" maxlength="9" placeholder="00000-000"></label>
-          <label>Número / referência (opcional)<input type="text" id="fLojaRua" placeholder="Rua da loja (se o CEP não trouxer)"></label>
-        </div>
-        <button class="btn btn-secondary" id="fLocalizar">🔎 Localizar loja pelo CEP</button>
-        <p class="hint" id="fLocMsg"></p>
-        <div class="a-grid2">
-          <label>Latitude<input type="number" step="any" id="fLat"></label>
-          <label>Longitude<input type="number" step="any" id="fLng"></label>
-        </div>
-        <a href="#" target="_blank" id="fMapa" class="a-link">🗺️ Conferir no mapa</a>
-      </div>
-
-      <div class="a-card">
-        <h2>💰 Valores</h2>
-        <div class="a-grid3">
-          <label>Preço por KM (R$)<input type="number" step="0.01" min="0" id="fPrecoKm"></label>
-          <label>Taxa fixa de saída (R$)<input type="number" step="0.01" min="0" id="fTaxaFixa"></label>
-          <label>Frete mínimo (R$)<input type="number" step="0.01" min="0" id="fTaxaMin"></label>
-          <label>Entrega até (KM) <small>0 = sem limite</small><input type="number" step="0.1" min="0" id="fRaio"></label>
-          <label>Frete grátis acima de (R$) <small>0 = desligado</small><input type="number" step="0.01" min="0" id="fGratis"></label>
-          <label>Taxa se não localizar o endereço (R$)<input type="number" step="0.01" min="0" id="fPadrao"></label>
-        </div>
-        <div class="a-formula" id="fFormula"></div>
-      </div>
-
-      <div class="a-card">
-        <h2>🧪 Testar frete</h2>
-        <div class="a-bar">
-          <input type="text" id="fTesteCep" inputmode="numeric" maxlength="9" placeholder="CEP de um cliente">
-          <button class="btn btn-secondary" id="fTestar">Calcular</button>
-        </div>
-        <p class="hint" id="fTesteMsg"></p>
+    <!-- ===== LOJA ===== -->
+    <section class="tab" id="tab-loja" hidden>
+      <div class="grid-2">
+        <article class="card">
+          <header><h2>WhatsApp dos pedidos</h2></header>
+          <label class="f">Número com DDD<input type="tel" id="lWhats" placeholder="(62) 99999-9999"></label>
+          <p class="hint" id="lWhatsMsg"></p>
+          <a href="#" target="_blank" class="btn whats" id="lWhatsTeste"><span data-ico="chat"></span>Testar este número</a>
+        </article>
+        <article class="card">
+          <header><h2>Dados da loja</h2></header>
+          <label class="f">Nome da loja<input type="text" id="lNome"></label>
+          <label class="f">Frase (slogan)<input type="text" id="lSlogan"></label>
+          <label class="f">Endereço para retirada<input type="text" id="lEndereco"></label>
+          <div class="campos-2">
+            <label class="f">Pedido mínimo (R$)<input type="number" step="0.01" min="0" id="lMinimo"></label>
+            <label class="f">Pagamentos <small>(separe por vírgula)</small><input type="text" id="lPagamentos"></label>
+          </div>
+        </article>
       </div>
     </section>
 
-    <!-- LOJA -->
-    <section class="a-tab" id="tab-loja" hidden>
-      <div class="a-card">
-        <h2>💬 WhatsApp que recebe os pedidos</h2>
-        <label>Número com DDD<input type="tel" id="lWhats" placeholder="(62) 99999-9999"></label>
-        <p class="hint" id="lWhatsMsg"></p>
-        <a href="#" target="_blank" class="btn btn-whats a-w-auto" id="lWhatsTeste">Testar este número</a>
-      </div>
-      <div class="a-card">
-        <h2>🏪 Dados da loja</h2>
-        <div class="a-grid2">
-          <label>Nome da loja<input type="text" id="lNome"></label>
-          <label>Frase (slogan)<input type="text" id="lSlogan"></label>
-          <label>Endereço para retirada<input type="text" id="lEndereco"></label>
-          <label>Pedido mínimo (R$)<input type="number" step="0.01" min="0" id="lMinimo"></label>
-        </div>
-        <label>Formas de pagamento <small>(separe por vírgula)</small><input type="text" id="lPagamentos"></label>
-      </div>
-    </section>
-
-    <!-- GITHUB -->
-    <section class="a-tab" id="tab-github" hidden>
-      <div class="a-card">
-        <h2>🔑 Conexão para publicar</h2>
-        <p class="a-help">O site fica no GitHub. Para o botão <b>Publicar</b> funcionar, este aparelho precisa de uma chave do GitHub (só uma vez). A chave fica salva <b>só neste navegador</b>.</p>
-        <ol class="a-passos">
-          <li>Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" class="a-link">github.com/settings/personal-access-tokens/new</a></li>
-          <li><b>Token name:</b> painel adega · <b>Expiration:</b> escolha "No expiration" ou 1 ano</li>
-          <li><b>Repository access:</b> "Only select repositories" → escolha <b id="gRepoNome">adega-brasil</b></li>
-          <li><b>Permissions → Repository permissions → Contents:</b> "Read and write"</li>
-          <li>Clique em <b>Generate token</b>, copie e cole abaixo</li>
-        </ol>
-        <div class="a-grid3">
-          <label>Usuário<input type="text" id="gOwner"></label>
-          <label>Repositório<input type="text" id="gRepo"></label>
-          <label>Branch<input type="text" id="gBranch"></label>
-        </div>
-        <label>Chave (token)<input type="password" id="gToken" placeholder="github_pat_…" autocomplete="off"></label>
-        <div class="a-bar">
-          <button class="btn btn-primary" id="gSalvar">Salvar e testar</button>
-          <button class="btn btn-ghost" id="gEsquecer">Remover chave deste aparelho</button>
-        </div>
-        <p class="hint" id="gMsg"></p>
-      </div>
-      <div class="a-card">
-        <h2>💾 Cópia de segurança</h2>
-        <p class="a-help">Baixe todos os produtos e configurações num arquivo (data.js).</p>
-        <button class="btn btn-secondary" id="gBaixar">⬇️ Baixar data.js</button>
-        <button class="btn btn-ghost" id="gDescartar">Descartar alterações não publicadas</button>
+    <!-- ===== CONEXÃO ===== -->
+    <section class="tab" id="tab-conexao" hidden>
+      <div class="grid-2">
+        <article class="card">
+          <header><h2>Conectar o painel ao site</h2></header>
+          <p class="help">O site fica no GitHub. Para o <b>Publicar</b> funcionar, este aparelho precisa de uma chave (só uma vez). Ela fica salva <b>só neste navegador</b>.</p>
+          <ol class="passos">
+            <li>Clique: <a href="#" target="_blank" class="link" id="gLinkToken">criar chave no GitHub</a> (já vem com nome e validade preenchidos)</li>
+            <li>Em <b>Repository access</b>, escolha <b>Only select repositories</b> → <b id="gRepoNome">adega-brasil</b></li>
+            <li>Em <b>Permissions</b> → <b>Contents</b>, escolha <b>Read and write</b></li>
+            <li>Clique em <b>Generate token</b>, copie a chave e cole aqui embaixo</li>
+          </ol>
+          <label class="f">Chave (token)<input type="password" id="gToken" placeholder="github_pat_…" autocomplete="off"></label>
+          <div class="row">
+            <button class="btn accent" id="gSalvar"><span data-ico="check"></span>Salvar e testar</button>
+            <button class="btn ghost" id="gEsquecer">Remover deste aparelho</button>
+          </div>
+          <p class="hint" id="gMsg"></p>
+          <details class="avancado">
+            <summary>Avançado</summary>
+            <div class="campos-3">
+              <label class="f">Usuário<input type="text" id="gOwner"></label>
+              <label class="f">Repositório<input type="text" id="gRepo"></label>
+              <label class="f">Branch<input type="text" id="gBranch"></label>
+            </div>
+          </details>
+        </article>
+        <article class="card">
+          <header><h2>Cópia de segurança</h2></header>
+          <p class="help">Baixe todos os produtos, promoções e configurações num arquivo.</p>
+          <div class="row">
+            <button class="btn ghost" id="gBaixar"><span data-ico="download"></span>Baixar data.js</button>
+            <button class="btn danger" id="gDescartar"><span data-ico="trash"></span>Descartar não publicadas</button>
+          </div>
+        </article>
       </div>
     </section>
   </main>
 
-  <!-- Modal de produto -->
-  <div class="overlay" id="mOverlay" hidden></div>
-  <div class="a-modal" id="mProduto" hidden>
-    <div class="a-modal-head">
-      <h2 id="mTitulo">Produto</h2>
-      <button class="icon-btn" id="mFechar" aria-label="Fechar">✕</button>
-    </div>
-    <div class="a-modal-body">
-      <div class="a-foto">
-        <div class="a-foto-prev" id="mFotoPrev"></div>
-        <div class="a-foto-acoes">
-          <label class="btn btn-secondary">📷 Escolher imagem<input type="file" accept="image/*" id="mFoto" hidden></label>
-          <button class="btn btn-ghost" id="mFotoRemover">Remover imagem</button>
-          <small class="a-help">A imagem é reduzida automaticamente. Sem imagem, aparece o emoji.</small>
+  <!-- ===== Modal: produto ===== -->
+  <div class="scrim" id="scrim" hidden></div>
+  <section class="modal" id="mProduto" role="dialog" aria-modal="true" aria-labelledby="mTitulo" hidden>
+    <header class="m-head"><h2 id="mTitulo">Produto</h2><button class="circ" data-fechar title="Fechar"><span data-ico="x"></span></button></header>
+    <div class="m-body">
+      <div class="foto">
+        <div class="foto-prev" id="mFotoPrev"></div>
+        <div class="foto-acoes">
+          <label class="btn ghost"><span data-ico="image"></span>Escolher imagem<input type="file" accept="image/*" id="mFoto" hidden></label>
+          <button class="btn ghost sm" id="mFotoRemover">Remover imagem</button>
+          <small class="help">Reduzida automaticamente. Sem imagem, aparece o emoji.</small>
         </div>
       </div>
-      <label>Nome<input type="text" id="mNome" placeholder="Ex: Heineken Long Neck 330ml"></label>
-      <div class="a-grid2">
-        <label>Categoria<select id="mCategoria"></select></label>
-        <label>Emoji<input type="text" id="mEmoji" maxlength="4" placeholder="🍺"></label>
-        <label>Preço (R$)<input type="number" step="0.01" min="0" id="mPreco"></label>
-        <label>Preço promocional (R$) <small>0 = sem promoção</small><input type="number" step="0.01" min="0" id="mPromo"></label>
+      <label class="f">Nome<input type="text" id="mNome" placeholder="Ex: Heineken Long Neck 330ml"></label>
+      <div class="campos-3">
+        <label class="f">Categoria<select id="mCategoria"></select></label>
+        <label class="f">Preço (R$)<input type="number" step="0.01" min="0" id="mPreco"></label>
+        <label class="f">Emoji<input type="text" id="mEmoji" maxlength="4"></label>
       </div>
-      <label>Descrição (opcional)<input type="text" id="mDesc" placeholder="Ex: Gelada, pack com 6"></label>
-      <div class="a-toggles">
-        <label class="a-switch"><input type="checkbox" id="mDestaque"><span></span> ⭐ Destaque</label>
-        <label class="a-switch"><input type="checkbox" id="mPromoDia"><span></span> 🔥 Promoção do dia</label>
-        <label class="a-switch"><input type="checkbox" id="mAtivo"><span></span> 👁️ Aparece no site</label>
+      <label class="f">Descrição (opcional)<input type="text" id="mDesc" placeholder="Ex: Gelada, pack com 6"></label>
+      <div class="switches">
+        <label class="sw"><input type="checkbox" id="mDestaque"><span></span>⭐ Destaque no site</label>
+        <label class="sw"><input type="checkbox" id="mAtivo"><span></span>👁️ Aparece no site</label>
       </div>
-      <p class="error" id="mErro"></p>
+      <div class="m-promos" id="mPromos"></div>
+      <p class="erro" id="mErro"></p>
     </div>
-    <div class="a-modal-foot">
-      <button class="btn btn-ghost" id="mCancelar">Cancelar</button>
-      <button class="btn btn-primary" id="mSalvar">Salvar produto</button>
-    </div>
-  </div>
+    <footer class="m-foot">
+      <button class="btn ghost" data-fechar>Cancelar</button>
+      <button class="btn accent" id="mSalvar"><span data-ico="check"></span>Salvar produto</button>
+    </footer>
+  </section>
 
-  <div class="toast" id="toast"></div>
+  <!-- ===== Modal: promoção ===== -->
+  <section class="modal modal-lg" id="mPromo" role="dialog" aria-modal="true" aria-labelledby="prTitulo" hidden>
+    <header class="m-head"><h2 id="prTitulo">Promoção</h2><button class="circ" data-fechar title="Fechar"><span data-ico="x"></span></button></header>
+    <div class="m-body promo-form">
+      <div class="pf-main">
+        <label class="f">Nome da promoção <small>(só aparece no painel)</small><input type="text" id="prNome" placeholder="Ex: Happy hour de sexta"></label>
+
+        <div class="pf-bloco">
+          <h3>1. Tipo de desconto</h3>
+          <div class="seg seg-wrap" id="prTipo"></div>
+          <div class="campos-3" id="prValores"></div>
+        </div>
+
+        <div class="pf-bloco">
+          <h3>2. Em quais produtos</h3>
+          <div class="seg" id="prAlvo">
+            <button data-v="produtos">Produtos escolhidos</button>
+            <button data-v="categoria">Uma categoria</button>
+            <button data-v="todos">Loja toda</button>
+          </div>
+          <div id="prAlvoProdutos">
+            <label class="search"><span data-ico="search"></span><input type="search" id="prProdBusca" placeholder="Filtrar produtos…"></label>
+            <div class="picker" id="prPicker"></div>
+            <small class="help" id="prSelCount"></small>
+          </div>
+          <label class="f" id="prAlvoCategoria">Categoria<select id="prCategoria"></select></label>
+        </div>
+
+        <div class="pf-bloco">
+          <h3>3. Quando vale</h3>
+          <div class="campos-2">
+            <label class="f">Começa em <small>(vazio = já)</small><input type="date" id="prInicio"></label>
+            <label class="f">Termina em <small>(vazio = sem fim)</small><input type="date" id="prFim"></label>
+          </div>
+          <div class="f">Dias da semana <small>(nenhum marcado = todos)</small>
+            <div class="dias" id="prDias"></div>
+          </div>
+          <div class="campos-2">
+            <label class="f">Das <small>(vazio = dia todo)</small><input type="time" id="prHoraIni"></label>
+            <label class="f">Até<input type="time" id="prHoraFim"></label>
+          </div>
+          <div class="presets">
+            <span>Atalhos:</span>
+            <button data-preset="sempre">Sempre</button>
+            <button data-preset="hoje">Só hoje</button>
+            <button data-preset="fds">Fim de semana</button>
+            <button data-preset="happy">Happy hour 18h–21h</button>
+            <button data-preset="madrugada">Madrugada 22h–4h</button>
+          </div>
+        </div>
+
+        <div class="pf-bloco">
+          <h3>4. Como aparece no site</h3>
+          <div class="seg" id="prVitrine">
+            <button data-v="promoDia">🔥 Promoção do dia</button>
+            <button data-v="ofertas">💥 Ofertas</button>
+            <button data-v="nenhuma">Só o selo no produto</button>
+          </div>
+          <div class="campos-2">
+            <label class="f">Texto do selo <small>(vazio = automático)</small><input type="text" id="prSelo" maxlength="24" placeholder="Ex: Só hoje!"></label>
+            <label class="f">Limite por pedido <small>(unidades com desconto, 0 = sem limite)</small><input type="number" min="0" step="1" id="prLimite"></label>
+          </div>
+        </div>
+      </div>
+
+      <aside class="pf-side">
+        <div class="pf-resumo">
+          <div class="pf-status" id="prStatus"></div>
+          <label class="sw"><input type="checkbox" id="prAtiva"><span></span>Promoção ligada</label>
+          <h3>Como fica no site</h3>
+          <div id="prPreview"></div>
+        </div>
+      </aside>
+      <p class="erro" id="prErro"></p>
+    </div>
+    <footer class="m-foot">
+      <button class="btn danger ghost" id="prExcluir"><span data-ico="trash"></span>Excluir</button>
+      <span class="spacer"></span>
+      <button class="btn ghost" data-fechar>Cancelar</button>
+      <button class="btn accent" id="prSalvar"><span data-ico="check"></span>Salvar promoção</button>
+    </footer>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');</script>
   <script src="geo.js"></script>
+  <script src="promo.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>

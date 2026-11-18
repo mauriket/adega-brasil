@@ -8,28 +8,44 @@
     get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
+  const sess = {
+    get(k) { try { return sessionStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { sessionStorage.setItem(k, v); } catch {} },
+  };
 
-  const D = window.DADOS;
+  // ---------- Dados (publicados ou prévia do painel neste aparelho) ----------
+  let D = window.DADOS ? JSON.parse(JSON.stringify(window.DADOS)) : null;
+  let imgsPrevia = {};
+  const rasc = store.get("adega_admin_rascunho", null);
+  if (rasc && rasc.dados && sess.get("adega_ver_publicado") !== "1" &&
+      JSON.stringify(Promo.migrar(JSON.parse(JSON.stringify(rasc.dados)))) !== JSON.stringify(D && Promo.migrar(JSON.parse(JSON.stringify(D))))) {
+    D = rasc.dados;
+    imgsPrevia = rasc.pendentes || {};
+    $("previa").hidden = false;
+  }
+  $("previaSair").onclick = () => { sess.set("adega_ver_publicado", "1"); location.reload(); };
+
   if (!D) {
     document.querySelector("main").innerHTML = '<p class="empty">Não foi possível carregar os produtos. Atualize a página.</p>';
     return;
   }
+  Promo.migrar(D);
   const LOJA = D.loja;
   const FRETE = D.frete;
+  const PROMOS = D.promocoes || [];
+  const img = (src) => imgsPrevia[src] || src;
 
   // ---------- Produtos ----------
   const PRODUTOS = D.produtos.filter((p) => p.ativo !== false);
   const produtoPorId = Object.fromEntries(PRODUTOS.map((p) => [p.id, p]));
-  const temPromo = (p) => Number(p.precoPromo) > 0 && Number(p.precoPromo) < Number(p.preco);
-  const precoFinal = (p) => (temPromo(p) ? Number(p.precoPromo) : Number(p.preco));
-  const desconto = (p) => Math.round((1 - p.precoPromo / p.preco) * 100);
+  const vit = (p) => Promo.vitrine(p, PROMOS);
 
   // ---------- Estado ----------
   let carrinho = store.get("adega_carrinho", {});
   for (const id in carrinho) if (!produtoPorId[id]) delete carrinho[id];
   let categoriaAtiva = "Todas";
-  let enderecoCep = null; // endereço vindo do CEP
-  let frete = null;       // { valor, km, metodo, estimado }
+  let enderecoCep = null;
+  let frete = null;
   let calcId = 0;
 
   // ---------- Cabeçalho ----------
@@ -88,16 +104,17 @@
 
   function imgHTML(p) {
     return p.imagem
-      ? `<img src="${esc(p.imagem)}" alt="${esc(p.nome)}" loading="lazy" onerror="this.style.visibility='hidden'">`
-      : `<span>${p.emoji || "🍾"}</span>`;
+      ? `<img src="${esc(img(p.imagem))}" alt="${esc(p.nome)}" loading="lazy" onerror="this.style.visibility='hidden'">`
+      : `<span>${esc(p.emoji || "🍾")}</span>`;
   }
 
   function cardHTML(p, i, secao) {
     const qtd = carrinho[p.id] || 0;
     const key = secao + "-" + p.id;
     const visto = vistos.has(key) || !observer;
+    const v = vit(p);
     const selos = [
-      temPromo(p) ? `<span class="selo selo-off">-${desconto(p)}%</span>` : "",
+      ...v.selos.map((s) => `<span class="selo selo-off">${esc(s)}</span>`),
       p.destaque && secao !== "dest" ? `<span class="selo selo-dest">⭐ Destaque</span>` : "",
     ].join("");
     const acao = qtd
@@ -108,19 +125,30 @@
       <div class="card-body">
         <div class="card-name">${esc(p.nome)}</div>
         ${p.descricao ? `<div class="card-desc">${esc(p.descricao)}</div>` : ""}
-        <div class="card-price">${temPromo(p) ? `<s>${brl(p.preco)}</s>` : ""}${brl(precoFinal(p))}</div>
+        <div class="card-price">${v.preco < v.cheio ? `<s>${brl(v.cheio)}</s>` : ""}${brl(v.preco)}</div>
         ${acao}
       </div>
     </article>`;
   }
 
+  // Produtos de uma vitrine (promoções ativas agora)
+  function produtosDaVitrine(tipo) {
+    const ids = new Set();
+    PROMOS.filter((pr) => pr.vitrine === tipo && Promo.estaAtiva(pr)).forEach((pr) =>
+      PRODUTOS.forEach((p) => { if (Promo.aplicaA(pr, p)) ids.add(p.id); }));
+    return PRODUTOS.filter((p) => ids.has(p.id));
+  }
+
   function renderEspeciais(filtrando) {
-    const promo = PRODUTOS.filter((p) => p.promoDia);
+    const promo = produtosDaVitrine("promoDia");
+    const ofertas = produtosDaVitrine("ofertas").filter((p) => !promo.includes(p));
     const dest = PRODUTOS.filter((p) => p.destaque);
     $("secPromo").hidden = filtrando || !promo.length;
+    $("secOfertas").hidden = filtrando || !ofertas.length;
     $("secDestaques").hidden = filtrando || !dest.length;
     if (!filtrando) {
       $("gridPromo").innerHTML = promo.map((p, i) => cardHTML(p, i, "promo")).join("");
+      $("gridOfertas").innerHTML = ofertas.map((p, i) => cardHTML(p, i, "ofer")).join("");
       $("gridDestaques").innerHTML = dest.map((p, i) => cardHTML(p, i, "dest")).join("");
     }
   }
@@ -149,13 +177,26 @@
   // ---------- Contagem regressiva da promoção do dia ----------
   function tickPromo() {
     const agora = new Date();
-    const fim = new Date(agora); fim.setHours(24, 0, 0, 0);
+    const fins = PROMOS.filter((pr) => pr.vitrine === "promoDia" && Promo.estaAtiva(pr, agora))
+      .map((pr) => Promo.terminaEm(pr, agora)).filter(Boolean);
+    let fim = fins.length ? new Date(Math.min(...fins)) : null;
+    if (!fim) { fim = new Date(agora); fim.setHours(24, 0, 0, 0); }
     const s = Math.max(0, Math.floor((fim - agora) / 1000));
     const pad = (n) => String(n).padStart(2, "0");
-    $("contador").textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+    const h = Math.floor(s / 3600);
+    $("contador").textContent = h >= 48
+      ? `${Math.floor(h / 24)} dias`
+      : `${pad(h)}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
   }
   tickPromo();
   setInterval(tickPromo, 1000);
+
+  // Promoções com horário entram/saem sozinhas: confere a cada 30s
+  let assinatura = PROMOS.filter((pr) => Promo.estaAtiva(pr)).map((pr) => pr.id).join(",");
+  setInterval(() => {
+    const nova = PROMOS.filter((pr) => Promo.estaAtiva(pr)).map((pr) => pr.id).join(",");
+    if (nova !== assinatura) { assinatura = nova; renderTudo(); renderCarrinho(); }
+  }, 30000);
 
   // ---------- Produto voando até o carrinho ----------
   function voar(origem, p) {
@@ -164,7 +205,7 @@
     let el;
     if (p.imagem) {
       el = document.createElement("img");
-      el.src = p.imagem;
+      el.src = img(p.imagem);
       el.className = "fly fly-img";
     } else {
       el = document.createElement("div");
@@ -191,7 +232,6 @@
     };
   }
 
-  // Efeito de onda ao clicar nos botões
   document.addEventListener("pointerdown", (e) => {
     const b = e.target.closest(".btn"); if (!b) return;
     const r = b.getBoundingClientRect();
@@ -222,8 +262,12 @@
     if (b.dataset.act === "dec") alterar(id, -1);
   });
 
-  const itens = () => Object.entries(carrinho).map(([id, q]) => ({ ...produtoPorId[id], qtd: q }));
-  const subtotal = () => itens().reduce((s, i) => s + precoFinal(i) * i.qtd, 0);
+  const itens = () => Object.entries(carrinho).map(([id, q]) => {
+    const p = produtoPorId[id];
+    return { ...p, qtd: q, calc: Promo.linha(p, q, PROMOS) };
+  });
+  const subtotal = () => itens().reduce((s, i) => s + i.calc.total, 0);
+  const economia = () => itens().reduce((s, i) => s + i.calc.economia, 0);
   const qtdTotal = () => itens().reduce((s, i) => s + i.qtd, 0);
   const isRetirada = () => document.querySelector('input[name="tipoEntrega"]:checked').value === "retirada";
   const kmTxt = (km) => km.toFixed(1).replace(".", ",") + " km";
@@ -251,18 +295,25 @@
     $("floatQtd").textContent = qtdTotal();
 
     $("cartItems").innerHTML = lista
-      .map(
-        (i, idx) => `<div class="cart-item" style="--d:${idx}">
-        <div class="ci-emoji">${i.imagem ? `<img src="${esc(i.imagem)}" alt="">` : i.emoji || "🍾"}</div>
-        <div><div class="ci-name">${esc(i.nome)}</div><div class="ci-price">${brl(precoFinal(i))} · <b>${brl(precoFinal(i) * i.qtd)}</b></div></div>
+      .map((i, idx) => {
+        const promo = i.calc.promo;
+        return `<div class="cart-item" style="--d:${idx}">
+        <div class="ci-emoji">${i.imagem ? `<img src="${esc(img(i.imagem))}" alt="">` : esc(i.emoji || "🍾")}</div>
+        <div><div class="ci-name">${esc(i.nome)}</div>
+          <div class="ci-price">${i.calc.economia > 0 ? `<s>${brl(i.calc.cheio)}</s> ` : ""}<b>${brl(i.calc.total)}</b></div>
+          ${promo ? `<div class="ci-promo">🏷️ ${esc(Promo.selo(promo, i.preco) || promo.nome)}</div>` : ""}
+        </div>
         <div class="qty"><button data-act="dec" data-id="${i.id}">−</button><span>${i.qtd}</span><button data-act="inc" data-id="${i.id}">+</button></div>
-      </div>`
-      )
+      </div>`;
+      })
       .join("");
 
     const sub = subtotal();
+    const eco = economia();
     const f = valorFrete();
     $("tSub").textContent = brl(sub);
+    $("linhaEco").hidden = eco <= 0;
+    $("tEco").textContent = "- " + brl(eco);
     $("tFrete").textContent = f === null ? "Informe o CEP" : f === 0 ? (isRetirada() ? "Retirada" : "Grátis") : brl(f);
     const total = sub + (f || 0);
     if ($("tTotal").textContent !== brl(total)) {
@@ -352,7 +403,7 @@
     $("bairro").readOnly = !!end.bairro;
     $("enderecoCampos").hidden = false;
 
-    if (manual || (!end.rua && !end.bairro && end.lat == null)) {
+    if (manual || (!end.rua && !end.bairro)) {
       msgFrete(`CEP de ${esc(end.cidade)} aceito! Digite sua <b>rua</b> e <b>bairro</b> para calcularmos o frete.`);
       renderCarrinho();
       $("rua").focus();
@@ -368,15 +419,7 @@
     frete = null;
     msgFrete('<span class="spin"></span> Calculando distância até você...');
     renderCarrinho();
-    const end = {
-      rua: $("rua").value.trim(),
-      bairro: $("bairro").value.trim(),
-      cidade: enderecoCep.cidade,
-      uf: enderecoCep.uf,
-      // coordenadas do CEP só valem se a rua não foi alterada
-      lat: $("rua").value.trim() === (enderecoCep.rua || "") ? enderecoCep.lat : undefined,
-      lng: $("rua").value.trim() === (enderecoCep.rua || "") ? enderecoCep.lng : undefined,
-    };
+    const end = { rua: $("rua").value.trim(), bairro: $("bairro").value.trim(), cidade: enderecoCep.cidade, uf: enderecoCep.uf };
     const r = await Geo.calcularFrete(end, FRETE);
     if (id !== calcId) return;
     if (!r.ok) {
@@ -393,7 +436,6 @@
     renderCarrinho();
   }
 
-  // Se o cliente mudar rua/bairro, recalcula
   ["rua", "bairro"].forEach((campo) => $(campo).addEventListener("change", () => {
     if (enderecoCep && ($("rua").value.trim() || $("bairro").value.trim())) calcularDistancia();
   }));
@@ -423,13 +465,18 @@
 
     const f = valorFrete() || 0;
     const total = sub + f;
+    const eco = economia();
     const L = [];
     L.push(`*🍺 NOVO PEDIDO - ${LOJA.nome.toUpperCase()}*`, "");
     L.push(`*Cliente:* ${nome}`);
     if ($("telefone").value.trim()) L.push(`*Telefone:* ${$("telefone").value.trim()}`);
     L.push("", "*🛒 Itens:*");
-    lista.forEach((i) => L.push(`• ${i.qtd}x ${i.nome} — ${brl(precoFinal(i) * i.qtd)}${temPromo(i) ? " (promo)" : ""}`));
+    lista.forEach((i) => {
+      const pr = i.calc.promo;
+      L.push(`• ${i.qtd}x ${i.nome} — ${brl(i.calc.total)}${pr ? ` _(${Promo.selo(pr, i.preco) || pr.nome})_` : ""}`);
+    });
     L.push("", `*Subtotal:* ${brl(sub)}`);
+    if (eco > 0) L.push(`*Economia com promoções:* ${brl(eco)}`);
     const dist = !retirada && frete && frete.km != null ? ` (${kmTxt(frete.km)})` : "";
     L.push(`*Frete:* ${retirada ? "Retirada na loja" : f === 0 ? "Grátis" : brl(f)}${dist}`);
     L.push(`*TOTAL: ${brl(total)}*`, "");

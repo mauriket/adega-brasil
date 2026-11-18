@@ -368,3 +368,17 @@ main, .footer { position: relative; z-index: 1; }
 @keyframes bordaGira { to { background-position: 0 0, 300% 0; } }
 @keyframes fogo { 0%, 100% { text-shadow: 0 0 0 rgba(255,140,0,0); } 50% { text-shadow: 0 0 18px rgba(255,140,0,.7); } }
 @keyframes girar { to { transform: rotate(360deg); } }
+
+/* ============ Prévia do painel / economia ============ */
+.previa {
+  position: relative; z-index: 15; display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap;
+  padding: 10px 16px; font-size: 13px; text-align: center;
+  background: repeating-linear-gradient(135deg, rgba(255,194,14,.16) 0 12px, rgba(255,194,14,.08) 12px 24px);
+  border-bottom: 1px solid rgba(255,194,14,.4); color: var(--text);
+}
+.previa b { color: var(--gold); }
+.previa button { background: var(--gold); color: #0a0a0a; border: 0; border-radius: 999px; padding: 6px 12px; font-weight: 800; cursor: pointer; }
+.sec-ofertas { margin-top: 6px; }
+.ci-price s { color: var(--muted); font-size: 12px; }
+.ci-promo { font-size: 11px; color: var(--gold); font-weight: 700; margin-top: 2px; }
+.totals .linha-eco { color: var(--whats); font-weight: 700; }

@@ -40,6 +40,11 @@
     <div class="bubbles" id="bubbles"></div>
   </div>
 
+  <div class="previa" id="previa" hidden>
+    👁️ <b>Prévia:</b> você está vendo as alterações do painel que <b>ainda não foram publicadas</b> (só neste aparelho).
+    <button id="previaSair">Ver versão publicada</button>
+  </div>
+
   <main class="container" id="catalogoTopo">
     <section class="toolbar">
       <input type="search" id="busca" placeholder="Buscar bebida..." autocomplete="off">
@@ -52,6 +57,11 @@
         <div class="contador-box">Termina em <b id="contador">00:00:00</b></div>
       </div>
       <div class="grid" id="gridPromo"></div>
+    </section>
+
+    <section class="sec-ofertas" id="secOfertas" hidden>
+      <h2 class="cat-title">💥 Ofertas</h2>
+      <div class="carrossel" id="gridOfertas"></div>
     </section>
 
     <section class="sec-dest" id="secDestaques" hidden>
@@ -120,6 +130,7 @@
     <div class="drawer-foot" id="cartFoot" hidden>
       <div class="totals">
         <div><span>Subtotal</span><span id="tSub">R$ 0,00</span></div>
+        <div class="linha-eco" id="linhaEco" hidden><span>🏷️ Você economizou</span><span id="tEco">R$ 0,00</span></div>
         <div><span>Frete</span><span id="tFrete">—</span></div>
         <div class="total"><span>Total</span><span id="tTotal">R$ 0,00</span></div>
       </div>
@@ -140,6 +151,7 @@
   <!-- data.js sempre fresquinho (o painel admin atualiza esse arquivo) -->
   <script>document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');</script>
   <script src="geo.js"></script>
+  <script src="promo.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
