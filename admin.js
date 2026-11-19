@@ -52,6 +52,16 @@
   });
   pintarIcones();
 
+  // Foto recém-publicada ainda não chegou no Pages? Busca direto no GitHub.
+  document.addEventListener("error", (e) => {
+    const img = e.target;
+    if (!(img instanceof HTMLImageElement) || img.dataset.r) return;
+    const caminho = (img.getAttribute("src") || "").split("?")[0];
+    if (!/^img\/produtos\//.test(caminho)) return;
+    img.dataset.r = "1";
+    img.src = `https://raw.githubusercontent.com/${gh.owner}/${gh.repo}/${gh.branch}/${caminho}`;
+  }, true);
+
   // ---------- Tema ----------
   function aplicarTema(t) {
     document.documentElement.dataset.theme = t;
@@ -221,7 +231,7 @@
         <div class="row"><button class="btn accent" data-acao="conexao">${ico("key")}Conectar agora</button><a class="btn ghost" href="index.html" target="_blank">${ico("eye")}Ver prévia</a></div></div>`;
     } else if (sujo) {
       html = `<div class="pub-box"><div class="big">Você tem <b>alterações não publicadas</b>${nImg ? ` (incluindo ${nImg} imagem${nImg > 1 ? "s" : ""})` : ""}.</div>
-        <div class="help">Clique em Publicar para mandar para o site. Leva 1–2 minutos para aparecer para os clientes.</div>
+        <div class="help">Clique em Publicar para mandar para o site. Aparece para os clientes na hora (é só atualizar a página).</div>
         <div class="row"><button class="btn accent" id="pubAgora">${ico("send")}Publicar agora</button><a class="btn ghost" href="index.html" target="_blank">${ico("eye")}Ver prévia</a></div></div>`;
     } else {
       html = `<div class="pub-box"><div class="big">✅ <b>Tudo publicado.</b> O site está igual ao painel.</div>
@@ -867,7 +877,7 @@
       publicado = JSON.stringify(dados);
       store.del(LS_DRAFT);
       atualizarStatus();
-      toast("🚀 Publicado! Em 1–2 minutos aparece no site.", null, 4500);
+      toast("🚀 Publicado! Já está no site — atualize a página do catálogo.", null, 4500);
       Motion.confete($("btnPublicar"));
     } catch (e) {
       mudou();
@@ -888,6 +898,13 @@
   async function iniciar() {
     let base = window.DADOS ? clone(window.DADOS) : null;
     if (gh.token) { try { const arq = await lerArquivo("data.js"); if (arq) base = parseDataJs(arq.texto); } catch {} }
+    else {
+      // sem chave: lê a versão mais nova direto do GitHub (o data.js do Pages pode estar atrasado)
+      try {
+        const r = await fetch(`https://api.github.com/repos/${gh.owner}/${gh.repo}/contents/data.js?ref=${gh.branch}&t=${Date.now()}`, { headers: { Accept: "application/vnd.github.raw" } });
+        if (r.ok) base = parseDataJs(await r.text());
+      } catch {}
+    }
     if (!base) { $("statusTxt").textContent = "Erro ao carregar"; $("skeleton").classList.add("fora"); return; }
     base.categorias ||= []; base.produtos ||= [];
     Promo.migrar(base);

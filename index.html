@@ -6,7 +6,7 @@
   <title>Adega Anápolis</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261119a">
 </head>
 <body>
 
@@ -153,8 +153,26 @@
 
   <!-- data.js sempre fresquinho (o painel admin atualiza esse arquivo) -->
   <script>document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');</script>
-  <script src="geo.js"></script>
-  <script src="promo.js"></script>
+  <!-- Pega os produtos direto do GitHub (atualiza na hora que o painel publica).
+       Se não der em 2,5s, usa o data.js acima (cópia do GitHub Pages). -->
+  <script>
+    window.REPO = "mauriket/adega-brasil";
+    window.carregarDados = (async () => {
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 2500);
+        const r = await fetch("https://api.github.com/repos/" + REPO + "/contents/data.js?ref=main&t=" + Date.now(),
+          { headers: { Accept: "application/vnd.github.raw" }, signal: ctrl.signal });
+        clearTimeout(t);
+        if (r.ok) {
+          const txt = await r.text();
+          window.DADOS = JSON.parse(txt.slice(txt.indexOf("{"), txt.lastIndexOf("}") + 1));
+        }
+      } catch (e) { /* fica com o data.js do Pages */ }
+    })();
+  </script>
+  <script src="geo.js?v=20261119a"></script>
+  <script src="promo.js?v=20261119a"></script>
   <script>
     window.MOTION_CFG = {
       luz: ".card, .chip, .sec-promo, .drawer .cart-item",
@@ -166,7 +184,7 @@
       pop: ".chip, .qty button, .cart-btn, .seg label, .icon-btn"
     };
   </script>
-  <script src="motion.js"></script>
-  <script src="app.js"></script>
+  <script src="motion.js?v=20261119a"></script>
+  <script src="app.js?v=20261119a"></script>
 </body>
 </html>

@@ -1,6 +1,18 @@
-(() => {
+(async () => {
+  await window.carregarDados; // produtos frescos direto do GitHub (ou a cópia do Pages)
   const $ = (id) => document.getElementById(id);
   const brl = (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  // Foto recém-publicada ainda não chegou no Pages? Busca direto no GitHub.
+  document.addEventListener("error", (e) => {
+    const img = e.target;
+    if (!(img instanceof HTMLImageElement)) return;
+    const caminho = (img.getAttribute("src") || "").split("?")[0];
+    if (img.dataset.r || !/^img\//.test(caminho)) { img.style.visibility = "hidden"; return; }
+    img.dataset.r = "1";
+    img.style.visibility = "";
+    img.src = `https://raw.githubusercontent.com/${window.REPO || "mauriket/adega-brasil"}/main/${caminho}`;
+  }, true);
   const norm = Geo.norm;
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
@@ -122,7 +134,7 @@
 
   function imgHTML(p) {
     return p.imagem
-      ? `<img src="${esc(img(p.imagem))}" alt="${esc(p.nome)}" loading="lazy" onerror="this.style.visibility='hidden'">`
+      ? `<img src="${esc(img(p.imagem))}" alt="${esc(p.nome)}" loading="lazy">`
       : `<span>${esc(p.emoji || "🍾")}</span>`;
   }
 
