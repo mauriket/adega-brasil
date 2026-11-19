@@ -29,7 +29,7 @@
   let verPublicado = false;
   try { verPublicado = sessionStorage.getItem("adega_ver_publicado") === "1"; } catch {}
   if (D && rasc && rasc.dados && !verPublicado &&
-      JSON.stringify(Promo.migrar(copia(rasc.dados))) !== JSON.stringify(Promo.migrar(copia(D)))) {
+      JSON.stringify(Pedido.normalizar(copia(rasc.dados))) !== JSON.stringify(Pedido.normalizar(copia(D)))) {
     D = rasc.dados;
     imgsPrevia = rasc.pendentes || {};
     $("previa").hidden = false;
@@ -40,14 +40,14 @@
     document.querySelector("main").innerHTML = '<p class="empty">Não foi possível carregar os produtos. Atualize a página.</p>';
     return;
   }
-  Promo.migrar(D);
+  Pedido.normalizar(D);
   const LOJA = D.loja, FRETE = D.frete, PROMOS = D.promocoes || [];
   const img = (src) => imgsPrevia[src] || src;
   const PRODUTOS = D.produtos.filter((p) => p.ativo !== false);
   const produtoPorId = Object.fromEntries(PRODUTOS.map((p) => [p.id, p]));
 
   let carrinho = store.get("adega_carrinho", {});
-  for (const id in carrinho) if (!produtoPorId[id]) delete carrinho[id];
+  for (const id in carrinho) if (!produtoPorId[id] || produtoPorId[id].esgotado) delete carrinho[id];
   let categoriaAtiva = "Todas";
   let enderecoCep = null, frete = null, calcId = 0;
 
@@ -55,6 +55,7 @@
   $("logoImg").alt = LOJA.nome;
   $("pagamento").innerHTML = LOJA.pagamentos.map((p) => `<option>${esc(p)}</option>`).join("");
   $("retiradaMsg").textContent = "Retirada em: " + LOJA.endereco;
+  if (LOJA.aberta === false) { $("lojaFechada").hidden = false; $("lojaFechadaTxt").textContent = LOJA.avisoFechada || "Estamos fechados no momento."; }
 
   // ---------- Bolhas dentro da caneca do fundo ----------
   if (!calmo) {
@@ -83,6 +84,7 @@
   // ---------- Cards ----------
   const vit = (p) => Promo.vitrine(p, PROMOS);
   function acaoHTML(p) {
+    if (p.esgotado) return `<button class="btn btn-esgotado" disabled>Esgotado</button>`;
     const qtd = carrinho[p.id] || 0;
     return qtd
       ? `<div class="qty"><button data-act="dec" data-id="${p.id}">−</button><span>${qtd}</span><button data-act="inc" data-id="${p.id}">+</button></div>`
@@ -90,7 +92,8 @@
   }
   function cardHTML(p, i, secao) {
     const v = vit(p);
-    const selos = v.selos.map((s) => `<span class="selo selo-off">${esc(s)}</span>`).join("") +
+    const selos = (p.esgotado ? `<span class="selo selo-esgotado">Esgotado</span>` : "") +
+      v.selos.map((s) => `<span class="selo selo-off">${esc(s)}</span>`).join("") +
       (p.destaque && secao !== "dest" ? `<span class="selo selo-dest">⭐ Destaque</span>` : "");
     const foto = p.imagem ? `<img src="${esc(img(p.imagem))}" alt="${esc(p.nome)}" loading="lazy">` : `<span>${esc(p.emoji || "🍾")}</span>`;
     return `<article class="card" data-card="${p.id}" style="--d:${Math.min(i, 10)}">
@@ -192,6 +195,7 @@
   document.addEventListener("click", (e) => {
     const b = e.target.closest("[data-act]"); if (!b) return;
     const id = Number(b.dataset.id);
+    if (!produtoPorId[id] || (b.dataset.act === "inc" && produtoPorId[id].esgotado)) return;
     if (b.dataset.act === "inc") { const card = b.closest(".card"); if (card) voar(card.querySelector(".card-img"), produtoPorId[id]); alterar(id, 1); }
     if (b.dataset.act === "dec") alterar(id, -1);
   });
@@ -337,30 +341,33 @@
       if (!frete) return erro("Aguarde o cálculo do frete (ou confira o endereço).");
     }
     if (!nome) return erro("Informe seu nome.");
+    if (LOJA.aberta === false) return erro("A loja está fechada no momento. Tente novamente mais tarde.");
 
     const f = valorFrete() || 0;
-    const L = [`*🍺 NOVO PEDIDO - ${LOJA.nome.toUpperCase()}*`, "", `*Cliente:* ${nome}`];
-    if ($("telefone").value.trim()) L.push(`*Telefone:* ${$("telefone").value.trim()}`);
-    L.push("", "*🛒 Itens:*");
-    lista.forEach((i) => {
-      const pr = i.calc.promo;
-      L.push(`• ${i.qtd}x ${i.nome} — ${brl(i.calc.total)}${pr ? ` _(${Promo.selo(pr, i.preco) || pr.nome})_` : ""}`);
+    const v = (id) => $(id).value.trim();
+    let linhaRua = `${v("rua")}, ${v("numero")}`;
+    if (v("complemento")) linhaRua += ` - ${v("complemento")}`;
+    const msg = Pedido.montar(LOJA, {
+      cliente: nome,
+      telefone: v("telefone"),
+      itens: lista.map((i) => ({
+        qtd: i.qtd, produto: i.nome, valor: i.calc.total, unitario: i.preco,
+        promo: i.calc.promo ? (Promo.selo(i.calc.promo, i.preco) || i.calc.promo.nome) : "",
+      })),
+      subtotal: sub, economia: eco, frete: f, total: sub + f,
+      distancia: !retirada && frete && frete.km != null ? kmTxt(frete.km) : "",
+      retirada,
+      endereco: retirada ? [] : [
+        linhaRua,
+        `${v("bairro")} - ${enderecoCep.cidade}/${enderecoCep.uf}`,
+        `CEP: ${enderecoCep.cep}`,
+        v("referencia") ? `Referência: ${v("referencia")}` : "",
+      ],
+      pagamento: $("pagamento").value,
+      troco: !$("troco").hidden ? v("troco") : "",
+      obs: v("obs"),
     });
-    L.push("", `*Subtotal:* ${brl(sub)}`);
-    if (eco > 0) L.push(`*Economia com promoções:* ${brl(eco)}`);
-    const dist = !retirada && frete && frete.km != null ? ` (${kmTxt(frete.km)})` : "";
-    L.push(`*Frete:* ${retirada ? "Retirada na loja" : f === 0 ? "Grátis" : brl(f)}${dist}`, `*TOTAL: ${brl(sub + f)}*`, "");
-    if (retirada) L.push("*📍 Retirada na loja*");
-    else {
-      let end = `${$("rua").value.trim()}, ${$("numero").value.trim()}`;
-      if ($("complemento").value.trim()) end += ` - ${$("complemento").value.trim()}`;
-      L.push("*📍 Endereço de entrega:*", end, `${$("bairro").value.trim()} - ${enderecoCep.cidade}/${enderecoCep.uf}`, `CEP: ${enderecoCep.cep}`);
-      if ($("referencia").value.trim()) L.push(`Referência: ${$("referencia").value.trim()}`);
-    }
-    L.push("", `*💳 Pagamento:* ${$("pagamento").value}`);
-    if (!$("troco").hidden && $("troco").value.trim()) L.push(`Troco para: ${$("troco").value.trim()}`);
-    if ($("obs").value.trim()) L.push("", `*📝 Obs:* ${$("obs").value.trim()}`);
-    window.open(`https://wa.me/${String(LOJA.whatsapp).replace(/\D/g, "")}?text=${encodeURIComponent(L.join("\n"))}`, "_blank");
+    window.open(`https://wa.me/${String(LOJA.whatsapp).replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
   // ---------- Toast ----------

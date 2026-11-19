@@ -296,3 +296,13 @@ main, .footer { position: relative; z-index: 1; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* ============ Esgotado e loja fechada ============ */
+.btn-esgotado { width: 100%; background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); cursor: not-allowed; }
+.selo-esgotado { background: #3a3a3a; color: #fff; }
+.card:has(.btn-esgotado) .card-img > * { opacity: .45; }
+.loja-fechada {
+  position: relative; z-index: 15; padding: 12px 16px; text-align: center; font-size: 14px;
+  background: rgba(255, 92, 92, .12); border-bottom: 1px solid rgba(255, 92, 92, .45); color: var(--text);
+}
+.loja-fechada b { color: var(--danger); margin-right: 6px; text-transform: uppercase; letter-spacing: .5px; }

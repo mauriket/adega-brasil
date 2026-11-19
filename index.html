@@ -6,7 +6,7 @@
   <title>Adega Brasil</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261119e">
+  <link rel="stylesheet" href="style.css?v=20261119f">
 </head>
 <body>
 
@@ -66,6 +66,8 @@
     👁️ <b>Prévia:</b> alterações do painel que <b>ainda não foram publicadas</b> (só neste aparelho).
     <button id="previaSair">Ver versão publicada</button>
   </div>
+
+  <div class="loja-fechada" id="lojaFechada" hidden><b>Loja fechada</b> <span id="lojaFechadaTxt"></span></div>
 
   <main class="container">
     <section class="toolbar">
@@ -187,8 +189,9 @@
       } catch (e) { /* usa o data.js do Pages */ }
     })();
   </script>
-  <script src="geo.js?v=20261119e"></script>
-  <script src="promo.js?v=20261119e"></script>
-  <script src="app.js?v=20261119e"></script>
+  <script src="geo.js?v=20261119f"></script>
+  <script src="promo.js?v=20261119f"></script>
+  <script src="pedido.js?v=20261119f"></script>
+  <script src="app.js?v=20261119f"></script>
 </body>
 </html>

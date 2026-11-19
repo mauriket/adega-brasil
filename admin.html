@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
-  <title>Painel da Adega</title>
+  <title>Painel administrativo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20261119e">
+  <link rel="stylesheet" href="admin.css?v=20261119f">
   <script>try { document.documentElement.dataset.theme = localStorage.getItem("adega_admin_tema") || "dark"; } catch (e) {}</script>
 </head>
 <body>
   <div class="bg" aria-hidden="true"><i class="g1"></i><i class="g2"></i><i class="g3"></i></div>
-  <div class="skeleton" id="skeleton" aria-hidden="true"><div><div class="caneca-wrap"><div class="caneca"><i></i></div></div><small>Carregando painel</small></div></div>
+  <div class="skeleton" id="skeleton" aria-hidden="true"><div><i class="loader"></i><small>Carregando painel</small></div></div>
 
   <!-- ===== Topo ===== -->
   <header class="top">
@@ -22,11 +22,12 @@
     </a>
     <nav class="nav" id="nav" aria-label="Seções">
       <span class="nav-pill" id="navPill" aria-hidden="true"></span>
-      <button data-tab="inicio">Início</button>
+      <button data-tab="inicio">Visão geral</button>
       <button data-tab="produtos">Produtos</button>
       <button data-tab="promocoes">Promoções</button>
       <button data-tab="categorias">Categorias</button>
       <button data-tab="frete">Frete</button>
+      <button data-tab="mensagem">Mensagem</button>
       <button data-tab="loja">Loja</button>
     </nav>
     <div class="top-act">
@@ -35,32 +36,30 @@
     </div>
   </header>
 
-  <!-- ===== Dock ===== -->
+  <!-- ===== Atalhos ===== -->
   <aside class="dock" aria-label="Atalhos">
     <button class="dk" data-acao="buscar" title="Buscar produto"><span data-ico="search"></span></button>
     <button class="dk" data-acao="novoProduto" title="Novo produto"><span data-ico="plus"></span></button>
     <button class="dk" data-acao="novaPromo" title="Nova promoção"><span data-ico="percent"></span></button>
     <span class="dk-sep"></span>
-    <a class="dk" href="index.html" target="_blank" title="Ver site"><span data-ico="eye"></span></a>
-    <button class="dk" data-acao="conexao" title="Conexão com o site" id="dkConexao"><span data-ico="key"></span></button>
+    <a class="dk" href="index.html" target="_blank" title="Abrir o site"><span data-ico="eye"></span></a>
+    <button class="dk" data-acao="conexao" title="Conexão e backup" id="dkConexao"><span data-ico="key"></span></button>
     <button class="dk" data-acao="tema" title="Tema claro/escuro"><span data-ico="moon"></span></button>
   </aside>
 
   <main class="app" id="main">
-    <!-- Aviso: sem conexão -->
     <div class="aviso" id="avisoConexao" hidden>
       <span data-ico="alert" data-ico-size="22"></span>
-      <div><b>Suas alterações ainda NÃO vão para o site.</b> Elas ficam só neste aparelho até você conectar o painel ao GitHub (uma vez só, leva 2 minutos).</div>
-      <button class="btn accent sm" data-acao="conexao">Conectar agora</button>
+      <div><b>As alterações ainda não vão para o site.</b> Elas ficam salvas apenas neste aparelho até o painel ser conectado ao GitHub (configuração única).</div>
+      <button class="btn accent sm" data-acao="conexao">Conectar</button>
     </div>
 
-    <!-- Cabeçalho da página -->
     <div class="page-head">
-      <h1 class="titulo" id="titulo">Início</h1>
+      <h1 class="titulo" id="titulo">Visão geral</h1>
       <dl class="kpis" id="kpis"></dl>
     </div>
 
-    <!-- ===== INÍCIO ===== -->
+    <!-- ===== VISÃO GERAL ===== -->
     <section class="tab" id="tab-inicio">
       <div class="grid-inicio">
         <article class="card c-pub">
@@ -68,7 +67,7 @@
           <div id="inicioPub"></div>
         </article>
         <article class="card c-promo-agora">
-          <header><h2>Promoções agora</h2><button class="circ sm" data-go="promocoes" title="Ver todas"><span data-ico="arrow"></span></button></header>
+          <header><h2>Promoções ativas</h2><button class="circ sm" data-go="promocoes" title="Ver todas"><span data-ico="arrow"></span></button></header>
           <div id="inicioPromos"></div>
         </article>
         <article class="card c-atalhos">
@@ -76,13 +75,13 @@
           <div class="atalhos">
             <button class="tile" data-acao="novoProduto"><span data-ico="plus" data-ico-size="22"></span>Novo produto</button>
             <button class="tile" data-acao="novaPromo"><span data-ico="percent" data-ico-size="22"></span>Nova promoção</button>
-            <button class="tile" data-go="frete"><span data-ico="truck" data-ico-size="22"></span>Valores do frete</button>
-            <button class="tile" data-go="loja"><span data-ico="chat" data-ico-size="22"></span>Trocar WhatsApp</button>
+            <button class="tile" data-go="mensagem"><span data-ico="chat" data-ico-size="22"></span>Mensagem do pedido</button>
+            <button class="tile" data-go="loja"><span data-ico="store" data-ico-size="22"></span>Dados da loja</button>
           </div>
         </article>
         <article class="card c-dest">
-          <header><h2>Em destaque no site</h2><button class="circ sm" data-go="produtos" title="Produtos"><span data-ico="arrow"></span></button></header>
-          <div id="inicioDest"></div>
+          <header><h2>Pendências do catálogo</h2><button class="circ sm" data-go="produtos" title="Produtos"><span data-ico="arrow"></span></button></header>
+          <div id="inicioPend"></div>
         </article>
       </div>
     </section>
@@ -90,7 +89,13 @@
     <!-- ===== PRODUTOS ===== -->
     <section class="tab" id="tab-produtos" hidden>
       <div class="toolbar">
-        <label class="search"><span data-ico="search"></span><input type="search" id="pBusca" placeholder="Buscar produto…"></label>
+        <label class="search"><span data-ico="search"></span><input type="search" id="pBusca" placeholder="Buscar por nome ou descrição"></label>
+        <select class="sel" id="pOrdem" aria-label="Ordenar">
+          <option value="cadastro">Ordem de cadastro</option>
+          <option value="nome">Nome (A–Z)</option>
+          <option value="menor">Menor preço</option>
+          <option value="maior">Maior preço</option>
+        </select>
         <button class="btn accent" data-acao="novoProduto"><span data-ico="plus"></span>Novo produto</button>
       </div>
       <div class="chips" id="pChips"></div>
@@ -100,7 +105,7 @@
     <!-- ===== PROMOÇÕES ===== -->
     <section class="tab" id="tab-promocoes" hidden>
       <div class="toolbar">
-        <label class="search"><span data-ico="search"></span><input type="search" id="prBusca" placeholder="Buscar promoção…"></label>
+        <label class="search"><span data-ico="search"></span><input type="search" id="prBusca" placeholder="Buscar promoção"></label>
         <button class="btn accent" data-acao="novaPromo"><span data-ico="plus"></span>Nova promoção</button>
       </div>
       <div class="chips" id="prChips"></div>
@@ -111,7 +116,7 @@
     <section class="tab" id="tab-categorias" hidden>
       <article class="card">
         <header><h2>Categorias do catálogo</h2></header>
-        <p class="help">A ordem aqui é a ordem no site. Renomear atualiza os produtos e as promoções da categoria.</p>
+        <p class="help">A ordem desta lista é a ordem exibida no site. Ao renomear, os produtos e promoções da categoria são atualizados.</p>
         <div class="toolbar">
           <label class="search"><span data-ico="layers"></span><input type="text" id="cNova" placeholder="Nome da nova categoria"></label>
           <button class="btn accent" id="cAdd"><span data-ico="plus"></span>Adicionar</button>
@@ -125,10 +130,10 @@
       <div class="grid-2">
         <article class="card">
           <header><h2>Localização da loja</h2></header>
-          <p class="help">O frete é calculado pela distância de carro entre a loja e o cliente.</p>
+          <p class="help">O frete é calculado pela distância de carro entre a loja e o endereço do cliente.</p>
           <div class="campos-2">
             <label class="f">CEP da loja<input type="text" id="fLojaCep" inputmode="numeric" maxlength="9" placeholder="00000-000"></label>
-            <label class="f">Rua (se o CEP não trouxer)<input type="text" id="fLojaRua"></label>
+            <label class="f">Rua (se o CEP não informar)<input type="text" id="fLojaRua"></label>
           </div>
           <button class="btn ghost" id="fLocalizar"><span data-ico="pin"></span>Localizar pelo CEP</button>
           <p class="hint" id="fLocMsg"></p>
@@ -141,22 +146,50 @@
         <article class="card">
           <header><h2>Valores</h2></header>
           <div class="campos-2">
-            <label class="f">Preço por KM (R$)<input type="number" step="0.01" min="0" id="fPrecoKm"></label>
+            <label class="f">Preço por km (R$)<input type="number" step="0.01" min="0" id="fPrecoKm"></label>
             <label class="f">Taxa fixa de saída (R$)<input type="number" step="0.01" min="0" id="fTaxaFixa"></label>
             <label class="f">Frete mínimo (R$)<input type="number" step="0.01" min="0" id="fTaxaMin"></label>
-            <label class="f">Entrega até (KM) <small>0 = sem limite</small><input type="number" step="0.1" min="0" id="fRaio"></label>
-            <label class="f">Frete grátis acima de (R$) <small>0 = desligado</small><input type="number" step="0.01" min="0" id="fGratis"></label>
-            <label class="f">Se não achar o endereço (R$)<input type="number" step="0.01" min="0" id="fPadrao"></label>
+            <label class="f">Entrega até (km) <small>0 = sem limite</small><input type="number" step="0.1" min="0" id="fRaio"></label>
+            <label class="f">Frete grátis acima de (R$) <small>0 = desativado</small><input type="number" step="0.01" min="0" id="fGratis"></label>
+            <label class="f">Taxa quando o endereço não é localizado (R$)<input type="number" step="0.01" min="0" id="fPadrao"></label>
           </div>
           <div class="formula" id="fFormula"></div>
         </article>
         <article class="card span-2">
-          <header><h2>Testar frete</h2></header>
+          <header><h2>Simular frete</h2></header>
           <div class="toolbar">
-            <label class="search"><span data-ico="pin"></span><input type="text" id="fTesteCep" inputmode="numeric" maxlength="9" placeholder="CEP de um cliente"></label>
+            <label class="search"><span data-ico="pin"></span><input type="text" id="fTesteCep" inputmode="numeric" maxlength="9" placeholder="CEP do cliente"></label>
             <button class="btn ghost" id="fTestar">Calcular</button>
           </div>
           <p class="hint" id="fTesteMsg"></p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===== MENSAGEM ===== -->
+    <section class="tab" id="tab-mensagem" hidden>
+      <div class="grid-msg">
+        <article class="card">
+          <header><h2>Modelo da mensagem</h2><button class="btn ghost sm" id="msgPadrao"><span data-ico="undo"></span>Restaurar padrão</button></header>
+          <p class="help">Esta é a mensagem que o cliente envia para o WhatsApp da loja ao finalizar o pedido. Clique em uma variável para inserir no ponto do cursor. Linhas cujas variáveis ficarem vazias (por exemplo, telefone não informado) são removidas automaticamente. Use <code>*texto*</code> para negrito e <code>_texto_</code> para itálico.</p>
+          <div class="vars" id="msgVars"></div>
+          <textarea class="code" id="msgModelo" rows="20" spellcheck="false"></textarea>
+          <p class="hint" id="msgAviso"></p>
+          <label class="f">Formato de cada item da lista <small>(usado em {itens})</small>
+            <input type="text" class="code" id="msgItem" spellcheck="false">
+          </label>
+          <div class="vars" id="msgVarsItem"></div>
+        </article>
+        <article class="card msg-prev-card">
+          <header><h2>Pré-visualização</h2></header>
+          <div class="seg seg-sm" id="msgCenario">
+            <button data-v="entrega" class="on">Entrega</button>
+            <button data-v="retirada">Retirada</button>
+          </div>
+          <div class="wa">
+            <div class="wa-bolha" id="msgPreview"></div>
+          </div>
+          <a href="#" target="_blank" class="btn ghost" id="msgTeste"><span data-ico="chat"></span>Enviar teste para o WhatsApp da loja</a>
         </article>
       </div>
     </section>
@@ -165,35 +198,41 @@
     <section class="tab" id="tab-loja" hidden>
       <div class="grid-2">
         <article class="card">
+          <header><h2>Funcionamento</h2></header>
+          <label class="sw sw-lg"><input type="checkbox" id="lAberta"><span></span><b id="lAbertaTxt">Aceitando pedidos</b></label>
+          <p class="help">Com a loja fechada, o cliente continua vendo o catálogo, mas não consegue enviar o pedido. Um aviso aparece no topo do site.</p>
+          <label class="f">Aviso exibido quando a loja estiver fechada<textarea id="lAviso" rows="3"></textarea></label>
+        </article>
+        <article class="card">
           <header><h2>WhatsApp dos pedidos</h2></header>
           <label class="f">Número com DDD<input type="tel" id="lWhats" placeholder="(62) 99999-9999"></label>
           <p class="hint" id="lWhatsMsg"></p>
           <a href="#" target="_blank" class="btn whats" id="lWhatsTeste"><span data-ico="chat"></span>Testar este número</a>
         </article>
-        <article class="card">
+        <article class="card span-2">
           <header><h2>Dados da loja</h2></header>
-          <label class="f">Nome da loja<input type="text" id="lNome"></label>
-          <label class="f">Frase (slogan)<input type="text" id="lSlogan"></label>
-          <label class="f">Endereço para retirada<input type="text" id="lEndereco"></label>
           <div class="campos-2">
-            <label class="f">Pedido mínimo (R$)<input type="number" step="0.01" min="0" id="lMinimo"></label>
-            <label class="f">Pagamentos <small>(separe por vírgula)</small><input type="text" id="lPagamentos"></label>
+            <label class="f">Nome da loja<input type="text" id="lNome"></label>
+            <label class="f">Slogan<input type="text" id="lSlogan"></label>
+            <label class="f">Endereço para retirada<input type="text" id="lEndereco"></label>
+            <label class="f">Pedido mínimo (R$) <small>0 = sem mínimo</small><input type="number" step="0.01" min="0" id="lMinimo"></label>
           </div>
+          <label class="f">Formas de pagamento <small>separadas por vírgula</small><input type="text" id="lPagamentos"></label>
         </article>
       </div>
     </section>
 
-    <!-- ===== CONEXÃO ===== -->
+    <!-- ===== CONEXÃO E BACKUP ===== -->
     <section class="tab" id="tab-conexao" hidden>
       <div class="grid-2">
         <article class="card">
           <header><h2>Conectar o painel ao site</h2></header>
-          <p class="help">O site fica no GitHub. Para o <b>Publicar</b> funcionar, este aparelho precisa de uma chave (só uma vez). Ela fica salva <b>só neste navegador</b>.</p>
+          <p class="help">O site fica hospedado no GitHub. Para que o botão <b>Publicar</b> funcione, este aparelho precisa de uma chave de acesso (configuração única). A chave fica salva apenas neste navegador.</p>
           <ol class="passos">
-            <li>Clique: <a href="#" target="_blank" class="link" id="gLinkToken">criar chave no GitHub</a> (já vem com nome e validade preenchidos)</li>
-            <li>Em <b>Repository access</b>, escolha <b>Only select repositories</b> → <b id="gRepoNome">adega-brasil</b></li>
-            <li>Em <b>Permissions</b> → <b>Contents</b>, escolha <b>Read and write</b></li>
-            <li>Clique em <b>Generate token</b>, copie a chave e cole aqui embaixo</li>
+            <li>Acesse <a href="#" target="_blank" class="link" id="gLinkToken">criar chave no GitHub</a> (nome e validade já vêm preenchidos)</li>
+            <li>Em <b>Repository access</b>, selecione <b>Only select repositories</b> e escolha <b id="gRepoNome">adega-brasil</b></li>
+            <li>Em <b>Permissions</b>, defina <b>Contents</b> como <b>Read and write</b></li>
+            <li>Clique em <b>Generate token</b>, copie a chave e cole abaixo</li>
           </ol>
           <label class="f">Chave (token)<input type="password" id="gToken" placeholder="github_pat_…" autocomplete="off"></label>
           <div class="row">
@@ -211,12 +250,15 @@
           </details>
         </article>
         <article class="card">
-          <header><h2>Cópia de segurança</h2></header>
-          <p class="help">Baixe todos os produtos, promoções e configurações num arquivo.</p>
+          <header><h2>Backup</h2></header>
+          <p class="help">Baixe uma cópia de todos os produtos, promoções e configurações. Para restaurar, importe o arquivo e depois clique em Publicar.</p>
           <div class="row">
-            <button class="btn ghost" id="gBaixar"><span data-ico="download"></span>Baixar data.js</button>
-            <button class="btn danger" id="gDescartar"><span data-ico="trash"></span>Descartar não publicadas</button>
+            <button class="btn ghost" id="gBaixar"><span data-ico="download"></span>Baixar backup</button>
+            <label class="btn ghost"><span data-ico="upload"></span>Importar backup<input type="file" id="gImportar" accept=".js,.json,application/json,text/javascript" hidden></label>
           </div>
+          <hr class="sep">
+          <p class="help">Descartar volta o painel para a versão publicada, apagando as alterações não publicadas deste aparelho.</p>
+          <button class="btn danger" id="gDescartar"><span data-ico="trash"></span>Descartar alterações não publicadas</button>
         </article>
       </div>
     </section>
@@ -230,28 +272,32 @@
       <div class="foto">
         <div class="foto-prev" id="mFotoPrev"></div>
         <div class="foto-acoes">
-          <label class="btn ghost"><span data-ico="image"></span>Escolher imagem<input type="file" accept="image/*" id="mFoto" hidden></label>
-          <button class="btn ghost sm" id="mFotoRemover">Remover imagem</button>
-          <small class="help">Reduzida automaticamente. Sem imagem, aparece o emoji.</small>
+          <label class="btn ghost"><span data-ico="image"></span>Escolher foto<input type="file" accept="image/*" id="mFoto" hidden></label>
+          <button class="btn ghost sm" id="mFotoRemover">Remover foto</button>
+          <small class="help">JPG ou PNG. A imagem é reduzida automaticamente.</small>
         </div>
       </div>
-      <label class="f">Nome<input type="text" id="mNome" placeholder="Ex: Heineken Long Neck 330ml"></label>
+      <label class="f">Nome do produto<input type="text" id="mNome" placeholder="Ex.: Heineken Long Neck 330 ml" maxlength="80"></label>
       <div class="campos-3">
         <label class="f">Categoria<select id="mCategoria"></select></label>
-        <label class="f">Preço (R$)<input type="number" step="0.01" min="0" id="mPreco"></label>
-        <label class="f">Emoji<input type="text" id="mEmoji" maxlength="4"></label>
+        <label class="f">Preço (R$)<input type="number" step="0.01" min="0" id="mPreco" placeholder="0,00"></label>
+        <label class="f">Ícone sem foto <small>(opcional)</small><input type="text" id="mEmoji" maxlength="4"></label>
       </div>
-      <label class="f">Descrição (opcional)<input type="text" id="mDesc" placeholder="Ex: Gelada, pack com 6"></label>
+      <label class="f">Descrição <small>(opcional)</small><input type="text" id="mDesc" placeholder="Ex.: Gelada, pack com 6 unidades" maxlength="120"></label>
       <div class="switches">
-        <label class="sw"><input type="checkbox" id="mDestaque"><span></span>⭐ Destaque no site</label>
-        <label class="sw"><input type="checkbox" id="mAtivo"><span></span>👁️ Aparece no site</label>
+        <label class="sw"><input type="checkbox" id="mAtivo"><span></span>Visível no site</label>
+        <label class="sw"><input type="checkbox" id="mEsgotado"><span></span>Esgotado <small class="help">aparece no site, mas não pode ser comprado</small></label>
+        <label class="sw"><input type="checkbox" id="mDestaque"><span></span>Destaque <small class="help">aparece na seção Destaques</small></label>
       </div>
       <div class="m-promos" id="mPromos"></div>
       <p class="erro" id="mErro"></p>
     </div>
     <footer class="m-foot">
+      <button class="btn ghost" id="mDuplicar"><span data-ico="copy"></span>Duplicar</button>
+      <span class="spacer"></span>
       <button class="btn ghost" data-fechar>Cancelar</button>
-      <button class="btn accent" id="mSalvar"><span data-ico="check"></span>Salvar produto</button>
+      <button class="btn ghost" id="mSalvarNovo">Salvar e adicionar outro</button>
+      <button class="btn accent" id="mSalvar"><span data-ico="check"></span>Salvar</button>
     </footer>
   </section>
 
@@ -260,7 +306,7 @@
     <header class="m-head"><h2 id="prTitulo">Promoção</h2><button class="circ" data-fechar title="Fechar"><span data-ico="x"></span></button></header>
     <div class="m-body promo-form">
       <div class="pf-main">
-        <label class="f">Nome da promoção <small>(só aparece no painel)</small><input type="text" id="prNome" placeholder="Ex: Happy hour de sexta"></label>
+        <label class="f">Nome da promoção <small>(uso interno)</small><input type="text" id="prNome" placeholder="Ex.: Happy hour de sexta"></label>
 
         <div class="pf-bloco">
           <h3>1. Tipo de desconto</h3>
@@ -269,14 +315,14 @@
         </div>
 
         <div class="pf-bloco">
-          <h3>2. Em quais produtos</h3>
+          <h3>2. Produtos</h3>
           <div class="seg" id="prAlvo">
-            <button data-v="produtos">Produtos escolhidos</button>
+            <button data-v="produtos">Produtos selecionados</button>
             <button data-v="categoria">Uma categoria</button>
-            <button data-v="todos">Loja toda</button>
+            <button data-v="todos">Loja inteira</button>
           </div>
           <div id="prAlvoProdutos">
-            <label class="search"><span data-ico="search"></span><input type="search" id="prProdBusca" placeholder="Filtrar produtos…"></label>
+            <label class="search"><span data-ico="search"></span><input type="search" id="prProdBusca" placeholder="Filtrar produtos"></label>
             <div class="picker" id="prPicker"></div>
             <small class="help" id="prSelCount"></small>
           </div>
@@ -284,38 +330,38 @@
         </div>
 
         <div class="pf-bloco">
-          <h3>3. Quando vale</h3>
+          <h3>3. Período</h3>
           <div class="campos-2">
-            <label class="f">Começa em <small>(vazio = já)</small><input type="date" id="prInicio"></label>
-            <label class="f">Termina em <small>(vazio = sem fim)</small><input type="date" id="prFim"></label>
+            <label class="f">Início <small>(vazio = imediato)</small><input type="date" id="prInicio"></label>
+            <label class="f">Término <small>(vazio = sem data final)</small><input type="date" id="prFim"></label>
           </div>
-          <div class="f">Dias da semana <small>(nenhum marcado = todos)</small>
+          <div class="f">Dias da semana <small>(nenhum selecionado = todos)</small>
             <div class="dias" id="prDias"></div>
           </div>
           <div class="campos-2">
-            <label class="f">Das <small>(vazio = dia todo)</small><input type="time" id="prHoraIni"></label>
+            <label class="f">Das <small>(vazio = dia inteiro)</small><input type="time" id="prHoraIni"></label>
             <label class="f">Até<input type="time" id="prHoraFim"></label>
           </div>
           <div class="presets">
             <span>Atalhos:</span>
             <button data-preset="sempre">Sempre</button>
-            <button data-preset="hoje">Só hoje</button>
+            <button data-preset="hoje">Somente hoje</button>
             <button data-preset="fds">Fim de semana</button>
-            <button data-preset="happy">Happy hour 18h–21h</button>
-            <button data-preset="madrugada">Madrugada 22h–4h</button>
+            <button data-preset="happy">18h às 21h</button>
+            <button data-preset="madrugada">22h às 4h</button>
           </div>
         </div>
 
         <div class="pf-bloco">
-          <h3>4. Como aparece no site</h3>
+          <h3>4. Exibição no site</h3>
           <div class="seg" id="prVitrine">
-            <button data-v="promoDia">🔥 Promoção do dia</button>
-            <button data-v="ofertas">💥 Ofertas</button>
-            <button data-v="nenhuma">Só o selo no produto</button>
+            <button data-v="promoDia">Promoção do dia</button>
+            <button data-v="ofertas">Ofertas</button>
+            <button data-v="nenhuma">Somente selo</button>
           </div>
           <div class="campos-2">
-            <label class="f">Texto do selo <small>(vazio = automático)</small><input type="text" id="prSelo" maxlength="24" placeholder="Ex: Só hoje!"></label>
-            <label class="f">Limite por pedido <small>(unidades com desconto, 0 = sem limite)</small><input type="number" min="0" step="1" id="prLimite"></label>
+            <label class="f">Texto do selo <small>(vazio = automático)</small><input type="text" id="prSelo" maxlength="24" placeholder="Ex.: Só hoje"></label>
+            <label class="f">Limite por pedido <small>(unidades com desconto; 0 = sem limite)</small><input type="number" min="0" step="1" id="prLimite"></label>
           </div>
         </div>
       </div>
@@ -323,8 +369,8 @@
       <aside class="pf-side">
         <div class="pf-resumo">
           <div class="pf-status" id="prStatus"></div>
-          <label class="sw"><input type="checkbox" id="prAtiva"><span></span>Promoção ligada</label>
-          <h3>Como fica no site</h3>
+          <label class="sw"><input type="checkbox" id="prAtiva"><span></span>Promoção ativa</label>
+          <h3>Resultado no site</h3>
           <div id="prPreview"></div>
         </div>
       </aside>
@@ -341,9 +387,11 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');</script>
-  <script src="geo.js?v=20261119e"></script>
-  <script src="promo.js?v=20261119e"></script>
-  <script src="motion.js?v=20261119e"></script>
-  <script src="admin.js?v=20261119e"></script>
+  <script src="geo.js?v=20261119f"></script>
+  <script src="promo.js?v=20261119f"></script>
+  <script src="pedido.js?v=20261119f"></script>
+  <script>window.MOTION_CFG = { luz: null, tilt: null, magnet: null, dock: null, bg: null, pop: null };</script>
+  <script src="motion.js?v=20261119f"></script>
+  <script src="admin.js?v=20261119f"></script>
 </body>
 </html>

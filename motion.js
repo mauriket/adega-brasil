@@ -30,7 +30,7 @@ window.Motion = (() => {
 
   // ---------- Luz que segue o mouse (cartões, itens, tiles) ----------
   const ALVOS_LUZ = C.luz;
-  if (fino && !calmo) {
+  if (C.luz && fino && !calmo) {
     document.addEventListener("pointermove", (e) => {
       const el = e.target.closest(ALVOS_LUZ);
       if (!el) return;
@@ -42,7 +42,7 @@ window.Motion = (() => {
 
   // ---------- Inclinação 3D (cartões de promoção e atalhos) ----------
   const ALVOS_TILT = C.tilt;
-  if (fino && !calmo) {
+  if (C.tilt && fino && !calmo) {
     document.addEventListener("pointermove", (e) => {
       const el = e.target.closest(ALVOS_TILT);
       if (!el) return;
@@ -58,7 +58,7 @@ window.Motion = (() => {
   }
 
   // ---------- Botões magnéticos ----------
-  if (fino && !calmo) {
+  if (C.magnet && fino && !calmo) {
     document.addEventListener("pointermove", (e) => {
       const el = e.target.closest(C.magnet);
       document.querySelectorAll(".magnet").forEach((m) => { if (m !== el) { m.style.translate = ""; m.classList.remove("magnet"); } });
@@ -117,7 +117,7 @@ window.Motion = (() => {
     }
   }
   document.addEventListener("click", (e) => {
-    const b = e.target.closest(C.pop);
+    const b = C.pop && e.target.closest(C.pop);
     if (!b) return;
     anim(b, [{ scale: 1 }, { scale: 0.82 }, { scale: 1.12 }, { scale: 1 }], { duration: 420, easing: mola });
     if (b.matches('.circ[data-a="destaque"]:not(.on)')) {
