@@ -21,7 +21,7 @@
   <link rel="preload" as="image" href="img/chopp/chopp-1.webp" fetchpriority="high">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261119m">
+  <link rel="stylesheet" href="style.css?v=20261119o">
 </head>
 <body>
 
@@ -57,7 +57,7 @@
     })();
   </script>
 
-  <!-- Fundo: chopp sendo servido (fotos em sequência, uma se dissolvendo na outra) -->
+  <!-- Fundo: chopp sendo servido (fotos reais recortadas + movimento) -->
   <div class="chopp" id="chopp" aria-hidden="true">
     <div class="chopp-palco">
       <img class="q q1" src="img/chopp/chopp-1.webp" alt="" width="944" height="1680" decoding="async" fetchpriority="high">
@@ -66,6 +66,21 @@
       <img class="q q4" src="img/chopp/chopp-4.webp" alt="" width="944" height="1680" decoding="async">
       <img class="q q5" src="img/chopp/chopp-5.webp" alt="" width="944" height="1680" decoding="async">
       <img class="q q6" src="img/chopp/chopp-6.webp" alt="" width="944" height="1680" decoding="async">
+      <svg class="chopp-vivo" viewBox="0 0 944 1680" preserveAspectRatio="xMidYMid slice">
+        <path class="jato-brilho" pathLength="1" d="M335 10 C 400 110, 455 230, 474 400 C 486 500, 490 580, 490 650"/>
+        <path class="jato-brilho j2" pathLength="1" d="M335 10 C 400 110, 455 230, 474 400 C 486 500, 490 580, 490 650"/>
+        <circle class="bolha" cx="392" cy="1215" r="3.5" style="animation-duration:2.6s;animation-delay:3.2s"/>
+        <circle class="bolha" cx="430" cy="1215" r="2.5" style="animation-duration:3.1s;animation-delay:3.7s"/>
+        <circle class="bolha" cx="468" cy="1215" r="4" style="animation-duration:2.4s;animation-delay:4.3s"/>
+        <circle class="bolha" cx="512" cy="1215" r="3" style="animation-duration:3.3s;animation-delay:3.5s"/>
+        <circle class="bolha" cx="548" cy="1215" r="2.5" style="animation-duration:2.8s;animation-delay:4.7s"/>
+        <circle class="bolha" cx="585" cy="1215" r="4" style="animation-duration:3s;animation-delay:4.0s"/>
+        <circle class="bolha" cx="612" cy="1215" r="3" style="animation-duration:2.5s;animation-delay:5.1s"/>
+        <circle class="bolha" cx="455" cy="1215" r="2" style="animation-duration:3.4s;animation-delay:5.5s"/>
+        <ellipse class="pingo" cx="402" cy="1512" rx="4" ry="6"/>
+        <ellipse class="pingo p2" cx="482" cy="1620" rx="5" ry="7"/>
+        <ellipse class="pingo p3" cx="686" cy="1527" rx="4" ry="6"/>
+      </svg>
     </div>
   </div>
   <script>
@@ -100,6 +115,14 @@
       <input type="search" id="busca" placeholder="Buscar bebida ou categoria..." aria-label="Buscar bebida ou categoria" autocomplete="off">
       <div class="chips" id="categorias" role="group" aria-label="Categorias"></div>
     </section>
+
+    <!-- Abertura: espaço livre para a animação do chopp aparecer inteira -->
+    <div class="chopp-hero" id="choppHero">
+      <button class="hero-seta" id="heroSeta" aria-label="Ver as bebidas">
+        <span>Ver as bebidas</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
 
     <section class="sec-promo" id="secPromo" hidden>
       <div class="sec-promo-head">
@@ -217,9 +240,9 @@
       } catch (e) { /* usa o data.js do Pages */ }
     })();
   </script>
-  <script src="geo.js?v=20261119m"></script>
-  <script src="promo.js?v=20261119m"></script>
-  <script src="pedido.js?v=20261119m"></script>
-  <script src="app.js?v=20261119m"></script>
+  <script src="geo.js?v=20261119o"></script>
+  <script src="promo.js?v=20261119o"></script>
+  <script src="pedido.js?v=20261119o"></script>
+  <script src="app.js?v=20261119o"></script>
 </body>
 </html>

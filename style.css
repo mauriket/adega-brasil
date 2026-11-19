@@ -51,34 +51,80 @@ main, .footer { position: relative; z-index: 1; }
 .age-box p { color: var(--muted); margin: 0 0 18px; }
 .age-actions { display: grid; gap: 8px; }
 
-/* ============ Fundo: chopp sendo servido (fotos) ============ */
-/* 6 fotos empilhadas; cada uma se dissolve sobre a anterior. Toca uma vez
-   depois do aviso de 18 anos e para no último quadro. */
-.chopp { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; background: var(--bg); }
+/* ============ Fundo: chopp sendo servido (fotos reais + movimento) ============ */
+/* As fotos já têm o fundo dourado com bordas no preto do site.
+   Cada foto nova é revelada na direção do movimento:
+   cerveja sobe (de baixo p/ cima), espuma cresce (da boca da caneca),
+   espuma escorre e pinga (de cima p/ baixo). Toca após o aviso de 18 anos. */
+.chopp { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; background: #0a0a0a; }
 .chopp-palco {
   position: absolute; top: 0; left: 50%; height: 100%; aspect-ratio: 944 / 1680;
-  transform: translateX(-50%); opacity: .72;
+  transform: translateX(-50%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14%, #000 86%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 14%, #000 86%, transparent 100%);
 }
-/* No computador a foto fica no centro e as laterais escurecem até o preto do site */
-.chopp-palco::after {
-  content: ""; position: absolute; inset: 0;
-  background:
-    linear-gradient(90deg, var(--bg) 0, transparent 30%, transparent 70%, var(--bg) 100%),
-    linear-gradient(180deg, rgba(10, 10, 10, .55) 0, transparent 22%, transparent 80%, var(--bg) 100%);
+.chopp .q {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
 }
-.chopp .q { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
-.chopp .q1 { opacity: 1; }
-.chopp.rodando .q { animation: chFoto .8s ease-in-out forwards; }
-.chopp.rodando .q1 { animation: none; }
-.chopp.rodando .q2 { animation-delay: .6s; }
-.chopp.rodando .q3 { animation-delay: 1.7s; }
-.chopp.rodando .q4 { animation-delay: 2.8s; }
-.chopp.rodando .q5 { animation-delay: 3.9s; }
-.chopp.rodando .q6 { animation-delay: 5s; }
-.chopp.rodando .chopp-palco { animation: chZoom 7s ease-out both; }
+.chopp .q2, .chopp .q4, .chopp .q5, .chopp .q6 {
+  -webkit-mask-size: 100% 300%; mask-size: 100% 300%;
+}
+/* cerveja subindo: revela de baixo para cima */
+.chopp .q2 {
+  -webkit-mask-image: linear-gradient(to top, #000 48%, transparent 52%); mask-image: linear-gradient(to top, #000 48%, transparent 52%);
+  -webkit-mask-position: 0 20%; mask-position: 0 20%;
+}
+/* espuma crescendo a partir da boca da caneca */
+.chopp .q3 {
+  -webkit-mask-image: radial-gradient(closest-side, #000 70%, transparent 100%); mask-image: radial-gradient(closest-side, #000 70%, transparent 100%);
+  -webkit-mask-position: 52% 42%; mask-position: 52% 42%;
+  -webkit-mask-size: 0 0; mask-size: 0 0;
+}
+/* espuma escorrendo: revela de cima para baixo */
+.chopp .q4, .chopp .q5, .chopp .q6 {
+  -webkit-mask-image: linear-gradient(to bottom, #000 48%, transparent 52%); mask-image: linear-gradient(to bottom, #000 48%, transparent 52%);
+  -webkit-mask-position: 0 64%; mask-position: 0 64%;
+}
+.chopp.rodando .q2 { animation: chSobe 2.6s .4s linear both; }
+.chopp.rodando .q3 { animation: chCresce 1.4s 3s cubic-bezier(.3, .7, .4, 1) both; }
+.chopp.rodando .q4 { animation: chDesce 1.7s 4.2s linear both; }
+.chopp.rodando .q5 { animation: chDesce 1.7s 5.7s linear both; }
+.chopp.rodando .q6 { animation: chDesce 1.9s 7.2s linear both; }
+.chopp.rodando .chopp-palco { animation: chZoom 9s ease-out both; }
+
+@keyframes chSobe {
+  0%   { -webkit-mask-position: 0 20%; mask-position: 0 20%; }
+  12%  { -webkit-mask-position: 0 35%; mask-position: 0 35%; }
+  85%  { -webkit-mask-position: 0 54%; mask-position: 0 54%; }
+  100% { -webkit-mask-position: 0 80%; mask-position: 0 80%; }
+}
+@keyframes chCresce { to { -webkit-mask-size: 320% 320%; mask-size: 320% 320%; } }
+@keyframes chDesce {
+  0%   { -webkit-mask-position: 0 64%; mask-position: 0 64%; }
+  75%  { -webkit-mask-position: 0 36%; mask-position: 0 36%; }
+  100% { -webkit-mask-position: 0 20%; mask-position: 0 20%; }
+}
+@keyframes chZoom { from { transform: translateX(-50%) scale(1.05); } to { transform: translateX(-50%) scale(1); } }
+
+/* vida contínua: brilho correndo no jato, bolhas subindo, gotas pingando da mesa */
+.chopp-vivo { position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: screen; }
+.jato-brilho { fill: none; stroke: rgba(255, 240, 210, .55); stroke-width: 6; stroke-linecap: round; stroke-dasharray: .015 .06; opacity: 0; }
+.jato-brilho.j2 { stroke-width: 3; stroke-dasharray: .01 .09; stroke: rgba(255, 255, 255, .7); }
+.chopp.rodando .jato-brilho { animation: chAparece .4s .2s forwards, chCorre 1.1s .2s linear infinite; }
+.chopp.rodando .jato-brilho.j2 { animation: chAparece .4s .2s forwards, chCorre .8s .2s linear infinite; }
+.bolha { fill: rgba(255, 250, 235, .7); opacity: 0; }
+.chopp.rodando .bolha { animation-name: chBolha; animation-timing-function: linear; animation-iteration-count: infinite; }
+.pingo { fill: #fff8ea; opacity: 0; }
+.chopp.rodando .pingo { animation: chPingo 1.6s 9.2s cubic-bezier(.5, 0, 1, 1) infinite; }
+.chopp.rodando .pingo.p2 { animation-delay: 9.7s; animation-duration: 1.9s; }
+.chopp.rodando .pingo.p3 { animation-delay: 10.1s; }
+@keyframes chAparece { to { opacity: 1; } }
+@keyframes chCorre { to { stroke-dashoffset: -.75; } }
+@keyframes chBolha { 0% { opacity: 0; transform: none; } 12% { opacity: 1; } 85% { opacity: .8; } 100% { opacity: 0; transform: translateY(-360px); } }
+@keyframes chPingo { 0% { opacity: 1; transform: none; } 70% { opacity: 1; } 100% { opacity: 0; transform: translateY(70px); } }
+
 html.travado .chopp * { animation-play-state: paused !important; }
-@keyframes chFoto { to { opacity: 1; } }
-@keyframes chZoom { from { transform: translateX(-50%) scale(1.06); } to { transform: translateX(-50%) scale(1); } }
 /* títulos legíveis sobre a foto */
 .cat-title, .sec-promo-head h2 { text-shadow: 0 2px 14px rgba(0, 0, 0, .85); }
 
@@ -294,7 +340,6 @@ html.travado .chopp * { animation-play-state: paused !important; }
   .top-logo img { height: 74px; }
   .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .card-img { font-size: 50px; }
-  .chopp-palco { opacity: .6; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
@@ -355,3 +400,16 @@ html.travado .chopp * { animation-play-state: paused !important; }
 @media (max-width: 700px) {
   .chips { -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent); mask-image: linear-gradient(90deg, #000 82%, transparent); padding-right: 40px; }
 }
+
+/* ============ Abertura: espaço da animação do chopp ============ */
+.chopp-hero { height: min(64vh, 600px); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; }
+.hero-seta {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;
+  background: rgba(10, 10, 10, .55); border: 1px solid rgba(255, 194, 14, .45); color: var(--gold);
+  border-radius: 999px; padding: 8px 18px 6px; font-weight: 800; font-size: 13px; letter-spacing: .3px;
+  animation: heroSeta 1.6s 10s ease-in-out 3 both;
+}
+.hero-seta svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.hero-seta:hover { background: rgba(255, 194, 14, .15); }
+@keyframes heroSeta { 0%, 100% { transform: none; } 50% { transform: translateY(6px); } }
+@media (max-width: 480px) { .chopp-hero { height: min(62vh, 520px); } }
