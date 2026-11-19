@@ -673,3 +673,9 @@ code { font: 12.5px ui-monospace, Consolas, monospace; background: var(--well); 
 .acesso-box { margin-top: 16px; padding: 14px; border-radius: 16px; border: 1px solid rgba(255, 194, 14, .45); background: rgba(255, 194, 14, .08); }
 .acesso-box h3 { margin: 0 0 6px; font-size: 15px; }
 .acesso-box .help { margin: 0 0 12px; }
+
+/* Histórico de publicações */
+.hist { display: grid; gap: 6px; margin-top: 12px; max-height: 420px; overflow-y: auto; }
+.hist-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 14px; background: var(--well); border: 1px solid var(--line); }
+.hist-item small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+.hist-item .btn { flex: none; }

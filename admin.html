@@ -7,7 +7,7 @@
   <title>Painel administrativo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20261119t">
+  <link rel="stylesheet" href="admin.css?v=20261119u">
   <script>try { document.documentElement.dataset.theme = localStorage.getItem("adega_admin_tema") || "dark"; } catch (e) {}</script>
 </head>
 <body>
@@ -285,6 +285,20 @@
           <p class="help">Descartar volta o painel para a versão publicada, apagando as alterações não publicadas deste aparelho.</p>
           <button class="btn danger" id="gDescartar"><span data-ico="trash"></span>Descartar alterações não publicadas</button>
         </article>
+        <article class="card span-2">
+          <header><h2>Histórico de publicações</h2></header>
+          <p class="help">Toda vez que alguém clica em Publicar, o site guarda uma cópia. Se algo sumir, carregue uma versão anterior, confira e clique em Publicar.</p>
+          <button class="btn ghost" id="hCarregar"><span data-ico="clock"></span>Ver histórico</button>
+          <div class="hist" id="hLista"></div>
+          <div class="hist-antigo" id="hAntigo" hidden>
+            <hr class="sep">
+            <p class="help" id="hAntigoTxt"></p>
+            <div class="row">
+              <button class="btn ghost" id="hAntigoBaixar"><span data-ico="download"></span>Baixar rascunho antigo</button>
+              <button class="btn danger" id="hAntigoApagar"><span data-ico="trash"></span>Apagar</button>
+            </div>
+          </div>
+        </article>
       </div>
     </section>
   </main>
@@ -413,10 +427,11 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');</script>
-  <script src="geo.js?v=20261119t"></script>
-  <script src="promo.js?v=20261119t"></script>
-  <script src="pedido.js?v=20261119t"></script>
-  <script src="motion.js?v=20261119t"></script>
-  <script src="admin.js?v=20261119t"></script>
+  <script src="geo.js?v=20261119u"></script>
+  <script src="promo.js?v=20261119u"></script>
+  <script src="pedido.js?v=20261119u"></script>
+  <script src="mescla.js?v=20261119u"></script>
+  <script src="motion.js?v=20261119u"></script>
+  <script src="admin.js?v=20261119u"></script>
 </body>
 </html>

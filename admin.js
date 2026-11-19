@@ -65,6 +65,7 @@
 
   // ---------- Estado ----------
   const LS_DRAFT = "adega_admin_rascunho";
+  const LS_DRAFT_ANTIGO = "adega_admin_rascunho_antigo";
   const LS_GH = "adega_admin_github";
   let gh = Object.assign({ owner: "mauriket", repo: "adega-brasil", branch: "main", token: "" }, store.get(LS_GH, {}));
   // Link de acesso (#acesso=CHAVE): libera este aparelho e tira a chave da barra de endereço
@@ -130,9 +131,11 @@
 
   // ---------- Rascunho / status ----------
   const temMudancas = () => JSON.stringify(dados) !== publicado || Object.keys(pendentes).length > 0;
+  // O rascunho guarda também a versão publicada em que ele se baseia (base),
+  // para juntar com o que outro aparelho publicar depois, sem apagar nada.
   function mudou() {
-    if (!store.set(LS_DRAFT, { dados, pendentes })) {
-      store.set(LS_DRAFT, { dados, pendentes: {} });
+    if (!store.set(LS_DRAFT, { dados, pendentes, base: publicado, em: Date.now() })) {
+      store.set(LS_DRAFT, { dados, pendentes: {}, base: publicado, em: Date.now() });
       toast("Fotos muito grandes para o rascunho local. Publique logo para não perdê-las.", "erro", 5000);
     }
     atualizarStatus();
@@ -1126,6 +1129,7 @@
   function renderConexao() {
     $("gOwner").value = gh.owner; $("gRepo").value = gh.repo; $("gBranch").value = gh.branch; $("gToken").value = gh.token;
     $("gRepoNome").textContent = gh.repo;
+    renderAntigo();
     const q = new URLSearchParams({ name: "Painel da Adega", description: `Publicar produtos no site ${gh.repo}`, target_name: gh.owner, expires_in: "none", contents: "write" });
     $("gLinkToken").href = `https://github.com/settings/personal-access-tokens/new?${q}`;
     $("gAcesso").hidden = !gh.token;
@@ -1173,6 +1177,58 @@
       toast("Arquivo inválido. Use um backup baixado por este painel.", "erro", 4000);
     }
   });
+  // ---------- Histórico de publicações (cada Publicar fica guardado no GitHub) ----------
+  async function lerApi(path) {
+    if (gh.token) return api(path);
+    const r = await fetch(`https://api.github.com/repos/${gh.owner}/${gh.repo}/${path}`, { headers: { Accept: "application/vnd.github+json" } });
+    if (!r.ok) { const e = new Error(String(r.status)); e.status = r.status; throw e; }
+    return r.json();
+  }
+  const quando = (iso) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  $("hCarregar").onclick = async () => {
+    const b = $("hCarregar"); b.disabled = true;
+    $("hLista").innerHTML = '<p class="hint"><span class="spin"></span>Carregando…</p>';
+    try {
+      const commits = await lerApi(`commits?path=data.js&sha=${encodeURIComponent(gh.branch)}&per_page=30`);
+      $("hLista").innerHTML = commits.map((c, i) => `<div class="hist-item">
+          <div><b>${esc(quando(c.commit.author.date))}</b>${i === 0 ? ' <span class="tag verde">no site agora</span>' : ""}<small>${esc(c.commit.message.split("\n")[0])}</small></div>
+          ${i === 0 ? "" : `<button class="btn ghost sm" data-sha="${esc(c.sha)}" data-quando="${esc(quando(c.commit.author.date))}">Carregar esta versão</button>`}
+        </div>`).join("") || '<p class="hint">Nenhuma publicação encontrada.</p>';
+    } catch (e) {
+      $("hLista").innerHTML = `<p class="hint bad">Não foi possível carregar o histórico${e.status === 403 ? " (limite do GitHub, tente em alguns minutos)" : ""}.</p>`;
+    } finally { b.disabled = false; }
+  };
+  $("hLista").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-sha]"); if (!b) return;
+    b.disabled = true;
+    try {
+      const arq = await lerApi(`contents/data.js?ref=${b.dataset.sha}`);
+      const d = Pedido.normalizar(parseDataJs(textoDeB64(arq.content)));
+      if (!d || !Array.isArray(d.produtos)) throw new Error("formato");
+      if (!confirm(`Carregar a versão de ${b.dataset.quando}? Ela tem ${plural(d.produtos.length, "produto", "produtos")} (o painel hoje tem ${dados.produtos.length}). O site só muda quando você clicar em Publicar.`)) return;
+      dados = d; mudou(); abrirAba("produtos");
+      toast(`Versão de ${b.dataset.quando} carregada. Confira e clique em Publicar.`, null, 5000);
+    } catch { toast("Não foi possível carregar esta versão.", "erro"); }
+    finally { b.disabled = false; }
+  });
+  function renderAntigo() {
+    const a = store.get(LS_DRAFT_ANTIGO, null);
+    $("hAntigo").hidden = !(a && a.dados);
+    if (!a || !a.dados) return;
+    $("hAntigoTxt").textContent = `Este aparelho tinha alterações antigas não publicadas (${plural((a.dados.produtos || []).length, "produto", "produtos")}), guardadas em ${quando(a.guardadoEm || Date.now())}. Elas não alteram o site. Se precisar de algo delas, baixe e use "Importar backup".`;
+  }
+  $("hAntigoBaixar").onclick = () => {
+    const a = store.get(LS_DRAFT_ANTIGO, null); if (!a) return;
+    const l = document.createElement("a");
+    l.href = URL.createObjectURL(new Blob([gerarDataJs(a.dados)], { type: "text/javascript" }));
+    l.download = `rascunho-antigo-${Promo.ymd(new Date(a.guardadoEm || Date.now()))}.js`;
+    l.click(); setTimeout(() => URL.revokeObjectURL(l.href), 2000);
+  };
+  $("hAntigoApagar").onclick = () => {
+    if (!confirm("Apagar o rascunho antigo deste aparelho? O site não muda.")) return;
+    store.del(LS_DRAFT_ANTIGO); renderAntigo(); toast("Rascunho antigo apagado");
+  };
+
   $("gDescartar").onclick = () => {
     if (!confirm("Descartar todas as alterações que ainda não foram publicadas?")) return;
     store.del(LS_DRAFT); pendentes = {}; publicado = JSON.stringify(dados); location.reload();
@@ -1198,19 +1254,39 @@
       }
       pendentes = {};
       status("Salvando…");
-      const atual = await lerArquivo("data.js");
-      if (atual) {
-        let remoto = null;
-        try { remoto = JSON.stringify(Pedido.normalizar(parseDataJs(atual.texto))); } catch {}
-        if (remoto && remoto !== publicado && remoto !== JSON.stringify(dados) &&
-            !confirm("O site foi alterado em outro aparelho depois que este painel foi aberto. Publicar agora substitui essas alterações. Continuar?")) {
-          throw new Error("cancelado");
+      // Lê o que está publicado agora. Se outro aparelho publicou depois, junta (nunca substitui).
+      let juntou = false, enviado = null;
+      for (let tentativa = 0; tentativa < 3 && !enviado; tentativa++) {
+        const atual = await lerArquivo("data.js");
+        let enviar = dados, remoto = null;
+        if (atual) {
+          try { remoto = Pedido.normalizar(parseDataJs(atual.texto)); } catch { remoto = null; }
+          if (remoto && JSON.stringify(remoto) !== publicado) {
+            enviar = Pedido.normalizar(Mescla.mesclar(JSON.parse(publicado), dados, remoto));
+            juntou = true;
+          }
+        }
+        // Trava: publicação que tira muitos produtos do site pede confirmação
+        if (remoto) {
+          const antes = remoto.produtos.length, depois = enviar.produtos.length;
+          if (antes - depois >= 5 && !confirm(`Atenção: o site tem ${antes} produtos e ficará com ${depois} (${antes - depois} serão removidos). Publicar mesmo assim?`)) {
+            throw new Error("cancelado");
+          }
+        }
+        try {
+          await gravarArquivo("data.js", b64DeTexto(gerarDataJs(enviar)), "Atualiza catálogo pelo painel admin", atual && atual.sha);
+          enviado = enviar;
+        } catch (e) {
+          if (e.status !== 409 && e.status !== 422) throw e; // outro aparelho publicou neste instante: tenta de novo
+          status("Juntando com outro aparelho…");
         }
       }
-      await gravarArquivo("data.js", b64DeTexto(gerarDataJs(dados)), "Atualiza catálogo pelo painel admin", atual && atual.sha);
-      publicado = JSON.stringify(dados);
+      if (!enviado) throw new Error("o site está sendo alterado em outro aparelho. Tente de novo em instantes.");
+      dados = enviado;
+      publicado = JSON.stringify(enviado);
       store.del(LS_DRAFT);
-      toast("Publicado. Os clientes veem a atualização ao recarregar o site.", null, 4500);
+      if (juntou) { renderKpis(); RENDER[abaAtual](); }
+      toast(juntou ? "Publicado e juntado com as alterações feitas em outro aparelho." : "Publicado. Os clientes veem a atualização ao recarregar o site.", null, 4500);
     } catch (e) {
       mudou();
       if (e.message !== "cancelado") toast(e.status === 401 ? "Chave inválida. Verifique a conexão." : "Erro ao publicar: " + e.message, "erro", 5000);
@@ -1220,6 +1296,25 @@
     }
   }
   $("btnPublicar").onclick = publicar;
+
+  // Mantém o painel em dia quando outro aparelho publica (junta, nunca apaga)
+  let sincronizando = false;
+  async function sincronizar() {
+    if (sincronizando || !dados || !gh.token || document.hidden || modalAberto || $("btnPublicar").disabled) return;
+    sincronizando = true;
+    try {
+      const atual = await lerArquivo("data.js"); if (!atual) return;
+      const remoto = Pedido.normalizar(parseDataJs(atual.texto)), s = JSON.stringify(remoto);
+      if (s === publicado || modalAberto) return;
+      dados = temMudancas() ? Pedido.normalizar(Mescla.mesclar(JSON.parse(publicado), dados, remoto)) : clone(remoto);
+      publicado = s;
+      if (temMudancas()) mudou(); else store.del(LS_DRAFT);
+      atualizarStatus(); renderKpis(); RENDER[abaAtual]();
+      toast("Atualizado com o que foi publicado em outro aparelho.");
+    } catch { /* sem internet: tenta de novo depois */ } finally { sincronizando = false; }
+  }
+  document.addEventListener("visibilitychange", sincronizar);
+  setInterval(sincronizar, 90000);
 
   // Promoções com horário mudam de status sozinhas
   setInterval(() => { if (!dados || modalAberto) return; if (abaAtual === "promocoes") renderPromos(); else if (abaAtual === "inicio") renderInicio(); }, 60000);
@@ -1244,11 +1339,25 @@
     const rasc = store.get(LS_DRAFT, null);
     if (rasc && rasc.dados) {
       const r = Pedido.normalizar(rasc.dados);
-      if (JSON.stringify(r) !== publicado || Object.keys(rasc.pendentes || {}).length) {
-        // Continua de onde parou, sem perguntar
-        dados = r; pendentes = rasc.pendentes || {};
-        if (!acessoPeloLink) setTimeout(() => toast("Continuando de onde você parou"), 400);
-      }
+      const temAlgo = JSON.stringify(r) !== publicado || Object.keys(rasc.pendentes || {}).length;
+      if (rasc.base && temAlgo) {
+        pendentes = rasc.pendentes || {};
+        if (rasc.base === publicado) {
+          dados = r; // ninguém publicou desde então: continua de onde parou
+          if (!acessoPeloLink) setTimeout(() => toast("Continuando de onde você parou"), 400);
+        } else {
+          // outro aparelho publicou depois: junta as alterações deste aparelho com as do site
+          dados = Pedido.normalizar(Mescla.mesclar(Pedido.normalizar(JSON.parse(rasc.base)), r, clone(base)));
+          mudou();
+          setTimeout(() => toast("Suas alterações não publicadas foram juntadas com as do outro aparelho.", null, 4500), 400);
+        }
+      } else if (temAlgo) {
+        // rascunho antigo (de antes desta proteção): não sabemos em que versão se baseia,
+        // então ele NÃO substitui o site. Fica guardado à parte em Conexão e backup.
+        store.set(LS_DRAFT_ANTIGO, { ...rasc, guardadoEm: Date.now() });
+        store.del(LS_DRAFT);
+        if (!acessoPeloLink) setTimeout(() => toast("Havia um rascunho antigo neste aparelho. Ele foi guardado à parte e não altera o site.", null, 5000), 400);
+      } else store.del(LS_DRAFT);
     }
     atualizarStatus();
     abrirAba(location.hash.slice(1));
