@@ -51,7 +51,7 @@ main, .footer { position: relative; z-index: 1; }
 .age-box p { color: var(--muted); margin: 0 0 18px; }
 .age-actions { display: grid; gap: 8px; }
 
-/* ============ Fundo: bolhas de cerveja caindo ============ */
+/* ============ Fundo: bolhas de cerveja subindo ============ */
 /* Bolhas recortadas da imagem de referência (img/bolhas.webp, 6 bolhas lado a lado).
    Só transform/opacity: leve no celular. */
 .bolhas-bg {
@@ -60,7 +60,7 @@ main, .footer { position: relative; z-index: 1; }
 }
 .bolhas-bg i {
   position: absolute; top: 0; display: block; will-change: transform;
-  animation: bolhaCai linear infinite; transform: translateY(-15vh);
+  animation: bolhaSobe cubic-bezier(.45, 0, .85, .7) infinite; transform: translateY(112vh);
 }
 .bolhas-bg b {
   display: block; width: 100%; height: 100%;
@@ -68,7 +68,7 @@ main, .footer { position: relative; z-index: 1; }
   animation: bolhaBalanca ease-in-out infinite alternate;
 }
 .bolhas-bg.parado i, .bolhas-bg.parado b { animation: none; }
-@keyframes bolhaCai { from { transform: translateY(-15vh); } to { transform: translateY(112vh); } }
+@keyframes bolhaSobe { from { transform: translateY(112vh); } to { transform: translateY(-15vh); } }
 @keyframes bolhaBalanca { from { transform: translateX(-14px); } to { transform: translateX(14px); } }
 /* títulos legíveis sobre a foto */
 .cat-title, .sec-promo-head h2 { text-shadow: 0 2px 14px rgba(0, 0, 0, .85); }
