@@ -26,7 +26,7 @@ window.DADOS = {
       "75000001",
       "75159999"
     ],
-    "lojaCep": "",
+    "lojaCep": "75130-510",
     "lojaLat": -16.3285,
     "lojaLng": -48.9534,
     "precoKm": 1.5,
