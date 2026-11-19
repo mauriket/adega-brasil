@@ -18,10 +18,9 @@
   <link rel="icon" type="image/png" href="img/favicon.png">
   <link rel="apple-touch-icon" href="img/icone.png">
   <link rel="preload" as="image" href="img/logo.webp">
-  <link rel="preload" as="image" href="img/chopp/chopp-1.webp" fetchpriority="high">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261119o">
+  <link rel="stylesheet" href="style.css?v=20261119p">
 </head>
 <body>
 
@@ -57,38 +56,23 @@
     })();
   </script>
 
-  <!-- Fundo: chopp sendo servido (fotos reais recortadas + movimento) -->
-  <div class="chopp" id="chopp" aria-hidden="true">
-    <div class="chopp-palco">
-      <img class="q q1" src="img/chopp/chopp-1.webp" alt="" width="944" height="1680" decoding="async" fetchpriority="high">
-      <img class="q q2" src="img/chopp/chopp-2.webp" alt="" width="944" height="1680" decoding="async">
-      <img class="q q3" src="img/chopp/chopp-3.webp" alt="" width="944" height="1680" decoding="async">
-      <img class="q q4" src="img/chopp/chopp-4.webp" alt="" width="944" height="1680" decoding="async">
-      <img class="q q5" src="img/chopp/chopp-5.webp" alt="" width="944" height="1680" decoding="async">
-      <img class="q q6" src="img/chopp/chopp-6.webp" alt="" width="944" height="1680" decoding="async">
-      <svg class="chopp-vivo" viewBox="0 0 944 1680" preserveAspectRatio="xMidYMid slice">
-        <path class="jato-brilho" pathLength="1" d="M335 10 C 400 110, 455 230, 474 400 C 486 500, 490 580, 490 650"/>
-        <path class="jato-brilho j2" pathLength="1" d="M335 10 C 400 110, 455 230, 474 400 C 486 500, 490 580, 490 650"/>
-        <circle class="bolha" cx="392" cy="1215" r="3.5" style="animation-duration:2.6s;animation-delay:3.2s"/>
-        <circle class="bolha" cx="430" cy="1215" r="2.5" style="animation-duration:3.1s;animation-delay:3.7s"/>
-        <circle class="bolha" cx="468" cy="1215" r="4" style="animation-duration:2.4s;animation-delay:4.3s"/>
-        <circle class="bolha" cx="512" cy="1215" r="3" style="animation-duration:3.3s;animation-delay:3.5s"/>
-        <circle class="bolha" cx="548" cy="1215" r="2.5" style="animation-duration:2.8s;animation-delay:4.7s"/>
-        <circle class="bolha" cx="585" cy="1215" r="4" style="animation-duration:3s;animation-delay:4.0s"/>
-        <circle class="bolha" cx="612" cy="1215" r="3" style="animation-duration:2.5s;animation-delay:5.1s"/>
-        <circle class="bolha" cx="455" cy="1215" r="2" style="animation-duration:3.4s;animation-delay:5.5s"/>
-        <ellipse class="pingo" cx="402" cy="1512" rx="4" ry="6"/>
-        <ellipse class="pingo p2" cx="482" cy="1620" rx="5" ry="7"/>
-        <ellipse class="pingo p3" cx="686" cy="1527" rx="4" ry="6"/>
-      </svg>
-    </div>
-  </div>
+  <!-- Fundo: bolhas de cerveja caindo -->
+  <div class="bolhas-bg" id="bolhasBg" aria-hidden="true"></div>
   <script>
     (function () {
-      var c = document.getElementById("chopp"), fotos = [].slice.call(c.querySelectorAll("img"));
-      // só começa quando todas as fotos estiverem prontas (sem piscar)
-      Promise.all(fotos.map(function (i) { return i.decode ? i.decode().catch(function () {}) : null; }))
-        .then(function () { c.classList.add("rodando"); });
+      var bg = document.getElementById("bolhasBg");
+      var calmo = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var grande = innerWidth >= 900, n = innerWidth < 600 ? 14 : grande ? 30 : 22, k = grande ? 1.35 : 1, html = "";
+      for (var i = 0; i < n; i++) {
+        var r = Math.random(), t = Math.round((r < .55 ? 10 + Math.random() * 16 : r < .85 ? 26 + Math.random() * 20 : 46 + Math.random() * 26) * k);
+        var dur = (11 + Math.random() * 13).toFixed(1), atraso = (-Math.random() * dur).toFixed(1);
+        var estilo = "left:" + (Math.random() * 96).toFixed(1) + "%;width:" + t + "px;height:" + t + "px;opacity:" + (.45 + Math.random() * .45).toFixed(2) +
+          ";background-position:" + (Math.floor(Math.random() * 6) * 20) + "% 0;";
+        estilo += calmo ? "transform:translateY(" + (Math.random() * 100).toFixed(0) + "vh)" : "animation-duration:" + dur + "s;animation-delay:" + atraso + "s";
+        html += '<i style="' + estilo + '"><b style="animation-duration:' + (2.5 + Math.random() * 3).toFixed(1) + 's"></b></i>';
+      }
+      bg.innerHTML = html;
+      if (calmo) bg.classList.add("parado");
     })();
   </script>
 
@@ -116,13 +100,6 @@
       <div class="chips" id="categorias" role="group" aria-label="Categorias"></div>
     </section>
 
-    <!-- Abertura: espaço livre para a animação do chopp aparecer inteira -->
-    <div class="chopp-hero" id="choppHero">
-      <button class="hero-seta" id="heroSeta" aria-label="Ver as bebidas">
-        <span>Ver as bebidas</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-      </button>
-    </div>
 
     <section class="sec-promo" id="secPromo" hidden>
       <div class="sec-promo-head">
@@ -240,9 +217,9 @@
       } catch (e) { /* usa o data.js do Pages */ }
     })();
   </script>
-  <script src="geo.js?v=20261119o"></script>
-  <script src="promo.js?v=20261119o"></script>
-  <script src="pedido.js?v=20261119o"></script>
-  <script src="app.js?v=20261119o"></script>
+  <script src="geo.js?v=20261119p"></script>
+  <script src="promo.js?v=20261119p"></script>
+  <script src="pedido.js?v=20261119p"></script>
+  <script src="app.js?v=20261119p"></script>
 </body>
 </html>

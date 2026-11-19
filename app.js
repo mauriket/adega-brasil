@@ -120,7 +120,6 @@
   function renderTudo() {
     const termo = norm($("busca").value);
     const filtrando = categoriaAtiva !== "Todas" || termo !== "";
-    $("choppHero").hidden = filtrando; // ao buscar, os resultados aparecem logo abaixo da busca
     const promo = produtosDaVitrine("promoDia");
     const ofertas = produtosDaVitrine("ofertas").filter((p) => !promo.includes(p));
     const dest = PRODUTOS.filter((p) => p.destaque);
@@ -408,12 +407,6 @@
     clearTimeout(toastT);
     toastT = setTimeout(() => $("toast").classList.remove("show"), 1400);
   }
-
-  // Botão da abertura: rola até as bebidas
-  $("heroSeta").onclick = () => {
-    const alvo = $("choppHero").getBoundingClientRect().bottom + scrollY - document.querySelector(".topbar").offsetHeight - 8;
-    scrollTo({ top: alvo, behavior: calmo ? "auto" : "smooth" });
-  };
 
   renderTudo();
   renderCarrinho();
