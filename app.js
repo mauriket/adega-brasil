@@ -62,7 +62,7 @@
   {
     const zap = String(LOJA.whatsapp || "").replace(/\D/g, "");
     const fone = zap.length >= 12 ? `(${zap.slice(2, 4)}) ${zap.slice(4, -4)}-${zap.slice(-4)}` : zap;
-    $("rodapeInfo").innerHTML = `<b>${esc(LOJA.nome)}</b>` +
+    $("rodapeInfo").innerHTML = `<img class="rodape-logo" src="img/logo.webp" alt="${esc(LOJA.nome)}" width="136" height="96" loading="lazy">` +
       (LOJA.endereco ? `<span>${esc(LOJA.endereco)}</span>` : "") +
       (zap ? `<a href="https://wa.me/${zap}" target="_blank" rel="noopener">WhatsApp ${esc(fone)}</a>` : "");
   }
