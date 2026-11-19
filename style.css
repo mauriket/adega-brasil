@@ -51,32 +51,34 @@ main, .footer { position: relative; z-index: 1; }
 .age-box p { color: var(--muted); margin: 0 0 18px; }
 .age-actions { display: grid; gap: 8px; }
 
-/* ============ Fundo: chopp caindo ============ */
-.chopp { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-.chopp-jato {
-  position: absolute; left: 50%; top: 0; width: 34px; height: 100%; margin-left: -17px;
-  background: linear-gradient(90deg, rgba(224, 138, 0, 0), rgba(255, 216, 77, .55) 35%, rgba(255, 194, 14, .7) 50%, rgba(255, 216, 77, .55) 65%, rgba(224, 138, 0, 0));
-  border-radius: 0 0 18px 18px; transform-origin: top;
-  animation: jato 3.2s var(--ease) forwards;
+/* ============ Fundo: caneca de chopp animada ============ */
+.caneca-bg {
+  position: fixed; left: 50%; top: 56%; z-index: 0; pointer-events: none;
+  width: min(64vmin, 560px); aspect-ratio: 1; transform: translate(-50%, -50%);
 }
-.chopp-liquido {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 36vh;
-  background: linear-gradient(180deg, rgba(255, 200, 40, .30), rgba(224, 138, 0, .20) 60%, rgba(150, 80, 0, .16));
-  transform: translateY(100%);
-  animation: encher 2.8s .3s var(--ease) forwards;
+.caneca-brilho {
+  position: absolute; inset: -20%; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 194, 14, .28), transparent 62%);
+  animation: brilhoPulsa 4s ease-in-out infinite;
 }
-.chopp-espuma {
-  position: absolute; left: 0; bottom: 100%; width: 200%; height: 46px; margin-bottom: -2px;
-  fill: rgba(255, 248, 225, .78); animation: onda 7s linear infinite;
+.caneca-move {
+  position: relative; width: 100%; height: 100%; opacity: .42;
+  animation: canecaEntra 1.4s cubic-bezier(.3, 1.5, .5, 1) both, canecaBalanca 6s 1.4s ease-in-out infinite;
+  transform-origin: 50% 90%;
 }
-.chopp-bolhas span {
-  position: absolute; bottom: -12px; border-radius: 50%;
-  background: rgba(255, 255, 255, .45); animation: bolha linear infinite;
+.caneca-move img { width: 100%; height: 100%; display: block; }
+/* bolhas subindo dentro do chopp */
+.caneca-bolhas { position: absolute; left: 22%; width: 42%; top: 38%; bottom: 14%; overflow: hidden; border-radius: 0 0 20px 20px; }
+.caneca-bolhas span {
+  position: absolute; bottom: -10px; border-radius: 50%;
+  background: rgba(255, 255, 255, .85); box-shadow: inset -1px -1px 0 rgba(200, 120, 0, .4);
+  animation: bolha linear infinite;
 }
-@keyframes jato { 0% { transform: scaleY(0); opacity: 1; } 35% { transform: scaleY(1); opacity: 1; } 80% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1) translateY(-100%); opacity: 0; } }
-@keyframes encher { to { transform: translateY(0); } }
-@keyframes onda { to { transform: translateX(-50%); } }
-@keyframes bolha { to { transform: translateY(-36vh); opacity: 0; } }
+@keyframes canecaEntra { 0% { transform: translateY(-80vh) rotate(-25deg); opacity: 0; } 60% { opacity: 1; } 100% { transform: none; } }
+@keyframes canecaBalanca { 0%, 100% { transform: rotate(-5deg) translateY(0); } 50% { transform: rotate(5deg) translateY(-14px); } }
+@keyframes brilhoPulsa { 0%, 100% { opacity: .6; transform: scale(.95); } 50% { opacity: 1; transform: scale(1.05); } }
+@keyframes bolha { to { transform: translateY(-260px); opacity: 0; } }
+
 
 /* ============ Topo ============ */
 .topbar {
@@ -289,7 +291,7 @@ main, .footer { position: relative; z-index: 1; }
   .top-logo img { height: 74px; }
   .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .card-img { font-size: 50px; }
-  .chopp-liquido { height: 28vh; }
+  .caneca-bg { width: 86vw; top: 60%; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
