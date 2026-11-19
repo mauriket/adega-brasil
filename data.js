@@ -22,12 +22,12 @@ window.DADOS = {
     "lojaCep": "",
     "lojaLat": -16.3285,
     "lojaLng": -48.9534,
-    "precoKm": 1,
+    "precoKm": 1.5,
     "taxaFixa": 0,
     "taxaMinima": 0,
     "raioMaximoKm": 0,
     "taxaPadrao": 0,
-    "freteGratisAcima": 150
+    "freteGratisAcima": 0
   },
   "categorias": [
     "Cervejas",
