@@ -1,6 +1,6 @@
 window.DADOS = {
   "loja": {
-    "nome": "Adega Brasil",
+    "nome": "ADEGA BRASIL",
     "slogan": "Bebidas geladas na sua porta",
     "whatsapp": "5562992127511",
     "endereco": "Rua Exemplo, 123 - Centro, Anápolis - GO",
