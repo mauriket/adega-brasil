@@ -306,3 +306,49 @@ main, .footer { position: relative; z-index: 1; }
   background: rgba(255, 92, 92, .12); border-bottom: 1px solid rgba(255, 92, 92, .45); color: var(--text);
 }
 .loja-fechada b { color: var(--danger); margin-right: 6px; text-transform: uppercase; letter-spacing: .5px; }
+
+/* ============ Revisão: ícones, cards, envio, rodapé, acessibilidade ============ */
+.ico { width: 1.1em; height: 1.1em; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -.18em; }
+.cart-btn .ico { width: 20px; height: 20px; }
+.sec-promo-head h2 { display: flex; align-items: center; gap: 8px; }
+.sec-promo-head h2 .ico { color: var(--gold); width: 24px; height: 24px; }
+.selo .ico { width: 11px; height: 11px; vertical-align: -1px; }
+.selo-dest .ico { fill: currentColor; }
+.ci-promo .ico { width: 12px; height: 12px; vertical-align: -2px; }
+.previa .ico { color: var(--gold); width: 18px; height: 18px; }
+.icon-btn { display: grid; place-items: center; }
+.icon-btn .ico { width: 18px; height: 18px; }
+.fc-qtd { display: inline-flex; align-items: center; gap: 6px; }
+.fc-qtd .ico { width: 18px; height: 18px; }
+
+/* Cards sólidos: o fundo animado não atravessa o produto */
+.card { background: #16140f; }
+.sec-promo { background: #14120e; }
+/* Foto inteira (garrafas não são cortadas) */
+.card-img img { object-fit: contain; padding: 10px; }
+.ci-emoji img { object-fit: contain; background: rgba(255, 255, 255, .04); }
+/* Botão do card com a mesma largura do seletor de quantidade */
+.acao .btn { width: 100%; }
+
+/* Envio bloqueado (loja fechada / pedido mínimo) */
+.aviso-envio {
+  margin: 0 0 10px; padding: 10px 12px; border-radius: 12px; font-size: 13px;
+  background: rgba(255, 92, 92, .1); border: 1px solid rgba(255, 92, 92, .4); color: var(--text);
+}
+.btn-whats:disabled { background: var(--surface-2); color: var(--muted); cursor: not-allowed; box-shadow: none; }
+
+/* Rodapé com dados da loja */
+.footer-info { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 14px; font-size: 13px; color: var(--muted); }
+.footer-info b { color: var(--text); font-size: 15px; font-family: "Montserrat", sans-serif; }
+.footer-info a { color: var(--gold); font-weight: 700; text-decoration: none; }
+.footer-info a:hover { text-decoration: underline; }
+.footer p { margin: 0; }
+
+/* Foco visível para quem navega pelo teclado */
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+#busca:focus-visible, .drawer-body :is(input, select, textarea):focus-visible { outline: none; }
+
+/* Categorias: indica que dá para arrastar no celular */
+@media (max-width: 700px) {
+  .chips { -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent); mask-image: linear-gradient(90deg, #000 82%, transparent); padding-right: 40px; }
+}

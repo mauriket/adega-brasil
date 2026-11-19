@@ -5,6 +5,10 @@
   const brl = (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   const norm = Geo.norm;
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const ICO = {
+    star: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',
+    tag: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg>',
+  };
   const calmo = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const store = {
     get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
@@ -55,6 +59,13 @@
   $("logoImg").alt = LOJA.nome;
   $("pagamento").innerHTML = LOJA.pagamentos.map((p) => `<option>${esc(p)}</option>`).join("");
   $("retiradaMsg").textContent = "Retirada em: " + LOJA.endereco;
+  {
+    const zap = String(LOJA.whatsapp || "").replace(/D/g, "");
+    const fone = zap.length >= 12 ? `(${zap.slice(2, 4)}) ${zap.slice(4, -4)}-${zap.slice(-4)}` : zap;
+    $("rodapeInfo").innerHTML = `<b>${esc(LOJA.nome)}</b>` +
+      (LOJA.endereco ? `<span>${esc(LOJA.endereco)}</span>` : "") +
+      (zap ? `<a href="https://wa.me/${zap}" target="_blank" rel="noopener">WhatsApp ${esc(fone)}</a>` : "");
+  }
   if (LOJA.aberta === false) { $("lojaFechada").hidden = false; $("lojaFechadaTxt").textContent = LOJA.avisoFechada || "Estamos fechados no momento."; }
 
   // ---------- Bolhas dentro da caneca do fundo ----------
@@ -71,11 +82,11 @@
   // ---------- Categorias ----------
   const categorias = ["Todas", ...D.categorias.filter((c) => PRODUTOS.some((p) => p.categoria === c))];
   PRODUTOS.forEach((p) => { if (!categorias.includes(p.categoria)) categorias.push(p.categoria); });
-  $("categorias").innerHTML = categorias.map((c) => `<button class="chip ${c === categoriaAtiva ? "active" : ""}" data-cat="${esc(c)}">${esc(c)}</button>`).join("");
+  $("categorias").innerHTML = categorias.map((c) => `<button class="chip ${c === categoriaAtiva ? "active" : ""}" data-cat="${esc(c)}" aria-pressed="${c === categoriaAtiva}">${esc(c)}</button>`).join("");
   $("categorias").addEventListener("click", (e) => {
     const b = e.target.closest(".chip"); if (!b) return;
     categoriaAtiva = b.dataset.cat;
-    $("categorias").querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c === b));
+    $("categorias").querySelectorAll(".chip").forEach((c) => { c.classList.toggle("active", c === b); c.setAttribute("aria-pressed", c === b); });
     renderTudo();
   });
   let buscaT;
@@ -83,18 +94,19 @@
 
   // ---------- Cards ----------
   const vit = (p) => Promo.vitrine(p, PROMOS);
+  const qtdHTML = (p, qtd) => `<div class="qty"><button data-act="dec" data-id="${p.id}" aria-label="Diminuir quantidade de ${esc(p.nome)}">−</button><span aria-label="${qtd} no carrinho">${qtd}</span><button data-act="inc" data-id="${p.id}" aria-label="Aumentar quantidade de ${esc(p.nome)}">+</button></div>`;
   function acaoHTML(p) {
     if (p.esgotado) return `<button class="btn btn-esgotado" disabled>Esgotado</button>`;
     const qtd = carrinho[p.id] || 0;
     return qtd
-      ? `<div class="qty"><button data-act="dec" data-id="${p.id}">−</button><span>${qtd}</span><button data-act="inc" data-id="${p.id}">+</button></div>`
-      : `<button class="btn btn-primary" data-act="inc" data-id="${p.id}">Adicionar</button>`;
+      ? qtdHTML(p, qtd)
+      : `<button class="btn btn-primary" data-act="inc" data-id="${p.id}" aria-label="Adicionar ${esc(p.nome)} ao carrinho">Adicionar</button>`;
   }
   function cardHTML(p, i, secao) {
     const v = vit(p);
     const selos = (p.esgotado ? `<span class="selo selo-esgotado">Esgotado</span>` : "") +
       v.selos.map((s) => `<span class="selo selo-off">${esc(s)}</span>`).join("") +
-      (p.destaque && secao !== "dest" ? `<span class="selo selo-dest">⭐ Destaque</span>` : "");
+      (p.destaque && secao !== "dest" ? `<span class="selo selo-dest">${ICO.star} Destaque</span>` : "");
     const foto = p.imagem ? `<img src="${esc(img(p.imagem))}" alt="${esc(p.nome)}" loading="lazy">` : `<span>${esc(p.emoji || "🍾")}</span>`;
     return `<article class="card" data-card="${p.id}" style="--d:${Math.min(i, 10)}">
       <div class="card-img">${foto}<div class="selos">${selos}</div></div>
@@ -129,7 +141,7 @@
       $("gridOfertas").innerHTML = grade(ofertas, "ofer");
       $("gridDestaques").innerHTML = grade(dest, "dest");
     }
-    const lista = PRODUTOS.filter((p) => (categoriaAtiva === "Todas" || p.categoria === categoriaAtiva) && norm(p.nome).includes(termo));
+    const lista = PRODUTOS.filter((p) => (categoriaAtiva === "Todas" || p.categoria === categoriaAtiva) && norm(`${p.nome} ${p.categoria} ${p.descricao || ""}`).includes(termo));
     const grupos = {};
     lista.forEach((p) => (grupos[p.categoria] ||= []).push(p));
     $("catalogo").innerHTML = categorias.filter((c) => grupos[c])
@@ -221,6 +233,7 @@
     $("cartFoot").hidden = vazio;
     $("floatingCart").hidden = vazio;
     $("floatQtd").textContent = qtd;
+    $("floatItensTxt").textContent = qtd === 1 ? "item" : "itens";
 
     $("cartItems").innerHTML = lista.map((i) => {
       const pr = i.calc.promo;
@@ -228,8 +241,8 @@
         <div class="ci-emoji">${i.imagem ? `<img src="${esc(img(i.imagem))}" alt="">` : esc(i.emoji || "🍾")}</div>
         <div><div class="ci-name">${esc(i.nome)}</div>
           <div class="ci-price">${i.calc.economia > 0 ? `<s>${brl(i.calc.cheio)}</s> ` : ""}<b>${brl(i.calc.total)}</b></div>
-          ${pr ? `<div class="ci-promo">🏷️ ${esc(Promo.selo(pr, i.preco) || pr.nome)}</div>` : ""}</div>
-        <div class="qty"><button data-act="dec" data-id="${i.id}">−</button><span>${i.qtd}</span><button data-act="inc" data-id="${i.id}">+</button></div>
+          ${pr ? `<div class="ci-promo">${ICO.tag} ${esc(Promo.selo(pr, i.preco) || pr.nome)}</div>` : ""}</div>
+        ${qtdHTML(i, i.qtd)}
       </div>`;
     }).join("");
 
@@ -248,11 +261,37 @@
       else msgFrete(`${onde}: frete <b>${brl(frete.valor)}</b>.${lim > 0 ? ` Faltam ${brl(lim - sub)} para frete grátis!` : ""}`, "ok");
     }
     $("erro").textContent = "";
+
+    // Envio bloqueado já aparece antes de o cliente preencher tudo
+    const minimo = Number(LOJA.pedidoMinimo || 0);
+    let bloqueio = "";
+    if (LOJA.aberta === false) bloqueio = "Loja fechada no momento. Você pode montar o carrinho, mas o envio fica liberado quando abrirmos.";
+    else if (minimo > 0 && sub < minimo) bloqueio = `Pedido mínimo de ${brl(minimo)}. Faltam ${brl(minimo - sub)}.`;
+    $("avisoEnvio").textContent = bloqueio;
+    $("avisoEnvio").hidden = !bloqueio;
+    $("enviar").disabled = !!bloqueio;
   }
 
   // ---------- Abrir / fechar carrinho ----------
-  const abrir = () => { $("cartDrawer").classList.add("open"); $("cartOverlay").hidden = false; $("cartDrawer").setAttribute("aria-hidden", "false"); };
-  const fechar = () => { $("cartDrawer").classList.remove("open"); $("cartOverlay").hidden = true; $("cartDrawer").setAttribute("aria-hidden", "true"); };
+  let focoAntes = null;
+  const aberto = () => $("cartDrawer").classList.contains("open");
+  const abrir = () => {
+    if (aberto()) return;
+    focoAntes = document.activeElement;
+    const d = $("cartDrawer");
+    d.inert = false; d.classList.add("open"); d.setAttribute("aria-hidden", "false");
+    $("cartOverlay").hidden = false;
+    document.documentElement.classList.add("travado");
+    setTimeout(() => $("closeCart").focus({ preventScroll: true }), 50);
+  };
+  const fechar = () => {
+    if (!aberto()) return;
+    const d = $("cartDrawer");
+    d.classList.remove("open"); d.setAttribute("aria-hidden", "true"); d.inert = true;
+    $("cartOverlay").hidden = true;
+    document.documentElement.classList.remove("travado");
+    if (focoAntes && focoAntes.focus) focoAntes.focus({ preventScroll: true });
+  };
   $("openCart").onclick = abrir;
   $("floatingCart").onclick = abrir;
   $("closeCart").onclick = fechar;
