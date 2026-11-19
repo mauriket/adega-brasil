@@ -623,3 +623,61 @@ code { font: 12.5px ui-monospace, Consolas, monospace; background: var(--well); 
   .top-act .btn .lbl { display: inline; }
   .top-act .btn { padding-left: 14px; padding-right: 12px; }
 }
+
+/* ===== Modo claro: superfícies brancas, fundo neutro, contraste ===== */
+[data-theme="light"] {
+  --bg: #f2f0eb;
+  --glass: rgba(255, 255, 255, .94);
+  --glass-2: #ffffff;
+  --solid: #ffffff;
+  --float: #ffffff;
+  --well: #f4f1ea;
+  --line: rgba(20, 17, 10, .11);
+  --line-2: rgba(20, 17, 10, .22);
+  --muted: #514b3f;
+  --faint: #716a5b;
+  --glow-1: rgba(255, 194, 14, .16);
+  --glow-2: rgba(245, 158, 11, .07);
+  --glow-3: rgba(255, 255, 255, 0);
+  --shadow: 0 1px 2px rgba(40, 30, 10, .06), 0 12px 32px -20px rgba(40, 30, 10, .22);
+  --shadow-pop: 0 18px 44px -18px rgba(40, 30, 10, .3), 0 0 0 1px rgba(20, 17, 10, .08);
+}
+[data-theme="light"] body { background: var(--bg); }
+[data-theme="light"] .bg .g2, [data-theme="light"] .bg .g3 { display: none; }
+
+/* Logo: as letras são brancas, então ganham um fundo escuro */
+[data-theme="light"] .brand img { background: #17140d; padding: 4px 8px; border-radius: 10px; height: 40px; }
+
+/* Campos brancos com borda visível (antes pareciam desativados) */
+[data-theme="light"] .f input, [data-theme="light"] .f select, [data-theme="light"] .f textarea,
+[data-theme="light"] .sel, [data-theme="light"] textarea.code, [data-theme="light"] input.code,
+[data-theme="light"] .search {
+  background: #fff; border-color: var(--line-2);
+}
+[data-theme="light"] .f input:focus, [data-theme="light"] .f select:focus, [data-theme="light"] .f textarea:focus { background: #fff; }
+[data-theme="light"] .f input::placeholder, [data-theme="light"] .search input::placeholder { color: #8b8474; }
+
+/* Blocos internos: tom creme leve em vez de cinza */
+[data-theme="light"] .tile, [data-theme="light"] .var { background: #faf8f3; border-color: var(--line); }
+[data-theme="light"] .tile:hover, [data-theme="light"] .var:hover { background: #fff8e1; border-color: rgba(200, 140, 0, .45); }
+[data-theme="light"] .chip { background: #fff; }
+[data-theme="light"] .chip.on { background: var(--ink); }
+[data-theme="light"] .item, [data-theme="light"] .kpi { background: #fff; }
+[data-theme="light"] .item:hover { border-color: var(--line-2); }
+[data-theme="light"] .thumb { background: #f4f1ea; color: #8b8474; }
+
+/* Aviso de conexão em tom único */
+[data-theme="light"] .aviso { background: #fff3ee; border-color: rgba(184, 64, 31, .35); }
+
+/* Botões secundários e estados */
+[data-theme="light"] .btn.ghost { background: #fff; border-color: var(--line-2); }
+[data-theme="light"] .btn.ghost:hover { background: #faf8f3; }
+[data-theme="light"] .circ:not(.on):not(.on-bad) { background: #fff; border-color: var(--line-2); }
+[data-theme="light"] .btn.estoque.esg { background: #fdeee9; }
+[data-theme="light"] .pag { background: #fff; border-color: var(--line-2); }
+[data-theme="light"] .pag:has(input:checked) { background: #fff8e1; border-color: #d9a400; }
+[data-theme="light"] .menu-mais { background: #fff; }
+[data-theme="light"] .formula { background: #fff8e1; border-color: rgba(200, 140, 0, .5); }
+[data-theme="light"] .wa { border-color: var(--line-2); }
+[data-theme="light"] .modal { background: #fff; }
+[data-theme="light"] .scrim { background: rgba(30, 25, 15, .35); }
