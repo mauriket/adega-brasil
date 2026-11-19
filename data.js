@@ -36,7 +36,9 @@ window.DADOS = {
   "categorias": [
     "Cervejas",
     "Destilados",
+    "Licores",
     "Vinhos",
+    "Tabaco",
     "Energéticos e Refri",
     "Gelo e Petiscos"
   ],
@@ -65,25 +67,15 @@ window.DADOS = {
     },
     {
       "id": 10,
-      "nome": "Vodka Absolut 1L",
+      "nome": "Old Parr 1L",
       "categoria": "Destilados",
       "preco": 99.9,
       "emoji": "🍸",
-      "imagem": "",
+      "imagem": "img/produtos/p10-1795110862438.jpg",
       "descricao": "",
       "destaque": false,
-      "ativo": true
-    },
-    {
-      "id": 11,
-      "nome": "Vodka Smirnoff 998ml",
-      "categoria": "Destilados",
-      "preco": 44.9,
-      "emoji": "🍸",
-      "imagem": "",
-      "descricao": "",
-      "destaque": false,
-      "ativo": true
+      "ativo": true,
+      "esgotado": false
     },
     {
       "id": 12,
@@ -91,76 +83,83 @@ window.DADOS = {
       "categoria": "Destilados",
       "preco": 109.9,
       "emoji": "🥃",
-      "imagem": "",
+      "imagem": "img/produtos/p12-1795110645263.jpg",
       "descricao": "",
       "destaque": false,
-      "ativo": true
+      "ativo": true,
+      "esgotado": false
     },
     {
       "id": 13,
-      "nome": "Whisky Black Label 1L",
+      "nome": "Whisky White Horse 1L",
       "categoria": "Destilados",
       "preco": 199.9,
       "emoji": "🥃",
       "imagem": "",
       "descricao": "",
       "destaque": false,
-      "ativo": true
+      "ativo": true,
+      "esgotado": false
     },
     {
       "id": 14,
-      "nome": "Gin Tanqueray 750ml",
+      "nome": "Gin Tanqueray Sevilla 700ml",
       "categoria": "Destilados",
       "preco": 129.9,
       "emoji": "🍸",
-      "imagem": "",
+      "imagem": "img/produtos/p14-1795111771917.jpg",
       "descricao": "",
       "destaque": false,
-      "ativo": true
+      "ativo": true,
+      "esgotado": false
     },
     {
       "id": 15,
-      "nome": "Cachaça 51 965ml",
+      "nome": "Gin Tanqueray London Dry 700ml",
       "categoria": "Destilados",
       "preco": 14.9,
       "emoji": "🥃",
-      "imagem": "",
+      "imagem": "img/produtos/p15-1795110686686.jpg",
       "descricao": "",
       "destaque": false,
-      "ativo": true
+      "ativo": true,
+      "esgotado": false
     },
     {
       "id": 20,
-      "nome": "Vinho Tinto Casillero del Diablo",
+      "nome": "Cantinho da Serra 1,5 L",
       "categoria": "Vinhos",
       "preco": 59.9,
       "emoji": "🍷",
       "imagem": "",
       "descricao": "",
       "destaque": false,
-      "ativo": true
+      "ativo": true,
+      "esgotado": false
     },
     {
       "id": 21,
-      "nome": "Vinho Pérgola Suave 1L",
+      "nome": "Vinho Pérgola 1,0 L",
       "categoria": "Vinhos",
-      "preco": 24.9,
+      "preco": 30,
       "emoji": "🍷",
       "imagem": "",
       "descricao": "",
       "destaque": false,
-      "ativo": true
+      "ativo": true,
+      "esgotado": false
     },
     {
       "id": 22,
-      "nome": "Espumante Chandon Brut",
+      "nome": "Vinho Mioranza 1,0 L",
       "categoria": "Vinhos",
-      "preco": 89.9,
+      "preco": 30,
       "emoji": "🍾",
       "imagem": "",
       "descricao": "",
       "destaque": false,
-      "ativo": true
+      "ativo": true,
+      "esgotado": false
     },
     {
       "id": 30,
@@ -238,6 +237,42 @@ window.DADOS = {
       "descricao": "",
       "destaque": false,
       "ativo": true
+    },
+    {
+      "id": 43,
+      "imagem": "",
+      "nome": "Gin Tanqueray Royale 700ml",
+      "preco": 145,
+      "categoria": "Destilados",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 44,
+      "imagem": "",
+      "nome": "Gin Tanqueray Bossa Nova 700ml",
+      "preco": 145,
+      "categoria": "Destilados",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 45,
+      "imagem": "",
+      "nome": "Vodka Smirnoff 998ml",
+      "preco": 47,
+      "categoria": "Destilados",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
     }
   ],
   "promocoes": []
