@@ -15,7 +15,7 @@ window.DADOS = {
     "mensagemItem": "{promo}",
     "aberta": true,
     "avisoFechada": "Estamos fechados no momento. Você pode montar seu carrinho, mas os pedidos voltam a ser aceitos quando abrirmos.",
-    "instagram": "",
+    "instagram": "__mauriciojr__",
     "whatsappRodape": "",
     "rodapeTexto": "Proibida a venda de bebidas alcoólicas para menores de 18 anos. Beba com moderação."
   },
