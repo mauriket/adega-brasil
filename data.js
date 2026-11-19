@@ -10,7 +10,11 @@ window.DADOS = {
       "Cartão de crédito",
       "Cartão de débito",
       "Dinheiro"
-    ]
+    ],
+    "mensagem": "*NOVO PEDIDO - {loja}*\nData: {data} às {hora}\n\n*Cliente:* {cliente}\n*Telefone:* {telefone}\n\n*Itens:*\n{itens}\n\n*Subtotal:* {subtotal}\n*Economia com promoções:* {economia}\n*Frete:* {frete} {distancia}\n*TOTAL: {total}*\n\n*{entrega}*\n{endereco}\n\n*Pagamento:* {pagamento}\nTroco para: {troco}\n\n*Observações:* {obs}",
+    "mensagemItem": "{promo}",
+    "aberta": true,
+    "avisoFechada": "Estamos fechados no momento. Você pode montar seu carrinho, mas os pedidos voltam a ser aceitos quando abrirmos."
   },
   "frete": {
     "cidade": "Anápolis",
