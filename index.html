@@ -23,6 +23,9 @@
     </div>
   </div>
 
+  <div class="progresso" id="progresso" aria-hidden="true"></div>
+  <div class="cursor-luz" id="cursorLuz" aria-hidden="true"></div>
+
   <header class="topbar">
     <div class="container topbar-inner">
       <div></div>
@@ -152,6 +155,18 @@
   <script>document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');</script>
   <script src="geo.js"></script>
   <script src="promo.js"></script>
+  <script>
+    window.MOTION_CFG = {
+      luz: ".card, .chip, .sec-promo, .drawer .cart-item",
+      tilt: ".card.in",
+      tiltGraus: 10,
+      magnet: ".cart-btn, .btn-whats, .floating-cart",
+      dock: null,
+      bg: ".bg-anim",
+      pop: ".chip, .qty button, .cart-btn, .seg label, .icon-btn"
+    };
+  </script>
+  <script src="motion.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -79,13 +79,31 @@
   PRODUTOS.forEach((p) => { if (!categorias.includes(p.categoria)) categorias.push(p.categoria); });
 
   function renderCategorias() {
-    $("categorias").innerHTML = categorias
+    $("categorias").innerHTML = '<span class="chip-pill" id="chipPill" aria-hidden="true"></span>' + categorias
       .map((c) => `<button class="chip ${c === categoriaAtiva ? "active" : ""}" data-cat="${esc(c)}">${esc(c)}</button>`)
       .join("");
+    moverChip();
   }
+  // cápsula dourada desliza até a categoria escolhida
+  function moverChip() {
+    const b = $("categorias").querySelector(".chip.active"), pill = $("chipPill");
+    if (!b || !pill) return;
+    pill.style.width = b.offsetWidth + "px";
+    pill.style.height = b.offsetHeight + "px";
+    pill.style.transform = `translate(${b.offsetLeft}px, ${b.offsetTop}px)`;
+  }
+  window.addEventListener("resize", moverChip);
+  if (document.fonts) document.fonts.ready.then(moverChip);
+
   $("categorias").addEventListener("click", (e) => {
     const b = e.target.closest(".chip"); if (!b) return;
-    categoriaAtiva = b.dataset.cat; renderCategorias(); renderTudo();
+    categoriaAtiva = b.dataset.cat;
+    $("categorias").querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c === b));
+    moverChip();
+    b.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    renderTudo();
+    const cat = $("catalogo");
+    cat.classList.remove("troca"); void cat.offsetWidth; cat.classList.add("troca");
   });
   $("busca").addEventListener("input", renderTudo);
 
@@ -172,6 +190,46 @@
     renderEspeciais(filtrando);
     renderCatalogo();
     if (observer) document.querySelectorAll(".card:not(.in)").forEach((c) => observer.observe(c));
+    revelarTitulos();
+  }
+
+  // ---------- Títulos das seções entram ao rolar ----------
+  const titulosVistos = new Set();
+  const obsTitulo = "IntersectionObserver" in window && !Motion.calmo
+    ? new IntersectionObserver((entries) => entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        en.target.classList.add("in");
+        titulosVistos.add(en.target.textContent);
+        obsTitulo.unobserve(en.target);
+      }), { threshold: 0.4 })
+    : null;
+  function revelarTitulos() {
+    if (!obsTitulo) return;
+    document.querySelectorAll(".cat-title:not(.rv)").forEach((t) => {
+      t.classList.add("rv");
+      if (titulosVistos.has(t.textContent)) t.classList.add("in");
+      else obsTitulo.observe(t);
+    });
+  }
+
+  // ---------- Barra de progresso + brilho que segue o cursor ----------
+  const barra = $("progresso");
+  const progresso = () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    barra.style.transform = `scaleX(${max > 0 ? Math.min(1, scrollY / max) : 0})`;
+  };
+  addEventListener("scroll", progresso, { passive: true });
+  progresso();
+  const luz = $("cursorLuz");
+  if (matchMedia("(pointer: fine)").matches && !Motion.calmo) {
+    let alvo = null, pos = { x: innerWidth / 2, y: innerHeight / 2 };
+    addEventListener("pointermove", (e) => { alvo = { x: e.clientX, y: e.clientY }; luz.classList.add("on"); }, { passive: true });
+    document.addEventListener("pointerleave", () => luz.classList.remove("on"));
+    const seguir = () => {
+      if (alvo) { pos.x += (alvo.x - pos.x) * 0.12; pos.y += (alvo.y - pos.y) * 0.12; luz.style.transform = `translate(${pos.x}px, ${pos.y}px)`; }
+      requestAnimationFrame(seguir);
+    };
+    seguir();
   }
 
   // ---------- Contagem regressiva da promoção do dia ----------
@@ -184,9 +242,14 @@
     const s = Math.max(0, Math.floor((fim - agora) / 1000));
     const pad = (n) => String(n).padStart(2, "0");
     const h = Math.floor(s / 3600);
-    $("contador").textContent = h >= 48
+    const txt = h >= 48
       ? `${Math.floor(h / 24)} dias`
       : `${pad(h)}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+    const el = $("contador");
+    if (el.textContent !== txt) {
+      el.textContent = txt;
+      el.classList.remove("tick"); void el.offsetWidth; el.classList.add("tick");
+    }
   }
   tickPromo();
   setInterval(tickPromo, 1000);
@@ -257,7 +320,11 @@
     const b = e.target.closest("[data-act]"); if (!b) return;
     const id = Number(b.dataset.id);
     const card = b.closest(".card");
-    if (b.dataset.act === "inc" && card) voar(card.querySelector(".card-img"), produtoPorId[id]);
+    if (b.dataset.act === "inc" && card) {
+      voar(card.querySelector(".card-img"), produtoPorId[id]);
+      const r = b.getBoundingClientRect();
+      Motion.particulas(r.left + r.width / 2, r.top + r.height / 2, "#ffc20e", 12, 55);
+    }
     if (b.dataset.act === "inc") alterar(id, 1);
     if (b.dataset.act === "dec") alterar(id, -1);
   });
@@ -497,6 +564,7 @@
     if (!$("troco").hidden && $("troco").value.trim()) L.push(`Troco para: ${$("troco").value.trim()}`);
     if ($("obs").value.trim()) L.push("", `*📝 Obs:* ${$("obs").value.trim()}`);
 
+    Motion.confete($("enviar"));
     const numero = String(LOJA.whatsapp).replace(/\D/g, "");
     window.open(`https://wa.me/${numero}?text=${encodeURIComponent(L.join("\n"))}`, "_blank");
   };

@@ -3,6 +3,16 @@
    Respeita "reduzir movimento" do sistema.
    ===================================================== */
 window.Motion = (() => {
+  // Cada página pode escolher os alvos com window.MOTION_CFG (o padrão é o do painel)
+  const C = Object.assign({
+    luz: ".card, .item, .tile, .kpi, .mini-item, .chip, .search",
+    tilt: ".pcard, .tile",
+    tiltGraus: 8,
+    magnet: ".btn.accent, .circ, .top .brand",
+    dock: ".dock",
+    bg: ".bg",
+    pop: ".circ, .dk, .chip, .seg button, .dias button, .tile",
+  }, window.MOTION_CFG || {});
   const calmo = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const fino = window.matchMedia("(pointer: fine)").matches;
   const mola = "cubic-bezier(.34, 1.56, .64, 1)";
@@ -19,7 +29,7 @@ window.Motion = (() => {
   };
 
   // ---------- Luz que segue o mouse (cartões, itens, tiles) ----------
-  const ALVOS_LUZ = ".card, .item, .tile, .kpi, .mini-item, .chip, .search";
+  const ALVOS_LUZ = C.luz;
   if (fino && !calmo) {
     document.addEventListener("pointermove", (e) => {
       const el = e.target.closest(ALVOS_LUZ);
@@ -31,14 +41,14 @@ window.Motion = (() => {
   }
 
   // ---------- Inclinação 3D (cartões de promoção e atalhos) ----------
-  const ALVOS_TILT = ".pcard, .tile";
+  const ALVOS_TILT = C.tilt;
   if (fino && !calmo) {
     document.addEventListener("pointermove", (e) => {
       const el = e.target.closest(ALVOS_TILT);
       if (!el) return;
       const r = el.getBoundingClientRect();
       const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
-      el.style.transform = `perspective(900px) rotateX(${(-y * 7).toFixed(2)}deg) rotateY(${(x * 9).toFixed(2)}deg) translateY(-4px)`;
+      el.style.transform = `perspective(900px) rotateX(${(-y * C.tiltGraus * 0.8).toFixed(2)}deg) rotateY(${(x * C.tiltGraus).toFixed(2)}deg) translateY(-4px)`;
       el.classList.add("tilt");
     }, { passive: true });
     document.addEventListener("pointerout", (e) => {
@@ -50,7 +60,7 @@ window.Motion = (() => {
   // ---------- Botões magnéticos ----------
   if (fino && !calmo) {
     document.addEventListener("pointermove", (e) => {
-      const el = e.target.closest(".btn.accent, .circ, .top .brand");
+      const el = e.target.closest(C.magnet);
       document.querySelectorAll(".magnet").forEach((m) => { if (m !== el) { m.style.translate = ""; m.classList.remove("magnet"); } });
       if (!el) return;
       const r = el.getBoundingClientRect();
@@ -61,7 +71,7 @@ window.Motion = (() => {
   }
 
   // ---------- Dock com lupa (aumenta o ícone e os vizinhos) ----------
-  const dock = document.querySelector(".dock");
+  const dock = C.dock && document.querySelector(C.dock);
   if (dock && fino && !calmo) {
     const itens = () => [...dock.querySelectorAll(".dk")];
     dock.addEventListener("pointermove", (e) => {
@@ -78,7 +88,7 @@ window.Motion = (() => {
   }
 
   // ---------- Fundo reage ao mouse ----------
-  const bg = document.querySelector(".bg");
+  const bg = C.bg && document.querySelector(C.bg);
   if (bg && fino && !calmo) {
     let alvo = { x: 0, y: 0 }, atual = { x: 0, y: 0 };
     addEventListener("pointermove", (e) => { alvo = { x: e.clientX / innerWidth - 0.5, y: e.clientY / innerHeight - 0.5 }; }, { passive: true });
@@ -107,7 +117,7 @@ window.Motion = (() => {
     }
   }
   document.addEventListener("click", (e) => {
-    const b = e.target.closest(".circ, .dk, .chip, .seg button, .dias button, .tile");
+    const b = e.target.closest(C.pop);
     if (!b) return;
     anim(b, [{ scale: 1 }, { scale: 0.82 }, { scale: 1.12 }, { scale: 1 }], { duration: 420, easing: mola });
     if (b.matches('.circ[data-a="destaque"]:not(.on)')) {

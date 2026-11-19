@@ -382,3 +382,74 @@ main, .footer { position: relative; z-index: 1; }
 .ci-price s { color: var(--muted); font-size: 12px; }
 .ci-promo { font-size: 11px; color: var(--gold); font-weight: 700; margin-top: 2px; }
 .totals .linha-eco { color: var(--whats); font-weight: 700; }
+
+/* =====================================================
+   MOTION DO SITE
+   ===================================================== */
+/* Barra de progresso da rolagem */
+.progresso {
+  position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60; pointer-events: none;
+  background: var(--grad-gold); transform-origin: 0 50%; transform: scaleX(0);
+  box-shadow: 0 0 12px rgba(255,194,14,.7);
+}
+
+/* Brilho que segue o cursor pela página */
+.cursor-luz {
+  position: fixed; z-index: 0; left: 0; top: 0; width: 520px; height: 520px; margin: -260px 0 0 -260px;
+  border-radius: 50%; pointer-events: none; opacity: 0;
+  background: radial-gradient(circle, rgba(255,194,14,.10), transparent 62%);
+  transition: opacity .6s; will-change: transform;
+}
+.cursor-luz.on { opacity: 1; }
+
+/* Luz dentro dos cards */
+.card::after, .chip::after, .sec-promo::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
+  background: radial-gradient(240px circle at var(--mx, -999px) var(--my, -999px), rgba(255,216,77,.16), transparent 65%);
+  opacity: 0; transition: opacity .35s;
+}
+.card:hover::after, .chip:hover::after, .sec-promo:hover::after { opacity: 1; }
+.chip { position: relative; overflow: hidden; }
+
+/* Inclinação 3D dos cards */
+.card.in { transform-style: preserve-3d; }
+.card.tilt { transition: transform .12s linear, border-color .3s, box-shadow .3s !important; transition-delay: 0s !important;
+  box-shadow: 0 24px 40px -18px rgba(0,0,0,.8), 0 0 30px rgba(255,194,14,.18); border-color: rgba(255,194,14,.6); }
+.card.tilt .card-img > span { transform: scale(1.22) rotate(-8deg) translateZ(30px); }
+.cart-btn, .btn-whats, .floating-cart { transition: translate .25s cubic-bezier(.2,.8,.2,1), transform .2s, box-shadow .3s, filter .2s; }
+
+/* Cápsula deslizante nas categorias */
+.chips { position: relative; }
+.chip-pill {
+  position: absolute; z-index: 0; top: 0; left: 0; height: 0; border-radius: 999px; pointer-events: none;
+  background: var(--grad-gold); box-shadow: 0 6px 18px -6px rgba(255,194,14,.7);
+  transition: transform .5s cubic-bezier(.34,1.45,.64,1), width .45s cubic-bezier(.34,1.45,.64,1), height .2s;
+}
+.chips .chip { z-index: 1; }
+.chips .chip.active { background: transparent; border-color: transparent; transform: none; }
+
+/* Títulos das seções entram com a linha crescendo */
+.cat-title.rv { opacity: 0; transform: translateX(-24px); transition: opacity .6s cubic-bezier(.2,.8,.2,1), transform .6s cubic-bezier(.2,.8,.2,1); }
+.cat-title.rv::before { width: 0; transition: width .7s .15s cubic-bezier(.34,1.45,.64,1); }
+.cat-title.rv::after { transform: scaleX(0); transform-origin: 0 50%; transition: transform .9s .25s cubic-bezier(.2,.8,.2,1); }
+.cat-title.rv.in { opacity: 1; transform: none; }
+.cat-title.rv.in::before { width: 26px; }
+.cat-title.rv.in::after { transform: scaleX(1); }
+
+/* Contagem regressiva "pula" a cada segundo */
+.contador-box b { display: inline-block; }
+.contador-box b.tick { animation: tique .45s cubic-bezier(.34,1.6,.64,1); }
+@keyframes tique { 0% { transform: translateY(-5px); opacity: .4; } 100% { transform: none; opacity: 1; } }
+
+/* Troca de categoria */
+#catalogo.troca { animation: trocaCat .45s cubic-bezier(.2,.8,.2,1); }
+@keyframes trocaCat { from { opacity: 0; transform: translateY(16px); } }
+
+.particula { position: fixed; z-index: 90; width: 8px; height: 8px; border-radius: 50%; pointer-events: none; }
+.confete { position: fixed; z-index: 90; border-radius: 2px; pointer-events: none; }
+
+@media (hover: none) { .cursor-luz { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .cursor-luz, .progresso { display: none; }
+  .cat-title.rv { opacity: 1; transform: none; }
+}
