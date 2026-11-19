@@ -489,3 +489,60 @@ a { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* =====================================================
+   MOTION
+   ===================================================== */
+/* Luz que segue o mouse */
+.card, .item, .tile, .kpi, .mini-item, .chip, .search { position: relative; }
+.card::after, .item::after, .tile::after, .kpi::after, .mini-item::after, .chip::after, .search::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(260px circle at var(--mx, -999px) var(--my, -999px), rgba(255, 194, 14, .13), transparent 65%);
+  opacity: 0; transition: opacity .35s var(--ease);
+}
+.card:hover::after, .item:hover::after, .tile:hover::after, .kpi:hover::after, .mini-item:hover::after, .chip:hover::after, .search:hover::after { opacity: 1; }
+/* borda que acende perto do mouse */
+.card::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; padding: 1px;
+  background: radial-gradient(180px circle at var(--mx, -999px) var(--my, -999px), rgba(255, 194, 14, .7), transparent 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: 0; transition: opacity .35s var(--ease); }
+.card:hover::before { opacity: 1; }
+.pcard.st-ativa::before { padding: 0; -webkit-mask: none; mask: none; opacity: 1; }
+
+/* Inclinação 3D e botões magnéticos */
+.pcard, .tile { transform-style: preserve-3d; will-change: transform; }
+.pcard.tilt, .tile.tilt { transition: transform .12s linear, box-shadow .3s, border-color .3s; }
+.btn.accent, .circ, .top .brand { transition: translate .25s var(--ease), transform .2s var(--ease), background .2s, box-shadow .25s, border-color .2s, color .2s; }
+.dk { transition: scale .18s var(--ease), background .25s, color .25s; transform-origin: center; }
+.dock:hover .dk:hover { transform: none; }
+.bg { transition: none; will-change: translate; }
+
+/* Cápsula do menu com mola */
+.nav-pill { transition: transform .55s cubic-bezier(.34, 1.4, .64, 1), width .45s cubic-bezier(.34, 1.4, .64, 1); }
+
+/* Partículas e confete */
+.particula { position: fixed; z-index: 90; width: 7px; height: 7px; border-radius: 50%; pointer-events: none; }
+.confete { position: fixed; z-index: 90; border-radius: 2px; pointer-events: none; }
+
+/* Tela de carregamento */
+.skeleton { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; background: var(--bg); transition: opacity .5s var(--ease), visibility .5s; }
+.skeleton.fora { opacity: 0; visibility: hidden; }
+.skeleton .caneca { position: relative; width: 64px; height: 76px; border: 4px solid var(--text); border-radius: 8px 8px 16px 16px; overflow: hidden; }
+.skeleton .caneca::before { content: ""; position: absolute; right: -22px; top: 16px; width: 18px; height: 34px; border: 4px solid var(--text); border-left: 0; border-radius: 0 14px 14px 0; }
+.skeleton .caneca i { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: linear-gradient(180deg, #ffd84d, #ffc20e 40%, #e08a00); animation: encher 1.4s var(--ease) infinite; }
+.skeleton .caneca-wrap { position: relative; padding-right: 22px; }
+.skeleton small { display: block; text-align: center; margin-top: 16px; color: var(--muted); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; }
+@keyframes encher { 0% { height: 0; } 70%, 100% { height: 100%; } }
+
+/* Status "não publicado" com onda */
+.status.sujo i { position: relative; }
+.status.sujo i::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--accent); animation: onda 1.6s ease-out infinite; }
+@keyframes onda { from { transform: scale(.5); opacity: 1; } to { transform: scale(2.2); opacity: 0; } }
+
+/* Tags de promoção ativa brilham */
+.tag.ouro { background-size: 200% 100%; background-image: linear-gradient(100deg, rgba(255,194,14,.18) 40%, rgba(255,216,77,.42) 50%, rgba(255,194,14,.18) 60%); animation: brilhoTag 2.8s linear infinite; }
+@keyframes brilhoTag { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .card::after, .card::before, .item::after, .tile::after { display: none; }
+}

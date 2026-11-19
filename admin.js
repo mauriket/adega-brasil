@@ -151,17 +151,23 @@
   // a fonte pode carregar depois: reposiciona a cápsula sempre que os botões mudarem de tamanho
   if ("ResizeObserver" in window) { const ro = new ResizeObserver(() => moverPill()); $$("#nav button").forEach((b) => ro.observe(b)); }
 
-  function abrirAba(nome) {
+  let abaSeq = 0;
+  async function abrirAba(nome) {
+    const seq = ++abaSeq;
+    const velha = $$(".tab").find((s) => !s.hidden);
+    const trocou = !velha || velha.id !== "tab-" + nome;
     abaAtual = nome;
     $$("#nav button").forEach((b) => b.classList.toggle("on", b.dataset.tab === nome));
     moverPill();
+    if (trocou && velha) { await Motion.sairAba(velha); if (seq !== abaSeq) return; }
     $$(".tab").forEach((s) => { s.hidden = s.id !== "tab-" + nome; });
+    if (trocou) Motion.entrarAba($("tab-" + nome));
     const t = TITULOS[nome] || nome;
     $("titulo").innerHTML = [...t].map((ch, i) => ch === " " ? " " : `<span class="l" style="animation-delay:${i * 28}ms">${esc(ch)}</span>`).join("");
     renderKpis();
     ({ inicio: renderInicio, produtos: renderProdutos, promocoes: renderPromos, categorias: renderCategorias, frete: renderFrete, loja: renderLoja, conexao: renderConexao })[nome]?.();
     if (location.hash !== "#" + nome) history.replaceState(null, "", "#" + nome);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (trocou) window.scrollTo({ top: 0, behavior: "smooth" });
   }
   $("nav").addEventListener("click", (e) => { const b = e.target.closest("button[data-tab]"); if (b) abrirAba(b.dataset.tab); });
 
@@ -183,7 +189,7 @@
   function contar(el, alvo) {
     const ini = performance.now(), dur = 700;
     const passo = (t) => {
-      const k = Math.min(1, (t - ini) / dur);
+      const k = Math.max(0, Math.min(1, (t - ini) / dur));
       el.textContent = Math.round(alvo * (1 - Math.pow(1 - k, 3)));
       if (k < 1) requestAnimationFrame(passo);
     };
@@ -284,7 +290,7 @@
     $("pLista").innerHTML = lista.length ? lista.map((p, i) => {
       const v = Promo.vitrine(p, dados.promocoes);
       const promos = dados.promocoes.filter((pr) => Promo.aplicaA(pr, p) && !["encerrada"].includes(Promo.status(pr)));
-      return `<div class="item ${p.ativo === false ? "off" : ""}" style="animation-delay:${Math.min(i, 14) * 22}ms">
+      return `<div class="item ${p.ativo === false ? "off" : ""}" data-key="p${p.id}" style="animation-delay:${Math.min(i, 14) * 22}ms">
         <div class="thumb">${p.imagem ? `<img src="${esc(srcImg(p.imagem))}" alt="">` : esc(p.emoji || "🍾")}</div>
         <div style="min-width:0"><div class="nome">${esc(p.nome)}</div>
           <div class="sub"><span>${esc(p.categoria)}</span>${promos.map((pr) => `<span class="tag ${Promo.status(pr) === "ativa" ? "ouro" : ""}">🏷️ ${esc(Promo.selo(pr, p.preco) || pr.nome)}</span>`).join("")}${p.ativo === false ? '<span class="tag vermelho">escondido</span>' : ""}</div></div>
@@ -299,7 +305,7 @@
     }).join("") : vazio("search", "Nenhum produto encontrado", "Tente outra busca ou filtro.");
   }
   $("pBusca").addEventListener("input", renderProdutos);
-  $("pChips").addEventListener("click", (e) => { const c = e.target.closest("[data-f]"); if (c) { pFiltro = c.dataset.f; renderProdutos(); } });
+  $("pChips").addEventListener("click", (e) => { const c = e.target.closest("[data-f]"); if (c) { pFiltro = c.dataset.f; Motion.flip($("pLista"), renderProdutos); } });
   $("pLista").addEventListener("click", (e) => {
     const b = e.target.closest("[data-a]"); if (!b) return;
     const p = dados.produtos.find((x) => x.id === Number(b.dataset.id)); if (!p) return;
@@ -308,10 +314,14 @@
     if (a === "promo") return abrirPromo(null, { aplicaEm: "produtos", produtos: [p.id], nome: "Promoção " + p.nome });
     if (a === "excluir") {
       if (!confirm(`Excluir "${p.nome}"?`)) return;
-      dados.produtos = dados.produtos.filter((x) => x !== p);
-      dados.promocoes.forEach((pr) => { pr.produtos = (pr.produtos || []).filter((id) => id !== p.id); });
-      if (p.imagem && pendentes[p.imagem]) delete pendentes[p.imagem];
-      toast("Produto excluído");
+      Motion.sair(b.closest(".item")).then(() => {
+        dados.produtos = dados.produtos.filter((x) => x !== p);
+        dados.promocoes.forEach((pr) => { pr.produtos = (pr.produtos || []).filter((id) => id !== p.id); });
+        if (p.imagem && pendentes[p.imagem]) delete pendentes[p.imagem];
+        mudou(); renderProdutos(); renderKpis();
+        toast("Produto excluído");
+      });
+      return;
     }
     if (a === "ativo") { p.ativo = p.ativo === false; toast(p.ativo ? "Produto aparece no site" : "Produto escondido do site"); }
     if (a === "destaque") { p.destaque = !p.destaque; toast(p.destaque ? "⭐ Em destaque" : "Saiu dos destaques"); }
@@ -320,8 +330,17 @@
 
   // ---------- Modais (genérico) ----------
   let modalAberto = null;
-  function abrirModal(id) { modalAberto = id; $("scrim").hidden = false; $(id).hidden = false; }
-  function fecharModal() { if (!modalAberto) return; $(modalAberto).hidden = true; $("scrim").hidden = true; modalAberto = null; $("mFoto").value = ""; }
+  function abrirModal(id) { modalAberto = id; $("scrim").hidden = false; $(id).hidden = false; Motion.abrirModal($(id)); }
+  function fecharModal() {
+    if (!modalAberto) return;
+    const el = $(modalAberto);
+    modalAberto = null;
+    $("mFoto").value = "";
+    Motion.fecharModal(el).then(() => {
+      if (modalAberto !== el.id) el.hidden = true;
+      if (!modalAberto) $("scrim").hidden = true;
+    });
+  }
   $("scrim").onclick = fecharModal;
   document.addEventListener("click", (e) => { if (e.target.closest("[data-fechar]")) fecharModal(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharModal(); });
@@ -481,7 +500,11 @@
     }
     if (b.dataset.a === "excluir") {
       if (!confirm(`Excluir a promoção "${pr.nome}"?`)) return;
-      dados.promocoes = dados.promocoes.filter((x) => x !== pr); toast("Promoção excluída");
+      Motion.sair(card).then(() => {
+        dados.promocoes = dados.promocoes.filter((x) => x !== pr);
+        mudou(); renderPromos(); renderKpis(); toast("Promoção excluída");
+      });
+      return;
     }
     mudou(); renderPromos(); renderKpis();
   });
@@ -520,7 +543,10 @@
 
   function renderPromoForm() {
     $$("#prTipo button").forEach((b) => b.classList.toggle("on", b.dataset.v === ed.tipo));
+    const tipoMudou = $("prValores").dataset.tipo !== ed.tipo;
     $("prValores").innerHTML = CAMPOS_TIPO[ed.tipo]();
+    $("prValores").dataset.tipo = ed.tipo;
+    if (tipoMudou) Motion.entrarAba($("prValores"));
     $$("#prAlvo button").forEach((b) => b.classList.toggle("on", b.dataset.v === ed.aplicaEm));
     $("prAlvoProdutos").hidden = ed.aplicaEm !== "produtos";
     $("prAlvoCategoria").hidden = ed.aplicaEm !== "categoria";
@@ -646,7 +672,7 @@
   function renderCategorias() {
     const qtd = (c) => dados.produtos.filter((p) => p.categoria === c).length;
     $("cLista").innerHTML = dados.categorias.map((c, i) => `
-      <div class="cat" style="animation-delay:${i * 30}ms">
+      <div class="cat" data-key="${esc(c)}" style="animation-delay:${i * 30}ms">
         <input type="text" value="${esc(c)}" data-i="${i}" aria-label="Nome da categoria">
         <span class="qtd">${qtd(c)} produto${qtd(c) === 1 ? "" : "s"}</span>
         <button class="circ sm" data-c="up" data-i="${i}" title="Subir" ${i === 0 ? "disabled" : ""}>${ico("up", 15)}</button>
@@ -673,8 +699,13 @@
   $("cLista").addEventListener("click", (e) => {
     const b = e.target.closest("[data-c]"); if (!b) return;
     const i = Number(b.dataset.i), cats = dados.categorias;
-    if (b.dataset.c === "up" && i > 0) [cats[i - 1], cats[i]] = [cats[i], cats[i - 1]];
-    if (b.dataset.c === "down" && i < cats.length - 1) [cats[i + 1], cats[i]] = [cats[i], cats[i + 1]];
+    if (b.dataset.c === "up" || b.dataset.c === "down") {
+      const j = b.dataset.c === "up" ? i - 1 : i + 1;
+      if (j < 0 || j >= cats.length) return;
+      Motion.flip($("cLista"), () => { [cats[i], cats[j]] = [cats[j], cats[i]]; renderCategorias(); });
+      mudou();
+      return;
+    }
     if (b.dataset.c === "del") {
       if (cats.length === 1) return toast("Precisa ter pelo menos uma categoria", "erro");
       const qtd = dados.produtos.filter((p) => p.categoria === cats[i]).length;
@@ -837,6 +868,7 @@
       store.del(LS_DRAFT);
       atualizarStatus();
       toast("🚀 Publicado! Em 1–2 minutos aparece no site.", null, 4500);
+      Motion.confete($("btnPublicar"));
     } catch (e) {
       mudou();
       if (e.message !== "cancelado") toast(e.status === 401 ? "Chave inválida — veja Conexão" : "Erro ao publicar: " + e.message, "erro", 5000);
@@ -856,7 +888,7 @@
   async function iniciar() {
     let base = window.DADOS ? clone(window.DADOS) : null;
     if (gh.token) { try { const arq = await lerArquivo("data.js"); if (arq) base = parseDataJs(arq.texto); } catch {} }
-    if (!base) { $("statusTxt").textContent = "Erro ao carregar"; return; }
+    if (!base) { $("statusTxt").textContent = "Erro ao carregar"; $("skeleton").classList.add("fora"); return; }
     base.categorias ||= []; base.produtos ||= [];
     Promo.migrar(base);
     publicado = JSON.stringify(base);
@@ -876,6 +908,8 @@
     abrirAba(TITULOS[h] ? h : "inicio");
     setTimeout(moverPill, 300);
     if (document.fonts) document.fonts.ready.then(moverPill);
+    $("skeleton").classList.add("fora");
+    setTimeout(() => $("skeleton").remove(), 600);
   }
   iniciar();
 })();
