@@ -168,8 +168,8 @@ main, .footer { position: relative; z-index: 1; }
 .selo-off { background: #e11d48; color: #fff; }
 .selo-dest { background: rgba(10, 10, 10, .8); color: var(--gold); border: 1px solid rgba(255, 194, 14, .5); }
 .card-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.card-name { font-size: 14px; font-weight: 600; flex: 1; }
-.card-desc { font-size: 12px; color: var(--muted); margin-top: -4px; }
+.card-name { font-size: 16px; font-weight: 800; line-height: 1.25; letter-spacing: -.1px; color: #fff; flex: 1; }
+.card-desc { font-size: 13px; color: var(--muted); margin-top: -4px; line-height: 1.3; }
 .card-price { font-size: 19px; font-weight: 900; color: var(--gold); font-family: "Montserrat", sans-serif; }
 .card-price s { color: var(--muted); font-size: 13px; font-weight: 600; margin-right: 6px; }
 
@@ -280,6 +280,7 @@ main, .footer { position: relative; z-index: 1; }
 
 /* ============ Responsivo ============ */
 @media (max-width: 480px) {
+  .card-name { font-size: 15px; }
   .cart-label { display: none; }
   .topbar-inner { height: 88px; }
   .top-logo img { height: 74px; }
