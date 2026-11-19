@@ -24,7 +24,7 @@ window.DADOS = {
     "lojaLng": -48.9534,
     "precoKm": 1,
     "taxaFixa": 0,
-    "taxaMinima": 2,
+    "taxaMinima": 0,
     "raioMaximoKm": 0,
     "taxaPadrao": 0,
     "freteGratisAcima": 150
