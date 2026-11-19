@@ -3,7 +3,7 @@ window.DADOS = {
     "nome": "ADEGA BRASIL",
     "slogan": "Bebidas geladas na sua porta",
     "whatsapp": "5562992127511",
-    "endereco": "Rua Exemplo, 123 - Centro, Anápolis - GO",
+    "endereco": "R. Munir Calixto, quadra 19 – lote 23, Calixtolândia, Anápolis – GO, CEP 75130-510",
     "pedidoMinimo": 0,
     "pagamentos": [
       "Pix",
