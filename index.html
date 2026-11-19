@@ -18,9 +18,10 @@
   <link rel="icon" type="image/png" href="img/favicon.png">
   <link rel="apple-touch-icon" href="img/icone.png">
   <link rel="preload" as="image" href="img/logo.webp">
+  <link rel="preload" as="image" href="img/chopp/chopp-1.webp" fetchpriority="high">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261119l">
+  <link rel="stylesheet" href="style.css?v=20261119m">
 </head>
 <body>
 
@@ -56,89 +57,25 @@
     })();
   </script>
 
-  <!-- Fundo: chopp sendo servido (garrafa > enche > espuma sobe > escorre > poça e pingos) -->
-  <div class="chopp" aria-hidden="true">
-    <svg class="chopp-svg" viewBox="0 0 400 700" preserveAspectRatio="xMidYMax meet">
-      <defs>
-        <linearGradient id="chBeer" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#ffd45a"/><stop offset=".55" stop-color="#f2a91c"/><stop offset="1" stop-color="#c97a0a"/>
-        </linearGradient>
-        <linearGradient id="chJato" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#e9a72a"/><stop offset="1" stop-color="#ffcf4d"/>
-        </linearGradient>
-        <linearGradient id="chGarrafa" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#2c5a35"/><stop offset="1" stop-color="#0d2414"/>
-        </linearGradient>
-        <linearGradient id="chMesa" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#3a2a14"/><stop offset="1" stop-color="#140e07"/>
-        </linearGradient>
-        <clipPath id="chDentro"><rect x="147" y="0" width="136" height="572" rx="6"/></clipPath>
-        <clipPath id="chLiq"><rect x="147" y="334" width="136" height="240"/></clipPath>
-      </defs>
-
-      <!-- mesa -->
-      <rect x="-1200" y="590" width="2800" height="22" fill="url(#chMesa)"/>
-      <rect x="-1200" y="612" width="2800" height="60" fill="#0e0a05"/>
-      <rect x="-1200" y="589" width="2800" height="2" fill="rgba(255,200,90,.25)"/>
-
-      <!-- garrafa e jato -->
-      <path class="ch-garrafa" d="M-40 -40 L118 8 Q134 13 131 27 L128 36 Q123 43 110 39 L-50 -6 Z" fill="url(#chGarrafa)"/>
-      <path class="ch-garrafa" d="M-30 -22 L112 18" stroke="rgba(255,255,255,.25)" stroke-width="3" stroke-linecap="round" fill="none"/>
-      <path class="ch-jato" pathLength="1" d="M126 34 C 168 58, 206 140, 213 250 C 216 300, 215 360, 215 572" stroke="url(#chJato)" stroke-width="9" stroke-linecap="round" fill="none"/>
-      <path class="ch-brilho" pathLength="1" d="M126 34 C 168 58, 206 140, 213 250 C 216 300, 215 360, 215 572" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-dasharray=".03 .05" fill="none"/>
-
-      <!-- caneca: fundo do vidro -->
-      <path d="M140 330 L140 578 Q140 592 154 592 L276 592 Q290 592 290 578 L290 330 Z" fill="rgba(255,255,255,.05)"/>
-
-      <!-- cerveja subindo -->
-      <g clip-path="url(#chDentro)">
-        <g class="ch-liq">
-          <g clip-path="url(#chLiq)">
-            <rect x="147" y="334" width="136" height="240" fill="url(#chBeer)"/>
-            <circle class="ch-bolha" cx="165" cy="560" r="2.6"/>
-            <circle class="ch-bolha b2" cx="190" cy="565" r="1.8"/>
-            <circle class="ch-bolha b3" cx="238" cy="560" r="2.2"/>
-            <circle class="ch-bolha b4" cx="262" cy="566" r="1.6"/>
-            <circle class="ch-bolha b5" cx="205" cy="562" r="2"/>
-            <circle class="ch-bolha b6" cx="250" cy="563" r="2.8"/>
-          </g>
-          <rect class="ch-colarinho" x="147" y="316" width="136" height="24" rx="10" fill="#fff8ec"/>
-        </g>
-      </g>
-
-      <!-- caneca: vidro, base e alça -->
-      <rect x="143" y="572" width="144" height="18" rx="6" fill="rgba(255,255,255,.14)"/>
-      <path d="M140 330 L140 578 Q140 592 154 592 L276 592 Q290 592 290 578 L290 330" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="3"/>
-      <path d="M290 372 C 330 366, 352 378, 352 410 L352 520 C 352 548, 332 558, 290 556" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="13" stroke-linecap="round"/>
-      <path d="M290 372 C 330 366, 352 378, 352 410 L352 520 C 352 548, 332 558, 290 556" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="3" stroke-linecap="round"/>
-      <rect x="152" y="346" width="5" height="210" rx="2.5" fill="rgba(255,255,255,.22)"/>
-      <path d="M137 330 H293" stroke="rgba(255,255,255,.75)" stroke-width="3" stroke-linecap="round"/>
-
-      <!-- espuma transbordando (cúpula irregular + cortina na borda) -->
-      <g class="ch-domo">
-        <path d="M130 346 C 120 324 136 304 156 308 C 160 290 186 284 199 296 C 207 282 232 282 240 296 C 254 285 279 292 278 308 C 298 305 310 327 300 346 Z" fill="#fffaf0"/>
-        <path d="M134 330 H296 V350 C 284 362 272 348 259 359 C 247 369 236 354 222 363 C 208 371 196 355 183 363 C 170 370 158 355 146 361 C 139 364 134 358 134 350 Z" fill="#fffaf0"/>
-        <circle cx="170" cy="314" r="3" fill="rgba(225,205,170,.55)"/><circle cx="214" cy="302" r="2.4" fill="rgba(225,205,170,.55)"/>
-        <circle cx="252" cy="312" r="3.4" fill="rgba(225,205,170,.5)"/><circle cx="190" cy="326" r="2" fill="rgba(225,205,170,.5)"/>
-        <circle cx="275" cy="330" r="2.2" fill="rgba(225,205,170,.5)"/><circle cx="148" cy="332" r="2.6" fill="rgba(225,205,170,.5)"/>
-      </g>
-      <!-- escorrendo pelo vidro -->
-      <path class="ch-escorre e1" d="M190 334 C189 391.8 194.3 433 192.2 481 A18 18 0 1 0 223.8 481 C221.7 433 227 391.8 226 334 Z" fill="#fffaf0"/>
-      <path class="ch-escorre e2" d="M131 334 C130 418.7 133 479.2 132 567.5 A8.5 8.5 0 1 0 147 567.5 C146 479.2 149 418.7 148 334 Z" fill="#fffaf0"/>
-      <path class="ch-escorre e3" d="M282 334 C281 406.1 284 457.6 283 531.5 A8.5 8.5 0 1 0 298 531.5 C297 457.6 300 406.1 299 334 Z" fill="#fffaf0"/>
-      <path class="ch-escorre e4" d="M157 334 C156 367.6 158.7 391.6 157.8 423 A7 7 0 1 0 170.2 423 C169.3 391.6 172 367.6 171 334 Z" fill="#fffaf0"/>
-      <path class="ch-escorre e5" d="M249 334 C248 380.2 250.8 413.2 249.9 458.5 A7.5 7.5 0 1 0 263.1 458.5 C262.2 413.2 265 380.2 264 334 Z" fill="#fffaf0"/>
-
-      <!-- poça na mesa e pingos pela borda -->
-      <path class="ch-poca" d="M84 597 C 88 588 140 586 215 588 C 292 586 344 589 348 597 C 344 605 304 606 266 605 C 236 609 204 606 172 607 C 130 608 88 605 84 597 Z" fill="rgba(255,250,240,.92)"/>
-      <path class="ch-escorre e6" d="M147 598 C146 612.7 148.4 623.2 147.7 634 A6 6 0 1 0 158.3 634 C157.6 623.2 160 612.7 159 598 Z" fill="#fffaf0"/>
-      <path class="ch-escorre e7" d="M219 598 C218 618.3 220.7 632.8 219.8 649 A7 7 0 1 0 232.2 649 C231.3 632.8 234 618.3 233 598 Z" fill="#fffaf0"/>
-      <path class="ch-escorre e8" d="M287 598 C286 614.1 288.4 625.6 287.7 638 A6 6 0 1 0 298.3 638 C297.6 625.6 300 614.1 299 598 Z" fill="#fffaf0"/>
-      <circle class="ch-pingo" cx="153" cy="650" r="3.5" fill="#fffaf0"/>
-      <circle class="ch-pingo p2" cx="226" cy="668" r="4" fill="#fffaf0"/>
-      <circle class="ch-pingo p3" cx="293" cy="654" r="3.5" fill="#fffaf0"/>
-    </svg>
+  <!-- Fundo: chopp sendo servido (fotos em sequência, uma se dissolvendo na outra) -->
+  <div class="chopp" id="chopp" aria-hidden="true">
+    <div class="chopp-palco">
+      <img class="q q1" src="img/chopp/chopp-1.webp" alt="" width="944" height="1680" decoding="async" fetchpriority="high">
+      <img class="q q2" src="img/chopp/chopp-2.webp" alt="" width="944" height="1680" decoding="async">
+      <img class="q q3" src="img/chopp/chopp-3.webp" alt="" width="944" height="1680" decoding="async">
+      <img class="q q4" src="img/chopp/chopp-4.webp" alt="" width="944" height="1680" decoding="async">
+      <img class="q q5" src="img/chopp/chopp-5.webp" alt="" width="944" height="1680" decoding="async">
+      <img class="q q6" src="img/chopp/chopp-6.webp" alt="" width="944" height="1680" decoding="async">
+    </div>
   </div>
+  <script>
+    (function () {
+      var c = document.getElementById("chopp"), fotos = [].slice.call(c.querySelectorAll("img"));
+      // só começa quando todas as fotos estiverem prontas (sem piscar)
+      Promise.all(fotos.map(function (i) { return i.decode ? i.decode().catch(function () {}) : null; }))
+        .then(function () { c.classList.add("rodando"); });
+    })();
+  </script>
 
   <header class="topbar">
     <div class="container topbar-inner">
@@ -280,9 +217,9 @@
       } catch (e) { /* usa o data.js do Pages */ }
     })();
   </script>
-  <script src="geo.js?v=20261119l"></script>
-  <script src="promo.js?v=20261119l"></script>
-  <script src="pedido.js?v=20261119l"></script>
-  <script src="app.js?v=20261119l"></script>
+  <script src="geo.js?v=20261119m"></script>
+  <script src="promo.js?v=20261119m"></script>
+  <script src="pedido.js?v=20261119m"></script>
+  <script src="app.js?v=20261119m"></script>
 </body>
 </html>

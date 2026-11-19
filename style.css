@@ -51,48 +51,36 @@ main, .footer { position: relative; z-index: 1; }
 .age-box p { color: var(--muted); margin: 0 0 18px; }
 .age-actions { display: grid; gap: 8px; }
 
-/* ============ Fundo: chopp sendo servido ============ */
-/* Toca uma vez ao entrar (depois do aviso de 18 anos) e para no último quadro. */
-.chopp {
-  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
-  background: radial-gradient(ellipse min(70vw, 620px) 60vh at 50% 78%, rgba(255, 194, 14, .16), transparent 70%);
+/* ============ Fundo: chopp sendo servido (fotos) ============ */
+/* 6 fotos empilhadas; cada uma se dissolve sobre a anterior. Toca uma vez
+   depois do aviso de 18 anos e para no último quadro. */
+.chopp { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; background: var(--bg); }
+.chopp-palco {
+  position: absolute; top: 0; left: 50%; height: 100%; aspect-ratio: 944 / 1680;
+  transform: translateX(-50%); opacity: .72;
 }
-.chopp-svg {
-  position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
-  height: min(92vh, 820px); width: auto; aspect-ratio: 400 / 700; overflow: visible; opacity: .6;
+/* No computador a foto fica no centro e as laterais escurecem até o preto do site */
+.chopp-palco::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    linear-gradient(90deg, var(--bg) 0, transparent 30%, transparent 70%, var(--bg) 100%),
+    linear-gradient(180deg, rgba(10, 10, 10, .55) 0, transparent 22%, transparent 80%, var(--bg) 100%);
 }
-.chopp-svg * { transform-box: fill-box; }
+.chopp .q { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+.chopp .q1 { opacity: 1; }
+.chopp.rodando .q { animation: chFoto .8s ease-in-out forwards; }
+.chopp.rodando .q1 { animation: none; }
+.chopp.rodando .q2 { animation-delay: .6s; }
+.chopp.rodando .q3 { animation-delay: 1.7s; }
+.chopp.rodando .q4 { animation-delay: 2.8s; }
+.chopp.rodando .q5 { animation-delay: 3.9s; }
+.chopp.rodando .q6 { animation-delay: 5s; }
+.chopp.rodando .chopp-palco { animation: chZoom 7s ease-out both; }
 html.travado .chopp * { animation-play-state: paused !important; }
-
-.ch-garrafa { animation: chGarrafa .6s var(--ease) both; }
-.ch-jato { stroke-dasharray: 1; stroke-dashoffset: 1; animation: chJato .7s .35s cubic-bezier(.4, 0, .6, 1) forwards; }
-.ch-brilho { opacity: 0; animation: chAparece .2s 1s forwards, chCorre .9s 1s linear 7; }
-.ch-liq { animation: chEnche 3s .8s cubic-bezier(.25, .1, .35, 1) both; }
-.ch-colarinho { transform-origin: 50% 100%; animation: chColarinho 3s .8s ease-out both; }
-.ch-bolha { fill: rgba(255, 255, 255, .8); opacity: 0; animation: chBolha 2.2s 1.2s linear 4; }
-.ch-bolha.b2 { animation-delay: 1.6s; } .ch-bolha.b3 { animation-delay: 2s; }
-.ch-bolha.b4 { animation-delay: 1.4s; } .ch-bolha.b5 { animation-delay: 2.4s; } .ch-bolha.b6 { animation-delay: 1.8s; }
-.ch-domo { transform-origin: 50% 100%; animation: chDomo .9s 3.6s cubic-bezier(.3, 1.4, .5, 1) both; }
-.ch-escorre { transform-origin: 50% 0; animation: chEscorre 1.5s cubic-bezier(.55, 0, .7, 1) both; }
-.ch-escorre.e1 { animation-delay: 4.2s; } .ch-escorre.e2 { animation-delay: 4.4s; } .ch-escorre.e3 { animation-delay: 4.6s; }
-.ch-escorre.e4 { animation-delay: 4.9s; animation-duration: 1.1s; } .ch-escorre.e5 { animation-delay: 5.1s; animation-duration: 1.2s; }
-.ch-poca { transform-origin: 50% 50%; animation: chPoca 1.3s 5.4s var(--ease) both; }
-.ch-escorre.e6 { animation-delay: 6.2s; animation-duration: .9s; } .ch-escorre.e7 { animation-delay: 6.4s; animation-duration: 1s; }
-.ch-escorre.e8 { animation-delay: 6.6s; animation-duration: .9s; }
-.ch-pingo { opacity: 0; animation: chPingo 1.4s 7.2s cubic-bezier(.5, 0, 1, 1) 3; }
-.ch-pingo.p2 { animation-delay: 7.6s; } .ch-pingo.p3 { animation-delay: 8s; }
-
-@keyframes chGarrafa { from { opacity: 0; transform: translate(-30px, -20px); } }
-@keyframes chJato { to { stroke-dashoffset: 0; } }
-@keyframes chAparece { to { opacity: 1; } }
-@keyframes chCorre { to { stroke-dashoffset: -.4; } }
-@keyframes chEnche { from { transform: translateY(240px); } }
-@keyframes chColarinho { from { transform: scaleY(.3); } }
-@keyframes chBolha { 0% { opacity: 0; transform: none; } 15% { opacity: 1; } 100% { opacity: 0; transform: translateY(-200px); } }
-@keyframes chDomo { from { transform: scale(.9, 0); } }
-@keyframes chEscorre { from { transform: scaleY(0); } }
-@keyframes chPoca { from { transform: scaleX(0); opacity: 0; } }
-@keyframes chPingo { 0% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(70px); } }
+@keyframes chFoto { to { opacity: 1; } }
+@keyframes chZoom { from { transform: translateX(-50%) scale(1.06); } to { transform: translateX(-50%) scale(1); } }
+/* títulos legíveis sobre a foto */
+.cat-title, .sec-promo-head h2 { text-shadow: 0 2px 14px rgba(0, 0, 0, .85); }
 
 
 /* ============ Topo ============ */
@@ -306,7 +294,7 @@ html.travado .chopp * { animation-play-state: paused !important; }
   .top-logo img { height: 74px; }
   .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .card-img { font-size: 50px; }
-  .chopp-svg { height: min(80vh, 640px); opacity: .5; }
+  .chopp-palco { opacity: .6; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
