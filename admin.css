@@ -679,3 +679,25 @@ code { font: 12.5px ui-monospace, Consolas, monospace; background: var(--well); 
 .hist-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 14px; background: var(--well); border: 1px solid var(--line); }
 .hist-item small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
 .hist-item .btn { flex: none; }
+
+/* ===== Login ===== */
+.login {
+  position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 20px; overflow-y: auto;
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255, 194, 14, .14), transparent 70%), var(--bg);
+}
+.login[hidden] { display: none; }
+html.com-login body > :not(.login) { visibility: hidden; }
+.login-box {
+  width: min(400px, 100%); display: grid; gap: 4px; padding: 28px 24px 22px; border-radius: var(--r-card);
+  background: var(--solid); border: 1px solid var(--line-2); box-shadow: var(--shadow-pop);
+}
+.login-logo { display: block; height: 72px; width: auto; margin: 0 auto 4px; }
+[data-theme="light"] .login-logo { background: #17140d; padding: 6px 10px; border-radius: 12px; height: 80px; }
+.login-box h1 { margin: 4px 0 0; text-align: center; font-size: 22px; }
+.login-box > .help { text-align: center; margin: 0 0 10px; }
+.login-box .btn.accent { width: 100%; justify-content: center; margin-top: 6px; padding: 12px; }
+.login-box .erro { min-height: 18px; margin: 4px 0 0; color: var(--bad); font-size: 13px; font-weight: 700; }
+.login-box .avancado { margin-top: 14px; }
+.login-box .avancado .btn { width: 100%; justify-content: center; }
+.sub-h { margin: 0 0 8px; font-size: 15px; }
+.item.conta { grid-template-columns: 48px minmax(0, 1fr) auto auto; }

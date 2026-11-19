@@ -68,18 +68,12 @@
   const LS_DRAFT_ANTIGO = "adega_admin_rascunho_antigo";
   const LS_GH = "adega_admin_github";
   let gh = Object.assign({ owner: "mauriket", repo: "adega-brasil", branch: "main", token: "" }, store.get(LS_GH, {}));
-  // Link de acesso (#acesso=CHAVE): libera este aparelho e tira a chave da barra de endereço
-  let acessoPeloLink = false;
-  {
-    const m = location.hash.match(/^#acesso=([^&]+)/);
-    if (m) {
-      gh.token = decodeURIComponent(m[1]).trim();
-      store.set(LS_GH, gh);
-      acessoPeloLink = true;
-      history.replaceState(null, "", location.pathname + "#inicio");
-    }
-  }
-  const linkAcesso = () => `${location.origin}${location.pathname}#acesso=${encodeURIComponent(gh.token)}`;
+  // Links de acesso antigos (#acesso=CHAVE) não liberam mais nada: só tiram a chave da barra de endereço
+  if (/^#acesso=/.test(location.hash)) history.replaceState(null, "", location.pathname + "#inicio");
+
+  const LS_SESSAO = "adega_admin_sessao";
+  const SESSAO_DIAS = 30;
+  let sessao = store.get(LS_SESSAO, null), cofre = { versao: 1, contas: [] };
   let dados = null, publicado = "", pendentes = {};
   const cacheImgs = {};
   let abaAtual = "inicio";
@@ -199,7 +193,7 @@
   // =====================================================
   const TITULOS = {
     inicio: "Visão geral", produtos: "Produtos", promocoes: "Promoções", categorias: "Categorias",
-    frete: "Frete por km", mensagem: "Mensagem do pedido", loja: "Loja", conexao: "Conexão e backup",
+    frete: "Frete por km", mensagem: "Mensagem do pedido", loja: "Loja", conexao: "Acesso e backup",
   };
   const RENDER = {
     inicio: () => renderInicio(), produtos: () => renderProdutos(), promocoes: () => renderPromos(), categorias: () => renderCategorias(),
@@ -1127,36 +1121,203 @@
   // CONEXÃO E BACKUP
   // =====================================================
   function renderConexao() {
-    $("gOwner").value = gh.owner; $("gRepo").value = gh.repo; $("gBranch").value = gh.branch; $("gToken").value = gh.token;
+    $("gOwner").value = gh.owner; $("gRepo").value = gh.repo; $("gBranch").value = gh.branch;
+    $("gToken").value = ""; // a chave nunca é mostrada na tela
+    $("gToken").placeholder = gh.token ? "Chave salva neste aparelho (oculta)" : "github_pat_…";
     $("gRepoNome").textContent = gh.repo;
     renderAntigo();
+    renderContas();
     const q = new URLSearchParams({ name: "Painel da Adega", description: `Publicar produtos no site ${gh.repo}`, target_name: gh.owner, expires_in: "none", contents: "write" });
     $("gLinkToken").href = `https://github.com/settings/personal-access-tokens/new?${q}`;
-    $("gAcesso").hidden = !gh.token;
-    if (gh.token) $("gZapLink").href = "https://wa.me/?text=" + encodeURIComponent("Link do painel da Adega (abra uma vez e já pode editar): " + linkAcesso());
   }
-  $("gCopiarLink").onclick = async () => {
-    try { await navigator.clipboard.writeText(linkAcesso()); toast("Link de acesso copiado"); }
-    catch { prompt("Copie o link de acesso:", linkAcesso()); }
-  };
   const gMsg = (t, c) => { $("gMsg").className = "hint " + (c || ""); $("gMsg").innerHTML = t; };
   $("gSalvar").onclick = async () => {
-    gh = { owner: $("gOwner").value.trim() || "mauriket", repo: $("gRepo").value.trim() || "adega-brasil", branch: $("gBranch").value.trim() || "main", token: $("gToken").value.trim() };
-    store.set(LS_GH, gh);
-    if (!gh.token) return gMsg("Cole a chave (token) primeiro.", "bad");
+    const novo = $("gToken").value.trim();
+    if (!novo) return gMsg("Cole a chave (token) primeiro.", "bad");
+    const antes = gh;
+    gh = { owner: $("gOwner").value.trim() || "mauriket", repo: $("gRepo").value.trim() || "adega-brasil", branch: $("gBranch").value.trim() || "main", token: novo };
     gMsg('<span class="spin"></span>Testando…');
     try {
       const repo = await api("");
-      if (repo.permissions && repo.permissions.push === false) return gMsg("A chave funciona, mas não tem permissão de gravação. Defina Contents como Read and write.", "bad");
-      gMsg(`Conectado a <b>${esc(repo.full_name)}</b>. O botão Publicar já pode ser usado.`, "ok");
+      if (repo.permissions && repo.permissions.push === false) { gh = antes; return gMsg("A chave funciona, mas não tem permissão de gravação. Defina Contents como Read and write.", "bad"); }
+      store.set(LS_GH, gh);
+      if (!sessao) { sessao = { id: "chave", nome: "Chave do GitHub", ate: Date.now() + 864e5 }; store.set(LS_SESSAO, sessao); }
+      const temContas = (cofre.contas || []).length > 0;
+      gMsg(`Conectado a <b>${esc(repo.full_name)}</b>.${temContas ? " Como a chave mudou, salve de novo cada conta abaixo (com a senha de cada um) para elas usarem a chave nova." : ""}`, "ok");
       renderConexao();
       atualizarStatus();
       toast("Painel conectado");
     } catch (e) {
+      gh = antes;
       gMsg(e.status === 401 ? "Chave inválida ou expirada." : e.status === 404 ? "Repositório não encontrado, ou a chave não tem acesso a ele." : "Erro: " + esc(e.message), "bad");
     }
   };
-  $("gEsquecer").onclick = () => { gh.token = ""; store.set(LS_GH, gh); renderConexao(); atualizarStatus(); gMsg("Chave removida deste aparelho."); };
+  $("gEsquecer").onclick = () => sair();
+
+  // =====================================================
+  // CONTAS DE ACESSO (e-mail + senha)
+  // =====================================================
+  const ARQ_CONTAS = "acesso.json";
+  const sessaoValida = (offline) => !!(sessao && sessao.ate > Date.now() &&
+    (offline || sessao.id === "chave" || (cofre.contas || []).some((c) => c.id === sessao.id)));
+  function sair() {
+    gh.token = ""; store.set(LS_GH, gh); store.del(LS_SESSAO); sessao = null;
+    location.replace(location.pathname);
+  }
+  // Lê as contas. Com chave: pela API autenticada (sempre atual). Sem chave: arquivo público.
+  async function lerCofre() {
+    const vazio = { versao: 1, contas: [] };
+    if (gh.token) {
+      try {
+        const a = await lerArquivo(ARQ_CONTAS);
+        return { cofre: a ? JSON.parse(a.texto) : vazio, sha: a && a.sha };
+      } catch (e) {
+        if (e.status !== 401) throw e;
+        gh.token = ""; store.set(LS_GH, gh); // chave revogada: segue como visitante
+      }
+    }
+    try {
+      const r = await fetch(`https://api.github.com/repos/${gh.owner}/${gh.repo}/contents/${ARQ_CONTAS}?ref=${encodeURIComponent(gh.branch)}&t=${Date.now()}`, { headers: { Accept: "application/vnd.github.raw" }, cache: "no-store" });
+      if (r.status === 404) return { cofre: vazio };
+      if (r.ok) return { cofre: JSON.parse(await r.text()) };
+    } catch {}
+    const r2 = await fetch(`${ARQ_CONTAS}?t=${Date.now()}`, { cache: "no-store" });
+    if (r2.status === 404) return { cofre: vazio };
+    if (!r2.ok) throw new Error("sem acesso às contas");
+    return { cofre: await r2.json() };
+  }
+  async function gravarCofre(alterar, msg) {
+    const { cofre: atual, sha } = await lerCofre();
+    const novo = await alterar({ versao: 1, contas: [...(atual.contas || [])] });
+    await gravarArquivo(ARQ_CONTAS, b64DeTexto(JSON.stringify(novo, null, 2) + "\n"), msg, sha);
+    cofre = novo;
+    return novo;
+  }
+  function renderContas() {
+    const contas = cofre.contas || [];
+    $("cSessao").textContent = sessao && sessao.id !== "chave" ? `Você entrou como ${sessao.nome}. Este aparelho fica conectado por ${SESSAO_DIAS} dias ou até clicar em Sair.`
+      : gh.token ? "Este aparelho está conectado pela chave do GitHub." : "";
+    $("cLista2").innerHTML = contas.length ? contas.map((c) => `<div class="item conta">
+        <div class="thumb">${ico("key", 20)}</div>
+        <div style="min-width:0"><div class="nome">${esc(c.nome)}</div>
+          <div class="sub"><span>Criada em ${esc(new Date(c.criada).toLocaleDateString("pt-BR"))}</span>${sessao && sessao.id === c.id ? '<span class="tag verde">você</span>' : ""}</div></div>
+        <div></div>
+        <div class="acoes"><button class="btn sm danger" type="button" data-rm="${esc(c.id)}">${ico("trash", 14)}Remover</button></div>
+      </div>`).join("")
+      : `<p class="hint bad">Nenhuma conta criada ainda. Crie primeiro a sua e depois a do seu parceiro. A partir da primeira conta, o painel só abre com e-mail e senha.</p>`;
+  }
+  const cMsg = (t, c) => { $("cMsg").className = "hint " + (c || ""); $("cMsg").textContent = t; };
+  $("cSalvar").onclick = async () => {
+    const nome = $("cNome").value.trim(), email = $("cEmail").value.trim(), senha = $("cSenha").value, senha2 = $("cSenha2").value;
+    if (!gh.token) return cMsg("Este aparelho precisa estar conectado para criar contas.", "bad");
+    if (!nome) return cMsg("Informe o nome.", "bad");
+    if (!Acesso.emailValido(email)) return cMsg("E-mail inválido.", "bad");
+    const p = Acesso.problemaSenha(senha); if (p) return cMsg(p, "bad");
+    if (senha !== senha2) return cMsg("As duas senhas não são iguais.", "bad");
+    const b = $("cSalvar"); b.disabled = true; cMsg("Criptografando e salvando…");
+    try {
+      const id = await Acesso.idDoEmail(email);
+      let primeira = false;
+      await gravarCofre(async (c) => {
+        const existe = c.contas.find((x) => x.id === id);
+        if (existe && !confirm(`Já existe a conta "${existe.nome}" com este e-mail. Trocar o nome e a senha dela?`)) throw new Error("cancelado");
+        const nova = await Acesso.criarConta({ nome, email, senha, segredo: { token: gh.token, owner: gh.owner, repo: gh.repo, branch: gh.branch } });
+        primeira = c.contas.length === 0;
+        c.contas = existe ? c.contas.map((x) => (x.id === id ? nova : x)) : [...c.contas, nova];
+        return c;
+      }, "Atualiza contas de acesso do painel");
+      if (primeira || !sessao) {
+        sessao = { id, nome, ate: Date.now() + SESSAO_DIAS * 864e5 }; store.set(LS_SESSAO, sessao);
+      } else if (sessao && sessao.id === id) { sessao.nome = nome; store.set(LS_SESSAO, sessao); }
+      ["cNome", "cEmail", "cSenha", "cSenha2"].forEach((k) => { $(k).value = ""; });
+      cMsg(`Conta de ${nome} salva. Ela já pode entrar com o e-mail e a senha.`, "ok");
+      renderContas();
+    } catch (e) {
+      if (e.message !== "cancelado") cMsg(e.status === 401 ? "A chave deste aparelho não vale mais. Entre de novo." : "Não foi possível salvar: " + e.message, "bad");
+      else cMsg("");
+    } finally { b.disabled = false; }
+  };
+  $("cLista2").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-rm]"); if (!b) return;
+    const conta = (cofre.contas || []).find((c) => c.id === b.dataset.rm); if (!conta) return;
+    const ultima = cofre.contas.length === 1;
+    if (!confirm(ultima
+      ? `Remover "${conta.nome}", a última conta? Sem contas, o painel volta a abrir só pela chave do GitHub.`
+      : `Remover a conta "${conta.nome}"? Essa pessoa não vai mais conseguir entrar.`)) return;
+    b.disabled = true;
+    try {
+      await gravarCofre((c) => { c.contas = c.contas.filter((x) => x.id !== conta.id); return c; }, "Remove conta de acesso do painel");
+      toast(`Conta de ${conta.nome} removida`);
+      if (sessao && sessao.id === conta.id) return sair();
+      renderContas();
+    } catch (err) { toast("Não foi possível remover: " + err.message, "erro"); b.disabled = false; }
+  });
+  $("cSair").onclick = () => { if (confirm("Sair do painel neste aparelho?")) sair(); };
+
+  // ---------- Tela de login ----------
+  function pedirLogin(info) {
+    return new Promise((resolve) => {
+      $("login").hidden = false;
+      document.documentElement.classList.add("com-login");
+      $("skeleton").classList.add("fora");
+      if (info) { $("loginInfo").textContent = info; $("loginAvancado").open = true; }
+      setTimeout(() => $(info ? "loginToken" : "loginEmail").focus(), 50);
+      let falhas = 0;
+      const pronto = () => {
+        $("login").hidden = true; document.documentElement.classList.remove("com-login");
+        $("loginSenha").value = ""; $("loginToken").value = ""; $("skeleton").classList.remove("fora");
+        resolve();
+      };
+      $("loginForm").onsubmit = async (ev) => {
+        ev.preventDefault();
+        const btn = $("loginBtn"); if (btn.disabled) return;
+        btn.disabled = true; $("loginErro").textContent = ""; btn.lastChild.textContent = "Verificando…";
+        try {
+          const { conta, segredo } = await Acesso.entrar(cofre, $("loginEmail").value, $("loginSenha").value);
+          gh = { owner: segredo.owner || gh.owner, repo: segredo.repo || gh.repo, branch: segredo.branch || gh.branch, token: segredo.token };
+          store.set(LS_GH, gh);
+          sessao = { id: conta.id, nome: conta.nome, ate: Date.now() + SESSAO_DIAS * 864e5 }; store.set(LS_SESSAO, sessao);
+          pronto();
+        } catch (err) {
+          falhas++;
+          $("loginErro").textContent = err.message;
+          $("loginSenha").value = ""; $("loginSenha").focus();
+          await new Promise((r) => setTimeout(r, Math.min(falhas, 5) * 1000)); // espera cresce a cada erro
+        } finally { btn.disabled = false; btn.lastChild.textContent = "Entrar"; }
+      };
+      $("loginTokenBtn").onclick = async () => {
+        const t = $("loginToken").value.trim(); if (!t) return;
+        const b = $("loginTokenBtn"); b.disabled = true; $("loginErro").textContent = "";
+        const antes = gh.token; gh.token = t;
+        try {
+          const repo = await api("");
+          if (repo.permissions && repo.permissions.push === false) throw Object.assign(new Error("sem permissão de gravação"), { status: 403 });
+          store.set(LS_GH, gh);
+          sessao = { id: "chave", nome: "Chave do GitHub", ate: Date.now() + 864e5 }; store.set(LS_SESSAO, sessao);
+          pronto();
+        } catch (err) {
+          gh.token = antes;
+          $("loginErro").textContent = err.status === 401 ? "Chave inválida ou expirada." : err.status === 403 ? "A chave não tem permissão de gravação." : "Não foi possível conferir a chave.";
+        } finally { b.disabled = false; }
+      };
+    });
+  }
+  // Porteiro: decide se o painel abre direto, pede login ou é a primeira configuração
+  async function portaria() {
+    let lido = null;
+    try { lido = await lerCofre(); } catch { lido = null; }
+    if (!lido) {
+      if (gh.token && sessaoValida(true)) return; // sem internet agora: mantém a sessão deste aparelho
+      gh.token = ""; store.set(LS_GH, gh);
+      return pedirLogin("Não foi possível verificar o acesso agora. Confira a internet ou entre com a chave do GitHub.");
+    }
+    cofre = lido.cofre && Array.isArray(lido.cofre.contas) ? lido.cofre : { versao: 1, contas: [] };
+    const temContas = cofre.contas.length > 0;
+    if (gh.token && sessaoValida()) return;              // sessão válida neste aparelho
+    if (gh.token && !temContas) return;                  // primeira configuração: entra para criar as contas
+    gh.token = ""; store.set(LS_GH, gh); store.del(LS_SESSAO); sessao = null;
+    return pedirLogin(temContas ? "" : "Ainda não há contas. Entre com a chave do GitHub para criar as contas de acesso.");
+  }
   $("gBaixar").onclick = () => {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([gerarDataJs(dados)], { type: "text/javascript" }));
@@ -1344,7 +1505,7 @@
         pendentes = rasc.pendentes || {};
         if (rasc.base === publicado) {
           dados = r; // ninguém publicou desde então: continua de onde parou
-          if (!acessoPeloLink) setTimeout(() => toast("Continuando de onde você parou"), 400);
+          setTimeout(() => toast("Continuando de onde você parou"), 400);
         } else {
           // outro aparelho publicou depois: junta as alterações deste aparelho com as do site
           dados = Pedido.normalizar(Mescla.mesclar(Pedido.normalizar(JSON.parse(rasc.base)), r, clone(base)));
@@ -1356,25 +1517,19 @@
         // então ele NÃO substitui o site. Fica guardado à parte em Conexão e backup.
         store.set(LS_DRAFT_ANTIGO, { ...rasc, guardadoEm: Date.now() });
         store.del(LS_DRAFT);
-        if (!acessoPeloLink) setTimeout(() => toast("Havia um rascunho antigo neste aparelho. Ele foi guardado à parte e não altera o site.", null, 5000), 400);
+        setTimeout(() => toast("Havia um rascunho antigo neste aparelho. Ele foi guardado à parte e não altera o site.", null, 5000), 400);
       } else store.del(LS_DRAFT);
     }
     atualizarStatus();
-    abrirAba(location.hash.slice(1));
-    if (acessoPeloLink) {
-      api("").then((repo) => {
-        if (repo.permissions && repo.permissions.push === false) throw Object.assign(new Error(), { status: 403 });
-        toast("Aparelho liberado. Já pode editar e publicar.", "", 3500);
-      }).catch((e) => {
-        if (![401, 403, 404].includes(e.status)) return toast("Sem internet para validar o link agora. Tente publicar mais tarde.", "erro", 4000);
-        gh.token = ""; store.set(LS_GH, gh); atualizarStatus();
-        toast("Link de acesso inválido ou vencido. Peça um novo.", "erro", 5000);
-      });
-    }
+    if (gh.token && !(cofre.contas || []).length) {
+      // primeira configuração: leva direto para criar as contas
+      abrirAba("conexao");
+      setTimeout(() => toast("Crie as contas de acesso (a sua e a do seu parceiro). Depois disso o painel só abre com e-mail e senha.", null, 8000), 500);
+    } else abrirAba(location.hash.slice(1));
     setTimeout(moverPill, 300);
     if (document.fonts) document.fonts.ready.then(moverPill);
     $("skeleton").classList.add("fora");
     setTimeout(() => $("skeleton").remove(), 600);
   }
-  iniciar();
+  portaria().then(iniciar);
 })();

@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://raw.githubusercontent.com; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://viacep.com.br https://brasilapi.com.br https://nominatim.openstreetmap.org https://router.project-osrm.org; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Adega Brasil</title>
   <meta name="description" content="Adega Brasil: cervejas, destilados, vinhos e petiscos com entrega em Anápolis. Monte seu pedido e envie pelo WhatsApp.">
   <meta name="theme-color" content="#0a0a0a">
@@ -20,7 +22,7 @@
   <link rel="preload" as="image" href="img/logo.webp">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261119t">
+  <link rel="stylesheet" href="style.css?v=20261120a">
 </head>
 <body>
 
@@ -36,45 +38,11 @@
       </div>
     </div>
   </div>
-  <script>
-    (function () {
-      var gate = document.getElementById("ageGate"), ok = false;
-      try { ok = sessionStorage.getItem("adega_18") === "1"; } catch (e) {}
-      if (ok) { gate.remove(); return; }
-      document.documentElement.classList.add("travado");
-      document.getElementById("ageYes").onclick = function () {
-        try { sessionStorage.setItem("adega_18", "1"); } catch (e) {}
-        gate.classList.add("saindo");
-        document.documentElement.classList.remove("travado");
-        setTimeout(function () { gate.remove(); }, 400);
-      };
-      document.getElementById("ageNo").onclick = function () {
-        gate.querySelector("p").textContent = "Desculpe, o acesso é permitido apenas para maiores de 18 anos.";
-        gate.querySelector("h2").textContent = "Acesso não permitido";
-        this.remove();
-      };
-    })();
-  </script>
+  <script src="idade.js?v=20261120a"></script>
 
   <!-- Fundo: bolhas de cerveja subindo -->
   <div class="bolhas-bg" id="bolhasBg" aria-hidden="true"></div>
-  <script>
-    (function () {
-      var bg = document.getElementById("bolhasBg");
-      var calmo = matchMedia("(prefers-reduced-motion: reduce)").matches;
-      var grande = innerWidth >= 900, n = innerWidth < 600 ? 14 : grande ? 30 : 22, k = grande ? 1.35 : 1, html = "";
-      for (var i = 0; i < n; i++) {
-        var r = Math.random(), t = Math.round((r < .55 ? 10 + Math.random() * 16 : r < .85 ? 26 + Math.random() * 20 : 46 + Math.random() * 26) * k);
-        var dur = (11 + Math.random() * 13).toFixed(1), atraso = (-Math.random() * dur).toFixed(1);
-        var estilo = "left:" + (Math.random() * 96).toFixed(1) + "%;width:" + t + "px;height:" + t + "px;opacity:" + (.45 + Math.random() * .45).toFixed(2) +
-          ";background-position:" + (Math.floor(Math.random() * 6) * 20) + "% 0;";
-        estilo += calmo ? "transform:translateY(" + (Math.random() * 100).toFixed(0) + "vh)" : "animation-duration:" + dur + "s;animation-delay:" + atraso + "s";
-        html += '<i style="' + estilo + '"><b style="animation-duration:' + (2.5 + Math.random() * 3).toFixed(1) + 's"></b></i>';
-      }
-      bg.innerHTML = html;
-      if (calmo) bg.classList.add("parado");
-    })();
-  </script>
+  <script src="bolhas.js?v=20261120a"></script>
 
   <header class="topbar">
     <div class="container topbar-inner">
@@ -200,26 +168,11 @@
   </footer>
 
   <!-- Produtos: direto do GitHub (instantâneo). Reserva: data.js do Pages. -->
-  <script>document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');</script>
-  <script>
-    window.REPO = "mauriket/adega-brasil";
-    window.carregarDados = (async () => {
-      try {
-        const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), 2500);
-        const r = await fetch("https://api.github.com/repos/" + REPO + "/contents/data.js?ref=main&t=" + Date.now(),
-          { headers: { Accept: "application/vnd.github.raw" }, signal: ctrl.signal });
-        clearTimeout(t);
-        if (r.ok) {
-          const txt = await r.text();
-          window.DADOS = JSON.parse(txt.slice(txt.indexOf("{"), txt.lastIndexOf("}") + 1));
-        }
-      } catch (e) { /* usa o data.js do Pages */ }
-    })();
-  </script>
-  <script src="geo.js?v=20261119t"></script>
-  <script src="promo.js?v=20261119t"></script>
-  <script src="pedido.js?v=20261119t"></script>
-  <script src="app.js?v=20261119t"></script>
+  <script src="data.js"></script>
+  <script src="carregar.js?v=20261120a"></script>
+  <script src="geo.js?v=20261120a"></script>
+  <script src="promo.js?v=20261120a"></script>
+  <script src="pedido.js?v=20261120a"></script>
+  <script src="app.js?v=20261120a"></script>
 </body>
 </html>
