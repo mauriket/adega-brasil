@@ -205,6 +205,16 @@
     revelarTitulos();
   }
 
+  // Garantia: ao fim da abertura, tudo que está na tela aparece (mesmo se o observador atrasar)
+  function revelarVisiveis() {
+    document.querySelectorAll(".card:not(.in), .cat-title.rv:not(.in)").forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.top < innerHeight && r.bottom > 0) el.classList.add("in");
+    });
+  }
+  addEventListener("introfim", () => { revelarVisiveis(); setTimeout(revelarVisiveis, 600); });
+  if (!document.getElementById("intro")) setTimeout(revelarVisiveis, 400);
+
   // ---------- Títulos das seções entram ao rolar ----------
   const titulosVistos = new Set();
   const obsTitulo = "IntersectionObserver" in window && !Motion.calmo

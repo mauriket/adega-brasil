@@ -6,9 +6,49 @@
   <title>Adega Anápolis</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261119b">
+  <link rel="stylesheet" href="style.css?v=20261119c">
 </head>
 <body>
+  <!-- Abertura animada (toda vez que entra no site) -->
+  <div class="intro" id="intro" aria-hidden="true">
+    <div class="intro-bolhas" id="introBolhas"></div>
+    <div class="intro-vidro">
+      <img src="img/logo.png" alt="" id="introLogo">
+      <i class="intro-reflexo"></i>
+    </div>
+    <div class="intro-txt">Bebida gelada na sua porta</div>
+    <div class="intro-barra"><i></i></div>
+  </div>
+  <script>
+    (function () {
+      var intro = document.getElementById("intro");
+      var calmo = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (calmo) { intro.remove(); return; }
+      var b = document.getElementById("introBolhas");
+      for (var i = 0; i < 26; i++) {
+        var s = document.createElement("span"), t = 6 + Math.random() * 20;
+        s.style.cssText = "left:" + Math.random() * 100 + "%;width:" + t + "px;height:" + t + "px;animation-duration:" + (2.5 + Math.random() * 3) + "s;animation-delay:" + (-Math.random() * 3) + "s";
+        b.appendChild(s);
+      }
+      document.documentElement.classList.add("com-intro");
+      var feito = false;
+      window.fecharIntro = function () {
+        if (feito) return; feito = true;
+        var logo = document.getElementById("introLogo"), alvo = document.getElementById("logoImg");
+        if (logo && alvo && logo.animate) {
+          var a = logo.getBoundingClientRect(), z = alvo.getBoundingClientRect();
+          logo.animate([{ transform: "none" }, { transform: "translate(" + (z.left + z.width / 2 - a.left - a.width / 2) + "px," + (z.top + z.height / 2 - a.top - a.height / 2) + "px) scale(" + (z.height / a.height) + ")" }],
+            { duration: 700, easing: "cubic-bezier(.6,0,.2,1)", fill: "forwards" });
+        }
+        intro.classList.add("saindo");
+        document.documentElement.classList.remove("com-intro");
+        document.documentElement.classList.add("pos-intro");
+        setTimeout(function () { intro.remove(); dispatchEvent(new Event("introfim")); }, 900);
+      };
+      intro.addEventListener("click", window.fecharIntro);
+      setTimeout(window.fecharIntro, 2600);
+    })();
+  </script>
 
   <!-- Verificação de idade -->
   <div id="ageGate" class="overlay age-gate" hidden>
@@ -41,6 +81,7 @@
 
   <div class="bg-anim" aria-hidden="true">
     <i class="orb o1"></i><i class="orb o2"></i><i class="orb o3"></i><i class="orb o4"></i>
+    <div class="bg-logo"><img src="img/logo.png" alt=""><i class="bg-logo-brilho"></i></div>
     <div class="bubbles" id="bubbles"></div>
   </div>
 
@@ -172,8 +213,8 @@
       } catch (e) { /* fica com o data.js do Pages */ }
     })();
   </script>
-  <script src="geo.js?v=20261119b"></script>
-  <script src="promo.js?v=20261119b"></script>
+  <script src="geo.js?v=20261119c"></script>
+  <script src="promo.js?v=20261119c"></script>
   <script>
     window.MOTION_CFG = {
       luz: ".card, .chip, .sec-promo, .drawer .cart-item",
@@ -185,7 +226,7 @@
       pop: ".chip, .qty button, .cart-btn, .seg label, .icon-btn"
     };
   </script>
-  <script src="motion.js?v=20261119b"></script>
-  <script src="app.js?v=20261119b"></script>
+  <script src="motion.js?v=20261119c"></script>
+  <script src="app.js?v=20261119c"></script>
 </body>
 </html>

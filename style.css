@@ -548,3 +548,68 @@ main, .footer { position: relative; z-index: 1; }
   .orb { animation: none; }
   .card.in::before, .card.in:hover::before { animation: none; }
 }
+
+/* =====================================================
+   ABERTURA ANIMADA + LOGO NO FUNDO
+   ===================================================== */
+.intro {
+  position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; align-content: center; gap: 22px;
+  background: radial-gradient(ellipse at 50% 45%, #2a1f05 0%, #0a0a0a 65%); overflow: hidden; cursor: pointer;
+  transition: opacity .8s cubic-bezier(.6,0,.2,1), backdrop-filter .8s;
+}
+.intro.saindo { opacity: 0; pointer-events: none; }
+.intro-bolhas { position: absolute; inset: 0; }
+.intro-bolhas span {
+  position: absolute; bottom: -30px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.8), rgba(255,194,14,.3) 60%, transparent 70%);
+  border: 1px solid rgba(255,216,77,.4); animation: rise linear infinite;
+}
+.intro-vidro {
+  position: relative; overflow: hidden; width: min(300px, 70vw); aspect-ratio: 1; border-radius: 36px;
+  display: grid; place-items: center;
+  background: linear-gradient(145deg, rgba(255,255,255,.14), rgba(255,255,255,.03));
+  backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255,255,255,.22);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 30px 80px rgba(0,0,0,.6), 0 0 80px rgba(255,194,14,.25);
+  animation: vidroEntra 1s cubic-bezier(.2,1.3,.3,1) both;
+}
+.intro.saindo .intro-vidro { background: transparent; border-color: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; transition: all .4s; }
+.intro-vidro img { width: 82%; position: relative; z-index: 1; animation: logoEntra 1.1s .25s cubic-bezier(.2,1.4,.3,1) both, logoPulse 2s 1.3s ease-in-out infinite; }
+.intro-reflexo { position: absolute; z-index: 2; top: -50%; left: -120%; width: 55%; height: 200%; transform: rotate(18deg);
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent); animation: introReflexo 1.2s 1s ease-in-out both; }
+.intro-txt { font-family: "Montserrat", sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; font-size: clamp(13px, 2vw, 16px);
+  color: var(--gold); animation: fadeUp .7s 1.1s both; text-align: center; padding: 0 16px; }
+.intro-barra { width: 160px; height: 3px; border-radius: 3px; background: rgba(255,255,255,.1); overflow: hidden; animation: fadeIn .4s .9s both; }
+.intro-barra i { display: block; height: 100%; width: 100%; background: var(--grad-gold); transform-origin: 0 50%; animation: introCarrega 2.2s .3s cubic-bezier(.4,0,.2,1) both; }
+@keyframes vidroEntra { from { opacity: 0; transform: scale(.6) rotateX(30deg) translateY(40px); } }
+@keyframes logoEntra { from { opacity: 0; transform: scale(.4) rotate(-12deg); filter: blur(12px); } }
+@keyframes introReflexo { from { left: -120%; } to { left: 170%; } }
+@keyframes introCarrega { from { transform: scaleX(0); } }
+
+/* O site "entra" depois da abertura */
+@keyframes entraMain { from { transform: translateY(40px) scale(.98); } }
+.pos-intro .topbar { animation: slideDown .7s .25s cubic-bezier(.2,.8,.2,1) backwards; }
+.pos-intro main { animation: entraMain .9s .3s cubic-bezier(.2,.8,.2,1) backwards; }
+.pos-intro .top-logo { animation: none; }
+.com-intro .age-gate { opacity: 0; pointer-events: none; }
+.age-gate { transition: opacity .5s .4s; }
+
+/* Logo animada no fundo, atrás dos produtos */
+.bg-logo {
+  position: absolute; left: 50%; top: 50%; width: min(70vmin, 640px); aspect-ratio: 891 / 627;
+  transform: translate(-50%, -50%); opacity: .09; pointer-events: none;
+  animation: bgLogoEntra 2s .3s cubic-bezier(.2,.8,.2,1) both, bgLogoFlutua 14s 2.3s ease-in-out infinite;
+  -webkit-mask: radial-gradient(ellipse at center, #000 45%, transparent 75%); mask: radial-gradient(ellipse at center, #000 45%, transparent 75%);
+}
+.pos-intro .bg-logo { animation: bgLogoEntra 2.2s .2s cubic-bezier(.2,.8,.2,1) both, bgLogoFlutua 14s 2.4s ease-in-out infinite; }
+.bg-logo img { width: 100%; height: 100%; display: block; filter: drop-shadow(0 0 40px rgba(255,194,14,.6)); animation: bgLogoBrilho 5s ease-in-out infinite; }
+.bg-logo-brilho { position: absolute; inset: 0; overflow: hidden; }
+.bg-logo-brilho::before { content: ""; position: absolute; top: -30%; bottom: -30%; left: -50%; width: 30%; transform: skewX(-18deg);
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.5), transparent); animation: bgLogoReflexo 7s 2.5s ease-in-out infinite; }
+@keyframes bgLogoEntra { from { opacity: 0; transform: translate(-50%, -50%) scale(1.6); filter: blur(20px); } }
+@keyframes bgLogoFlutua { 0%, 100% { transform: translate(-50%, -50%) rotate(-2deg) scale(1); } 50% { transform: translate(-50%, -54%) rotate(2deg) scale(1.05); } }
+@keyframes bgLogoBrilho { 0%, 100% { filter: drop-shadow(0 0 30px rgba(255,194,14,.4)); } 50% { filter: drop-shadow(0 0 70px rgba(255,194,14,.9)); } }
+@keyframes bgLogoReflexo { 0%, 60% { left: -50%; } 100% { left: 150%; } }
+
+@media (max-width: 760px) { .bg-logo { width: 92vw; opacity: .08; } }
+@media (prefers-reduced-motion: reduce) { .bg-logo, .bg-logo img { animation: none; } .bg-logo-brilho { display: none; } }
