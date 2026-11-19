@@ -38,17 +38,6 @@ window.DADOS = {
   ],
   "produtos": [
     {
-      "id": 4,
-      "nome": "Stella Artois 330ml",
-      "categoria": "Cervejas",
-      "preco": 7.9,
-      "emoji": "🍺",
-      "imagem": "",
-      "descricao": "",
-      "destaque": false,
-      "ativo": true
-    },
-    {
       "id": 5,
       "nome": "Fardo Skol 12 latas",
       "categoria": "Cervejas",
