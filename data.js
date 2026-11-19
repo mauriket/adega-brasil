@@ -252,7 +252,7 @@ window.DADOS = {
     },
     {
       "id": 44,
-      "imagem": "",
+      "imagem": "img/produtos/p44-1795111922589.jpg",
       "nome": "Gin Tanqueray Bossa Nova 700ml",
       "preco": 145,
       "categoria": "Destilados",
