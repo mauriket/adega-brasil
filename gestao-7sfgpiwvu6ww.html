@@ -9,8 +9,8 @@
   <title>Painel administrativo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/painel.css?v=20261121b">
-  <script src="js/painel/tema.js?v=20261121b"></script>
+  <link rel="stylesheet" href="css/painel.css?v=20261121c">
+  <script src="js/painel/tema.js?v=20261121c"></script>
 </head>
 <body>
   <!-- ===== Login ===== -->
@@ -50,6 +50,7 @@
       <button data-tab="frete">Frete</button>
       <button data-tab="mensagem">Mensagem</button>
       <button data-tab="loja">Loja</button>
+      <button data-tab="conferir">Conferir pedido</button>
     </nav>
     <div class="top-act">
       <span class="status" id="status"><i></i><b id="statusTxt">Carregando…</b></span>
@@ -215,6 +216,25 @@
             <div class="wa-bolha" id="msgPreview"></div>
           </div>
           <a href="#" target="_blank" class="btn ghost" id="msgTeste"><span data-ico="chat"></span>Enviar teste para o WhatsApp da loja</a>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===== CONFERIR PEDIDO (anti-fraude) ===== -->
+    <section class="tab" id="tab-conferir" hidden>
+      <div class="grid-msg">
+        <article class="card">
+          <header><h2>Conferir pedido do WhatsApp</h2></header>
+          <p class="help">Copie a mensagem inteira do pedido no WhatsApp e cole aqui. O painel recalcula o valor com os preços, promoções e frete da loja e avisa se alguém mudou os valores na mensagem.</p>
+          <textarea class="code" id="cfTexto" rows="14" spellcheck="false" placeholder="Cole aqui a mensagem do pedido (precisa ter a linha &quot;Código de conferência&quot;)"></textarea>
+          <div class="acoes-linha">
+            <button class="btn accent" id="cfBtn"><span data-ico="check"></span>Conferir</button>
+            <button class="btn ghost" id="cfLimpar">Limpar</button>
+          </div>
+        </article>
+        <article class="card">
+          <header><h2>Resultado</h2></header>
+          <div id="cfRes"><p class="hint">O resultado aparece aqui.</p></div>
         </article>
       </div>
     </section>
@@ -456,11 +476,11 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="data.js"></script>
-  <script src="js/comum/geo.js?v=20261121b"></script>
-  <script src="js/comum/promo.js?v=20261121b"></script>
-  <script src="js/comum/pedido.js?v=20261121b"></script>
-  <script src="js/painel/mescla.js?v=20261121b"></script>
-  <script src="js/painel/acesso.js?v=20261121b"></script>
-  <script src="js/painel/admin.js?v=20261121b"></script>
+  <script src="js/comum/geo.js?v=20261121c"></script>
+  <script src="js/comum/promo.js?v=20261121c"></script>
+  <script src="js/comum/pedido.js?v=20261121c"></script>
+  <script src="js/painel/mescla.js?v=20261121c"></script>
+  <script src="js/painel/acesso.js?v=20261121c"></script>
+  <script src="js/painel/admin.js?v=20261121c"></script>
 </body>
 </html>

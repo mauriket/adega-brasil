@@ -252,11 +252,11 @@ window.Motion = (() => {
   // =====================================================
   const TITULOS = {
     inicio: "Visão geral", produtos: "Produtos", promocoes: "Promoções", categorias: "Categorias",
-    frete: "Frete por km", mensagem: "Mensagem do pedido", loja: "Loja", conexao: "Acesso e backup",
+    frete: "Frete por km", mensagem: "Mensagem do pedido", loja: "Loja", conexao: "Acesso e backup", conferir: "Conferir pedido",
   };
   const RENDER = {
     inicio: () => renderInicio(), produtos: () => renderProdutos(), promocoes: () => renderPromos(), categorias: () => renderCategorias(),
-    frete: () => renderFrete(), mensagem: () => renderMensagem(), loja: () => renderLoja(), conexao: () => renderConexao(),
+    frete: () => renderFrete(), mensagem: () => renderMensagem(), loja: () => renderLoja(), conexao: () => renderConexao(), conferir: () => renderConferir(),
   };
 
   function moverPill() {
@@ -1163,6 +1163,77 @@ window.Motion = (() => {
   }));
   $("lNome").addEventListener("blur", () => { if (!$("lNome").value.trim()) { $("lNome").value = dados.loja.nome || ""; toast("O nome da loja não pode ficar vazio.", "erro"); } });
   $("lMinimo").addEventListener("input", () => { dados.loja.pedidoMinimo = Math.max(0, num($("lMinimo").value)); mudou(); });
+  // =====================================================
+  // CONFERIR PEDIDO (anti-fraude): recalcula o valor certo a partir do código do pedido
+  // =====================================================
+  function renderConferir() { /* a aba só reage ao botão */ }
+  const semNbsp = (s) => String(s).replace(/ /g, " ");
+  const dinheiro = (s) => { const m = semNbsp(s).match(/R\$ ?([\d.]+,\d{2})(?!.*R\$)/); return m ? Number(m[1].replace(/\./g, "").replace(",", ".")) : null; };
+  $("cfLimpar").onclick = () => { $("cfTexto").value = ""; $("cfRes").innerHTML = '<p class="hint">O resultado aparece aqui.</p>'; $("cfTexto").focus(); };
+  $("cfBtn").onclick = async () => {
+    const texto = semNbsp($("cfTexto").value), out = $("cfRes");
+    const cod = Pedido.lerCodigo(texto);
+    if (!cod) {
+      out.innerHTML = `<div class="cf-veredito bad">Código de conferência não encontrado</div><p class="hint">Cole a mensagem inteira, incluindo a última linha "Código de conferência: AB1-…". Pedido sem código pode ter sido apagado de propósito ou feito antes desta função existir: confira item por item.</p>`;
+      return;
+    }
+    const site = publicado ? JSON.parse(publicado) : dados; // preços que o cliente viu
+    const prods = Object.fromEntries(site.produtos.map((p) => [p.id, p]));
+    const linhasMsg = texto.split("\n");
+    let sub = 0, problemas = [];
+    const itensHTML = cod.itens.map(({ id, qtd }) => {
+      const p = prods[id];
+      if (!p) { problemas.push(`produto nº ${id} não existe mais no catálogo`); return `<tr><td colspan="3" class="txt-bad">Produto nº ${id} (não existe mais no catálogo) × ${qtd}</td></tr>`; }
+      const l = Promo.linha(p, qtd, site.promocoes || [], cod.quando);
+      sub += l.total;
+      const linha = linhasMsg.find((x) => x.includes(p.nome));
+      let estado = "ok";
+      if (!linha) estado = "falta";
+      else if (!linha.includes(semNbsp(brl(l.total))) || !new RegExp(`(^|\\D)${qtd}(\\D|$)`).test(linha)) estado = "diferente";
+      if (estado === "diferente") problemas.push(`"${p.nome}" está com quantidade ou valor diferente na mensagem`);
+      if (estado === "falta") problemas.push(`"${p.nome}" não aparece na mensagem`);
+      const marca = estado === "ok" ? '<span class="txt-ok">ok</span>' : `<span class="txt-bad">${estado === "falta" ? "não está na mensagem" : "alterado na mensagem"}</span>`;
+      return `<tr><td>${qtd}× ${esc(p.nome)}${l.promo ? ` <small>(${esc(Promo.selo(l.promo, p.preco) || l.promo.nome)})</small>` : ""}</td><td class="num">${brl(l.total)}</td><td>${marca}</td></tr>`;
+    }).join("");
+    sub = Math.round(sub * 100) / 100;
+    out.innerHTML = '<p class="hint"><span class="spin"></span>Calculando o frete…</p>';
+    // frete
+    let frete = 0, freteTxt = "Retirada na loja", freteExato = true;
+    if (!cod.retirada) {
+      const F = site.frete || {}, lim = n(F.freteGratisAcima);
+      const end = cod.cep.length === 8 ? await Geo.buscarCep(cod.cep) : null;
+      const r = end ? await Geo.calcularFrete(end, F) : null;
+      if (!r) { freteExato = false; freteTxt = "não foi possível calcular (CEP não encontrado)"; }
+      else if (!r.ok) { freteExato = false; freteTxt = "endereço fora da área de entrega"; problemas.push("o CEP do pedido está fora da área de entrega"); }
+      else if (lim > 0 && sub >= lim) { frete = 0; freteTxt = "Grátis (acima de " + brl(lim) + ")"; }
+      else if (r.aCombinar) { freteExato = false; freteTxt = "a combinar (endereço não achado no mapa)"; }
+      else { frete = r.valor; freteTxt = brl(r.valor) + (r.km != null ? ` (${r.km.toFixed(1).replace(".", ",")} km pelo CEP)` : "") + (r.estimado ? " — estimado" : ""); freteExato = !r.estimado; }
+    }
+    const total = Math.round((sub + frete) * 100) / 100;
+    const lTotal = linhasMsg.find((x) => /total/i.test(x) && !/subtotal/i.test(x));
+    const lSub = linhasMsg.find((x) => /subtotal/i.test(x));
+    const totalMsg = lTotal ? dinheiro(lTotal) : null, subMsg = lSub ? dinheiro(lSub) : null;
+    if (subMsg != null && Math.abs(subMsg - sub) > 0.01) problemas.push(`subtotal da mensagem (${brl(subMsg)}) é diferente do certo (${brl(sub)})`);
+    if (totalMsg == null) problemas.push("não achei o total na mensagem");
+    else if (freteExato && Math.abs(totalMsg - total) > 0.01) problemas.push(`total da mensagem (${brl(totalMsg)}) é diferente do certo (${brl(total)})`);
+    else if (!freteExato && totalMsg + 0.01 < sub) problemas.push(`total da mensagem (${brl(totalMsg)}) é menor que a soma dos produtos (${brl(sub)})`);
+    const dias = (Date.now() - cod.quando) / 864e5;
+    const avisos = [];
+    if (dias > 2) avisos.push(`Este pedido foi montado em ${cod.quando.toLocaleString("pt-BR")}, há ${Math.floor(dias)} dias. Cuidado com mensagem antiga reaproveitada.`);
+    if (!freteExato) avisos.push("O frete não pôde ser conferido exatamente: confira o endereço.");
+    avisos.push("Os preços usados são os publicados agora no site; se vocês mudaram algum preço depois do pedido, a diferença pode vir daí.");
+    out.innerHTML = `
+      <div class="cf-veredito ${problemas.length ? "bad" : "ok"}">${problemas.length ? "Atenção: a mensagem foi alterada ou não confere" : "Valor confere"}</div>
+      ${problemas.length ? `<ul class="cf-lista">${problemas.map((p) => `<li>${esc(p)}</li>`).join("")}</ul>` : ""}
+      <table class="cf-tab"><tbody>${itensHTML}
+        <tr class="sep"><td>Subtotal certo</td><td class="num">${brl(sub)}</td><td>${subMsg != null ? `<small>mensagem: ${brl(subMsg)}</small>` : ""}</td></tr>
+        <tr><td>Frete</td><td class="num" colspan="2">${esc(freteTxt)}</td></tr>
+        <tr class="sep"><td><b>Total certo</b></td><td class="num"><b>${brl(total)}</b></td><td>${totalMsg != null ? `<small>mensagem: ${brl(totalMsg)}</small>` : ""}</td></tr>
+      </tbody></table>
+      <p class="hint">Pedido montado em ${cod.quando.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })} · ${cod.retirada ? "retirada na loja" : "entrega, CEP " + cod.cep.replace(/(\d{5})(\d{3})/, "$1-$2")}</p>
+      ${avisos.map((a) => `<p class="hint">${esc(a)}</p>`).join("")}`;
+  };
+
   // ---------- Rodapé: Instagram, WhatsApp e aviso ----------
   function validarRedes() {
     const L = dados.loja, msgs = [];

@@ -1,17 +1,20 @@
 /* Produtos: direto do GitHub (instantâneo). Reserva: data.js do Pages. */
 window.REPO = "mauriket/adega-brasil";
+// 1º a API (instantânea, mas limitada a 60 acessos/hora por internet); 2º o arquivo bruto do GitHub
+// (sem esse limite, até ~5 min de atraso); por último o data.js que veio junto com o site.
 window.carregarDados = (async () => {
-  try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 2500);
-    const r = await fetch("https://api.github.com/repos/" + REPO + "/contents/data.js?ref=main&t=" + Date.now(),
-      { headers: { Accept: "application/vnd.github.raw" }, signal: ctrl.signal });
-    clearTimeout(t);
-    if (r.ok) {
+  const tentar = async (url, opcoes, ms) => {
+    const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), ms);
+    try {
+      const r = await fetch(url, { ...opcoes, signal: ctrl.signal });
+      if (!r.ok) return false;
       const txt = await r.text();
       window.DADOS = JSON.parse(txt.slice(txt.indexOf("{"), txt.lastIndexOf("}") + 1));
-    }
-  } catch (e) { /* usa o data.js do Pages */ }
+      return true;
+    } catch (e) { return false; } finally { clearTimeout(t); }
+  };
+  if (await tentar("https://api.github.com/repos/" + REPO + "/contents/data.js?ref=main&t=" + Date.now(), { headers: { Accept: "application/vnd.github.raw" } }, 2500)) return;
+  await tentar("https://raw.githubusercontent.com/" + REPO + "/main/data.js", {}, 2500);
 })();
 
 (async () => {
@@ -438,6 +441,7 @@ window.carregarDados = (async () => {
       pagamento: $("pagamento").value,
       troco: !$("troco").hidden ? v("troco") : "",
       obs: v("obs"),
+      codigo: Pedido.codigo({ itens: lista.map((i) => ({ id: i.id, qtd: i.qtd })), retirada, cep: retirada ? "" : enderecoCep.cep }),
     });
     window.open(`https://wa.me/${String(LOJA.whatsapp).replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`, "_blank");
   };

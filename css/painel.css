@@ -696,3 +696,16 @@ html.com-login body > :not(.login) { visibility: hidden; }
 .login-box .avancado .btn { width: 100%; justify-content: center; }
 .sub-h { margin: 0 0 8px; font-size: 15px; }
 .item.conta { grid-template-columns: 48px minmax(0, 1fr) auto auto; }
+
+/* Conferir pedido */
+.acoes-linha { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.cf-veredito { padding: 14px 16px; border-radius: 14px; font-weight: 800; font-size: 16px; margin-bottom: 10px; }
+.cf-veredito.ok { background: rgba(166, 227, 95, .14); color: var(--good); border: 1px solid rgba(166, 227, 95, .45); }
+.cf-veredito.bad { background: rgba(255, 143, 115, .14); color: var(--bad); border: 1px solid rgba(255, 143, 115, .5); }
+.cf-lista { margin: 0 0 12px; padding-left: 20px; color: var(--bad); font-size: 14px; }
+.cf-tab { width: 100%; border-collapse: collapse; font-size: 14px; }
+.cf-tab td { padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.cf-tab td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.cf-tab tr.sep td { border-top: 1px solid var(--line-2); }
+.cf-tab small { color: var(--muted); }
+.txt-ok { color: var(--good); font-weight: 700; }

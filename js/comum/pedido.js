@@ -82,7 +82,7 @@ window.Pedido = (() => {
     const itens = (d.itens || []).map((i) => preencher(modeloItem, {
       qtd: i.qtd, produto: i.produto, valor: brl(i.valor), unitario: brl(i.unitario), promo: i.promo ? `(${i.promo})` : "",
     })).join("\n");
-    return preencher(loja.mensagem || PADRAO, {
+    const texto = preencher(loja.mensagem || PADRAO, {
       loja: String(loja.nome || "").toUpperCase(),
       cliente: d.cliente, telefone: d.telefone, itens,
       qtd_itens: (d.itens || []).reduce((s, i) => s + i.qtd, 0),
@@ -97,6 +97,23 @@ window.Pedido = (() => {
       data: agora.toLocaleDateString("pt-BR", fuso),
       hora: agora.toLocaleTimeString("pt-BR", { ...fuso, hour: "2-digit", minute: "2-digit" }),
     });
+    // código de conferência: sempre no fim (não depende do modelo editável)
+    return d.codigo ? `${texto}\n\nCódigo de conferência: ${d.codigo}` : texto;
+  }
+
+  /* Código de conferência do pedido (anti-fraude): guarda o que foi escolhido, não os valores.
+     O painel recalcula o valor certo a partir dele. Ex.: AB1-mf3k2a-10x2.45x1-E75130510 */
+  function codigo(d) {
+    const ts = Math.floor((d.quando || new Date()).getTime() / 60000).toString(36);
+    const itens = (d.itens || []).map((i) => `${Number(i.id)}x${Number(i.qtd)}`).join(".");
+    return `AB1-${ts}-${itens}-${d.retirada ? "R" : "E" + String(d.cep || "").replace(/\D/g, "")}`;
+  }
+  function lerCodigo(texto) {
+    const m = String(texto || "").match(/AB1-([0-9a-z]+)-(\d+x\d+(?:\.\d+x\d+)*)-(R|E\d{0,8})(?![\w.])/);
+    if (!m) return null;
+    const quando = new Date(parseInt(m[1], 36) * 60000);
+    const itens = m[2].split(".").map((s) => { const [id, qtd] = s.split("x").map(Number); return { id, qtd }; });
+    return { quando, itens, retirada: m[3] === "R", cep: m[3].slice(1) };
   }
   const itemValido = (m) => typeof m === "string" && m.includes("{produto}");
 
@@ -128,5 +145,5 @@ window.Pedido = (() => {
     return /^[A-Za-z0-9._]{1,30}$/.test(s) ? s : "";
   }
 
-  return { PADRAO, PADRAO_ITEM, VARIAVEIS, VARIAVEIS_ITEM, preencher, montar, normalizar, arroba, itemValido };
+  return { PADRAO, PADRAO_ITEM, VARIAVEIS, VARIAVEIS_ITEM, preencher, montar, normalizar, arroba, itemValido, codigo, lerCodigo };
 })();
