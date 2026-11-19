@@ -3,75 +3,58 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Adega Anápolis</title>
+  <title>Adega Brasil</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261119c">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=20261119d">
 </head>
 <body>
-  <!-- Abertura animada (toda vez que entra no site) -->
-  <div class="intro" id="intro" aria-hidden="true">
-    <div class="intro-bolhas" id="introBolhas"></div>
-    <div class="intro-vidro">
-      <img src="img/logo.png" alt="" id="introLogo">
-      <i class="intro-reflexo"></i>
-    </div>
-    <div class="intro-txt">Bebida gelada na sua porta</div>
-    <div class="intro-barra"><i></i></div>
-  </div>
-  <script>
-    (function () {
-      var intro = document.getElementById("intro");
-      var calmo = matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (calmo) { intro.remove(); return; }
-      var b = document.getElementById("introBolhas");
-      for (var i = 0; i < 26; i++) {
-        var s = document.createElement("span"), t = 6 + Math.random() * 20;
-        s.style.cssText = "left:" + Math.random() * 100 + "%;width:" + t + "px;height:" + t + "px;animation-duration:" + (2.5 + Math.random() * 3) + "s;animation-delay:" + (-Math.random() * 3) + "s";
-        b.appendChild(s);
-      }
-      document.documentElement.classList.add("com-intro");
-      var feito = false;
-      window.fecharIntro = function () {
-        if (feito) return; feito = true;
-        var logo = document.getElementById("introLogo"), alvo = document.getElementById("logoImg");
-        if (logo && alvo && logo.animate) {
-          var a = logo.getBoundingClientRect(), z = alvo.getBoundingClientRect();
-          logo.animate([{ transform: "none" }, { transform: "translate(" + (z.left + z.width / 2 - a.left - a.width / 2) + "px," + (z.top + z.height / 2 - a.top - a.height / 2) + "px) scale(" + (z.height / a.height) + ")" }],
-            { duration: 700, easing: "cubic-bezier(.6,0,.2,1)", fill: "forwards" });
-        }
-        intro.classList.add("saindo");
-        document.documentElement.classList.remove("com-intro");
-        document.documentElement.classList.add("pos-intro");
-        setTimeout(function () { intro.remove(); dispatchEvent(new Event("introfim")); }, 900);
-      };
-      intro.addEventListener("click", window.fecharIntro);
-      setTimeout(window.fecharIntro, 2600);
-    })();
-  </script>
 
-  <!-- Verificação de idade -->
-  <div id="ageGate" class="overlay age-gate" hidden>
-    <div class="modal age-modal">
-      <div class="age-icon">🔞</div>
+  <!-- Aviso de idade: aparece logo ao entrar -->
+  <div class="age-gate" id="ageGate">
+    <div class="age-box">
+      <img src="img/logo.png" alt="Adega Brasil" class="age-logo">
       <h2>Você tem 18 anos ou mais?</h2>
       <p>A venda de bebidas alcoólicas é proibida para menores de 18 anos.</p>
       <div class="age-actions">
-        <button class="btn btn-primary" id="ageYes">Sim, tenho 18+</button>
+        <button class="btn btn-primary" id="ageYes">Sim, tenho 18 anos ou mais</button>
         <button class="btn btn-ghost" id="ageNo">Não</button>
       </div>
     </div>
   </div>
+  <script>
+    (function () {
+      var gate = document.getElementById("ageGate"), ok = false;
+      try { ok = sessionStorage.getItem("adega_18") === "1"; } catch (e) {}
+      if (ok) { gate.remove(); return; }
+      document.documentElement.classList.add("travado");
+      document.getElementById("ageYes").onclick = function () {
+        try { sessionStorage.setItem("adega_18", "1"); } catch (e) {}
+        gate.classList.add("saindo");
+        document.documentElement.classList.remove("travado");
+        setTimeout(function () { gate.remove(); }, 400);
+      };
+      document.getElementById("ageNo").onclick = function () {
+        gate.querySelector("p").textContent = "Desculpe, o acesso é permitido apenas para maiores de 18 anos.";
+        gate.querySelector("h2").textContent = "Acesso não permitido";
+        this.remove();
+      };
+    })();
+  </script>
 
-  <div class="progresso" id="progresso" aria-hidden="true"></div>
-  <div class="cursor-luz" id="cursorLuz" aria-hidden="true"></div>
+  <!-- Fundo: chopp caindo e enchendo (atrás dos produtos) -->
+  <div class="chopp" aria-hidden="true">
+    <i class="chopp-jato"></i>
+    <div class="chopp-liquido">
+      <svg class="chopp-espuma" viewBox="0 0 1200 60" preserveAspectRatio="none"><path d="M0 30 Q 75 0 150 30 T 300 30 T 450 30 T 600 30 T 750 30 T 900 30 T 1050 30 T 1200 30 V60 H0Z"/></svg>
+      <div class="chopp-bolhas" id="bolhas"></div>
+    </div>
+  </div>
 
   <header class="topbar">
     <div class="container topbar-inner">
       <div></div>
-      <a href="#" class="top-logo" aria-label="Início">
-        <img src="img/logo.png" alt="Logo da adega" id="logoImg">
-      </a>
+      <a href="#" class="top-logo" aria-label="Início"><img src="img/logo.png" alt="Adega Brasil" id="logoImg"></a>
       <button class="cart-btn" id="openCart" aria-label="Abrir carrinho">
         🛒 <span class="cart-label">Carrinho</span>
         <span class="badge" id="cartCount">0</span>
@@ -79,18 +62,12 @@
     </div>
   </header>
 
-  <div class="bg-anim" aria-hidden="true">
-    <i class="orb o1"></i><i class="orb o2"></i><i class="orb o3"></i><i class="orb o4"></i>
-    <div class="bg-logo"><img src="img/logo.png" alt=""><i class="bg-logo-brilho"></i></div>
-    <div class="bubbles" id="bubbles"></div>
-  </div>
-
   <div class="previa" id="previa" hidden>
-    👁️ <b>Prévia:</b> você está vendo as alterações do painel que <b>ainda não foram publicadas</b> (só neste aparelho).
+    👁️ <b>Prévia:</b> alterações do painel que <b>ainda não foram publicadas</b> (só neste aparelho).
     <button id="previaSair">Ver versão publicada</button>
   </div>
 
-  <main class="container" id="catalogoTopo">
+  <main class="container">
     <section class="toolbar">
       <input type="search" id="busca" placeholder="Buscar bebida..." autocomplete="off">
       <div class="chips" id="categorias"></div>
@@ -104,12 +81,12 @@
       <div class="grid" id="gridPromo"></div>
     </section>
 
-    <section class="sec-ofertas" id="secOfertas" hidden>
+    <section id="secOfertas" hidden>
       <h2 class="cat-title">💥 Ofertas</h2>
       <div class="carrossel" id="gridOfertas"></div>
     </section>
 
-    <section class="sec-dest" id="secDestaques" hidden>
+    <section id="secDestaques" hidden>
       <h2 class="cat-title">⭐ Destaques</h2>
       <div class="carrossel" id="gridDestaques"></div>
     </section>
@@ -118,7 +95,6 @@
     <p class="empty" id="semResultados" hidden>Nenhum produto encontrado.</p>
   </main>
 
-  <!-- Barra flutuante (mobile) -->
   <button class="floating-cart" id="floatingCart" hidden>
     <span>🛒 <b id="floatQtd">0</b> itens</span>
     <span>Ver carrinho · <b id="floatTotal">R$ 0,00</b></span>
@@ -193,10 +169,8 @@
     <p>Proibida a venda de bebidas alcoólicas para menores de 18 anos. Beba com moderação.</p>
   </footer>
 
-  <!-- data.js sempre fresquinho (o painel admin atualiza esse arquivo) -->
+  <!-- Produtos: direto do GitHub (instantâneo). Reserva: data.js do Pages. -->
   <script>document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');</script>
-  <!-- Pega os produtos direto do GitHub (atualiza na hora que o painel publica).
-       Se não der em 2,5s, usa o data.js acima (cópia do GitHub Pages). -->
   <script>
     window.REPO = "mauriket/adega-brasil";
     window.carregarDados = (async () => {
@@ -210,23 +184,11 @@
           const txt = await r.text();
           window.DADOS = JSON.parse(txt.slice(txt.indexOf("{"), txt.lastIndexOf("}") + 1));
         }
-      } catch (e) { /* fica com o data.js do Pages */ }
+      } catch (e) { /* usa o data.js do Pages */ }
     })();
   </script>
-  <script src="geo.js?v=20261119c"></script>
-  <script src="promo.js?v=20261119c"></script>
-  <script>
-    window.MOTION_CFG = {
-      luz: ".card, .chip, .sec-promo, .drawer .cart-item",
-      tilt: ".card.in",
-      tiltGraus: 10,
-      magnet: ".cart-btn, .btn-whats, .floating-cart",
-      dock: null,
-      bg: ".bg-anim",
-      pop: ".chip, .qty button, .cart-btn, .seg label, .icon-btn"
-    };
-  </script>
-  <script src="motion.js?v=20261119c"></script>
-  <script src="app.js?v=20261119c"></script>
+  <script src="geo.js?v=20261119d"></script>
+  <script src="promo.js?v=20261119d"></script>
+  <script src="app.js?v=20261119d"></script>
 </body>
 </html>
