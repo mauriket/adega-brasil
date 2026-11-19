@@ -38,17 +38,6 @@ window.DADOS = {
   ],
   "produtos": [
     {
-      "id": 3,
-      "nome": "Brahma Duplo Malte 350ml",
-      "categoria": "Cervejas",
-      "preco": 4.29,
-      "emoji": "🍺",
-      "imagem": "",
-      "descricao": "",
-      "destaque": false,
-      "ativo": true
-    },
-    {
       "id": 4,
       "nome": "Stella Artois 330ml",
       "categoria": "Cervejas",
