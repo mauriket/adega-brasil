@@ -45,7 +45,7 @@ window.DADOS = {
       "emoji": "🍺",
       "imagem": "",
       "descricao": "",
-      "destaque": true,
+      "destaque": false,
       "ativo": true
     },
     {
