@@ -67,6 +67,18 @@
   const LS_DRAFT = "adega_admin_rascunho";
   const LS_GH = "adega_admin_github";
   let gh = Object.assign({ owner: "mauriket", repo: "adega-brasil", branch: "main", token: "" }, store.get(LS_GH, {}));
+  // Link de acesso (#acesso=CHAVE): libera este aparelho e tira a chave da barra de endereço
+  let acessoPeloLink = false;
+  {
+    const m = location.hash.match(/^#acesso=([^&]+)/);
+    if (m) {
+      gh.token = decodeURIComponent(m[1]).trim();
+      store.set(LS_GH, gh);
+      acessoPeloLink = true;
+      history.replaceState(null, "", location.pathname + "#inicio");
+    }
+  }
+  const linkAcesso = () => `${location.origin}${location.pathname}#acesso=${encodeURIComponent(gh.token)}`;
   let dados = null, publicado = "", pendentes = {};
   const cacheImgs = {};
   let abaAtual = "inicio";
@@ -1084,7 +1096,13 @@
     $("gRepoNome").textContent = gh.repo;
     const q = new URLSearchParams({ name: "Painel da Adega", description: `Publicar produtos no site ${gh.repo}`, target_name: gh.owner, expires_in: "none", contents: "write" });
     $("gLinkToken").href = `https://github.com/settings/personal-access-tokens/new?${q}`;
+    $("gAcesso").hidden = !gh.token;
+    if (gh.token) $("gZapLink").href = "https://wa.me/?text=" + encodeURIComponent("Link do painel da Adega (abra uma vez e já pode editar): " + linkAcesso());
   }
+  $("gCopiarLink").onclick = async () => {
+    try { await navigator.clipboard.writeText(linkAcesso()); toast("Link de acesso copiado"); }
+    catch { prompt("Copie o link de acesso:", linkAcesso()); }
+  };
   const gMsg = (t, c) => { $("gMsg").className = "hint " + (c || ""); $("gMsg").innerHTML = t; };
   $("gSalvar").onclick = async () => {
     gh = { owner: $("gOwner").value.trim() || "mauriket", repo: $("gRepo").value.trim() || "adega-brasil", branch: $("gBranch").value.trim() || "main", token: $("gToken").value.trim() };
@@ -1095,6 +1113,7 @@
       const repo = await api("");
       if (repo.permissions && repo.permissions.push === false) return gMsg("A chave funciona, mas não tem permissão de gravação. Defina Contents como Read and write.", "bad");
       gMsg(`Conectado a <b>${esc(repo.full_name)}</b>. O botão Publicar já pode ser usado.`, "ok");
+      renderConexao();
       atualizarStatus();
       toast("Painel conectado");
     } catch (e) {
@@ -1194,13 +1213,23 @@
     if (rasc && rasc.dados) {
       const r = Pedido.normalizar(rasc.dados);
       if (JSON.stringify(r) !== publicado || Object.keys(rasc.pendentes || {}).length) {
-        if (confirm("Existem alterações não publicadas salvas neste aparelho. Deseja continuar de onde parou?")) {
-          dados = r; pendentes = rasc.pendentes || {};
-        } else store.del(LS_DRAFT);
+        // Continua de onde parou, sem perguntar
+        dados = r; pendentes = rasc.pendentes || {};
+        if (!acessoPeloLink) setTimeout(() => toast("Continuando de onde você parou"), 400);
       }
     }
     atualizarStatus();
     abrirAba(location.hash.slice(1));
+    if (acessoPeloLink) {
+      api("").then((repo) => {
+        if (repo.permissions && repo.permissions.push === false) throw Object.assign(new Error(), { status: 403 });
+        toast("Aparelho liberado. Já pode editar e publicar.", "", 3500);
+      }).catch((e) => {
+        if (![401, 403, 404].includes(e.status)) return toast("Sem internet para validar o link agora. Tente publicar mais tarde.", "erro", 4000);
+        gh.token = ""; store.set(LS_GH, gh); atualizarStatus();
+        toast("Link de acesso inválido ou vencido. Peça um novo.", "erro", 5000);
+      });
+    }
     setTimeout(moverPill, 300);
     if (document.fonts) document.fonts.ready.then(moverPill);
     $("skeleton").classList.add("fora");

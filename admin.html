@@ -7,7 +7,7 @@
   <title>Painel administrativo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20261119j">
+  <link rel="stylesheet" href="admin.css?v=20261119k">
   <script>try { document.documentElement.dataset.theme = localStorage.getItem("adega_admin_tema") || "dark"; } catch (e) {}</script>
 </head>
 <body>
@@ -50,7 +50,7 @@
   <main class="app" id="main">
     <div class="aviso" id="avisoConexao" hidden>
       <span data-ico="alert" data-ico-size="22"></span>
-      <div><span class="av-longo"><b>As alterações ainda não vão para o site.</b> Elas ficam salvas apenas neste aparelho até o painel ser conectado ao GitHub (configuração única).</span><span class="av-curto"><b>Painel não conectado.</b> Alterações só neste aparelho.</span></div>
+      <div><span class="av-longo"><b>Este aparelho ainda não publica no site.</b> Abra o link de acesso enviado por quem já usa o painel, ou conecte uma vez.</span><span class="av-curto"><b>Aparelho sem acesso.</b> Abra o link de acesso.</span></div>
       <button class="btn accent sm" data-acao="conexao">Conectar</button>
     </div>
 
@@ -247,6 +247,14 @@
             <button class="btn ghost" id="gEsquecer">Remover deste aparelho</button>
           </div>
           <p class="hint" id="gMsg"></p>
+          <div class="acesso-box" id="gAcesso" hidden>
+            <h3>Liberar outro aparelho</h3>
+            <p class="help">Envie este link para o seu parceiro ou abra no seu celular. Basta abrir uma vez: o aparelho fica liberado para editar e publicar, sem configurar nada. Envie só para quem pode mexer no site.</p>
+            <div class="row">
+              <button class="btn accent" id="gCopiarLink"><span data-ico="copy"></span>Copiar link de acesso</button>
+              <a class="btn whats" id="gZapLink" href="#" target="_blank" rel="noopener"><span data-ico="chat"></span>Enviar pelo WhatsApp</a>
+            </div>
+          </div>
           <details class="avancado">
             <summary>Avançado</summary>
             <div class="campos-3">
@@ -395,10 +403,10 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');</script>
-  <script src="geo.js?v=20261119j"></script>
-  <script src="promo.js?v=20261119j"></script>
-  <script src="pedido.js?v=20261119j"></script>
-  <script src="motion.js?v=20261119j"></script>
-  <script src="admin.js?v=20261119j"></script>
+  <script src="geo.js?v=20261119k"></script>
+  <script src="promo.js?v=20261119k"></script>
+  <script src="pedido.js?v=20261119k"></script>
+  <script src="motion.js?v=20261119k"></script>
+  <script src="admin.js?v=20261119k"></script>
 </body>
 </html>
