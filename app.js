@@ -68,16 +68,6 @@
   }
   if (LOJA.aberta === false) { $("lojaFechada").hidden = false; $("lojaFechadaTxt").textContent = LOJA.avisoFechada || "Estamos fechados no momento."; }
 
-  // ---------- Bolhas dentro da caneca do fundo ----------
-  if (!calmo) {
-    const n = 10;
-    for (let i = 0; i < n; i++) {
-      const s = document.createElement("span");
-      const t = 4 + Math.random() * 9;
-      s.style.cssText = `left:${5 + Math.random() * 85}%;width:${t}px;height:${t}px;animation-duration:${3 + Math.random() * 4}s;animation-delay:${-Math.random() * 6}s`;
-      $("bolhas").appendChild(s);
-    }
-  }
 
   // ---------- Categorias ----------
   const categorias = ["Todas", ...D.categorias.filter((c) => PRODUTOS.some((p) => p.categoria === c))];
