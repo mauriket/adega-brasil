@@ -15,7 +15,9 @@ window.DADOS = {
     "mensagemItem": "{promo}",
     "aberta": true,
     "avisoFechada": "Estamos fechados no momento. Você pode montar seu carrinho, mas os pedidos voltam a ser aceitos quando abrirmos.",
-    "instagram": "__mauriciojr__"
+    "instagram": "__mauriciojr__",
+    "whatsappRodape": "",
+    "rodapeTexto": "Proibida a venda de bebidas alcoólicas para menores de 18 anos. Beba com moderação."
   },
   "frete": {
     "cidade": "Anápolis",
@@ -52,7 +54,7 @@ window.DADOS = {
       "categoria": "Cervejas",
       "preco": 7.5,
       "emoji": "📦",
-      "imagem": "",
+      "imagem": "img/produtos/p5-1795121011716.jpg",
       "descricao": "",
       "destaque": false,
       "ativo": true,
@@ -64,7 +66,7 @@ window.DADOS = {
       "categoria": "Cervejas",
       "preco": 8.5,
       "emoji": "🍺",
-      "imagem": "",
+      "imagem": "img/produtos/p6-1795121021547.jpg",
       "descricao": "",
       "destaque": false,
       "ativo": true,
@@ -100,7 +102,7 @@ window.DADOS = {
       "categoria": "Destilados",
       "preco": 199.9,
       "emoji": "🥃",
-      "imagem": "",
+      "imagem": "img/produtos/p13-1795121027939.jpg",
       "descricao": "",
       "destaque": false,
       "ativo": true,
@@ -192,7 +194,7 @@ window.DADOS = {
     },
     {
       "id": 45,
-      "imagem": "",
+      "imagem": "img/produtos/p45-1795121045387.jpg",
       "nome": "Vodka Smirnoff 998ml",
       "preco": 47,
       "categoria": "Destilados",
@@ -216,7 +218,7 @@ window.DADOS = {
     },
     {
       "id": 47,
-      "imagem": "",
+      "imagem": "img/produtos/p47-1795121051396.jpg",
       "nome": "Stella Artois Pure Gold Long Neck",
       "preco": 8,
       "categoria": "Cervejas",
