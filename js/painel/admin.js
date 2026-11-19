@@ -1186,7 +1186,9 @@ window.Motion = (() => {
       if (!p) { problemas.push(`produto nº ${id} não existe mais no catálogo`); return `<tr><td colspan="3" class="txt-bad">Produto nº ${id} (não existe mais no catálogo) × ${qtd}</td></tr>`; }
       const l = Promo.linha(p, qtd, site.promocoes || [], cod.quando);
       sub += l.total;
-      const linha = linhasMsg.find((x) => x.includes(p.nome));
+      // linha do produto: o nome precisa terminar ali ("Skol" não pega a linha da "Skol Beats")
+      const fimNome = (x) => { const i = x.indexOf(p.nome); return i >= 0 && !/[\p{L}\p{N}]/u.test(x.charAt(i + p.nome.length)); };
+      const linha = linhasMsg.find(fimNome) || linhasMsg.find((x) => x.includes(p.nome));
       let estado = "ok";
       if (!linha) estado = "falta";
       else if (!linha.includes(semNbsp(brl(l.total))) || !new RegExp(`(^|\\D)${qtd}(\\D|$)`).test(linha)) estado = "diferente";
@@ -1207,18 +1209,23 @@ window.Motion = (() => {
       else if (!r.ok) { freteExato = false; freteTxt = "endereço fora da área de entrega"; problemas.push("o CEP do pedido está fora da área de entrega"); }
       else if (lim > 0 && sub >= lim) { frete = 0; freteTxt = "Grátis (acima de " + brl(lim) + ")"; }
       else if (r.aCombinar) { freteExato = false; freteTxt = "a combinar (endereço não achado no mapa)"; }
-      else { frete = r.valor; freteTxt = brl(r.valor) + (r.km != null ? ` (${r.km.toFixed(1).replace(".", ",")} km pelo CEP)` : "") + (r.estimado ? " — estimado" : ""); freteExato = !r.estimado; }
+      else { frete = r.valor; freteTxt = brl(r.valor) + (r.km != null ? ` (${r.km.toFixed(1).replace(".", ",")} km pelo CEP)` : "") + (r.estimado || r.metodo === "estimada" ? " — estimado" : ""); freteExato = !r.estimado && r.metodo !== "estimada"; }
     }
     const total = Math.round((sub + frete) * 100) / 100;
     const lTotal = linhasMsg.find((x) => /total/i.test(x) && !/subtotal/i.test(x));
     const lSub = linhasMsg.find((x) => /subtotal/i.test(x));
     const totalMsg = lTotal ? dinheiro(lTotal) : null, subMsg = lSub ? dinheiro(lSub) : null;
+    const avisos = [];
     if (subMsg != null && Math.abs(subMsg - sub) > 0.01) problemas.push(`subtotal da mensagem (${brl(subMsg)}) é diferente do certo (${brl(sub)})`);
     if (totalMsg == null) problemas.push("não achei o total na mensagem");
-    else if (freteExato && Math.abs(totalMsg - total) > 0.01) problemas.push(`total da mensagem (${brl(totalMsg)}) é diferente do certo (${brl(total)})`);
-    else if (!freteExato && totalMsg + 0.01 < sub) problemas.push(`total da mensagem (${brl(totalMsg)}) é menor que a soma dos produtos (${brl(sub)})`);
+    else if (totalMsg + 0.01 < sub) problemas.push(`total da mensagem (${brl(totalMsg)}) é menor que a soma dos produtos (${brl(sub)})`);
+    else if (freteExato && Math.abs(totalMsg - total) > 0.01) {
+      // produtos certos e só o frete diferente: pode ser a rua digitada pelo cliente (o painel calcula pelo CEP)
+      const freteMsg = Math.round((totalMsg - sub) * 100) / 100;
+      if (!problemas.length && Math.abs(freteMsg - frete) <= Math.max(3, frete * 0.3)) avisos.push(`O frete da mensagem (${brl(freteMsg)}) é um pouco diferente do calculado pelo CEP (${brl(frete)}). Pode ser o número ou a rua do cliente; confira o endereço.`);
+      else problemas.push(`total da mensagem (${brl(totalMsg)}) é diferente do certo (${brl(total)})`);
+    }
     const dias = (Date.now() - cod.quando) / 864e5;
-    const avisos = [];
     if (dias > 2) avisos.push(`Este pedido foi montado em ${cod.quando.toLocaleString("pt-BR")}, há ${Math.floor(dias)} dias. Cuidado com mensagem antiga reaproveitada.`);
     if (!freteExato) avisos.push("O frete não pôde ser conferido exatamente: confira o endereço.");
     avisos.push("Os preços usados são os publicados agora no site; se vocês mudaram algum preço depois do pedido, a diferença pode vir daí.");
