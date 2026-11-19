@@ -1,0 +1,14 @@
+{
+  "versao": 1,
+  "contas": [
+    {
+      "id": "9447006c7b50b26391f44986c1efff8134204d86f582c421df783885eedd32ea",
+      "nome": "adega brasil",
+      "sal": "RiihygkDX1qgFzOoFobyfg==",
+      "iv": "ql7JgdpEAdbLDK/r",
+      "dados": "mwprf0qYUPfONT+Yz0WcWEi15naZqhtx2ZkSr/Es87m7OPqA1xGvGlBRbr+L1KzpSBl2MFtXMFFKlBmA2PD4pia8zNQyY4t+YcmQ/tv9HFjSOziJuMCxaXKHSN1SxvMmxownys5HZ6BC8K8LrCxhk+uHPpgWvzeMyRgx/R6PXPd4Zua16+EWSkBEH6boN40Ek+hLfeH5j0aYBU/OpVR/Bpnbm2vmS+q8aVNFkjtNjaHnkg==",
+      "iter": 600000,
+      "criada": "2026-11-19T20:06:54.841Z"
+    }
+  ]
+}
