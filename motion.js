@@ -1,217 +1,58 @@
 /* =====================================================
-   Motion: microinterações do painel (sem bibliotecas)
-   Respeita "reduzir movimento" do sistema.
+   Motion: transições leves do painel (abas, janelas, lista)
+   Só transform/opacity. Respeita "reduzir movimento".
    ===================================================== */
 window.Motion = (() => {
-  // Cada página pode escolher os alvos com window.MOTION_CFG (o padrão é o do painel)
-  const C = Object.assign({
-    luz: ".card, .item, .tile, .kpi, .mini-item, .chip, .search",
-    tilt: ".pcard, .tile",
-    tiltGraus: 8,
-    magnet: ".btn.accent, .circ, .top .brand",
-    dock: ".dock",
-    bg: ".bg",
-    pop: ".circ, .dk, .chip, .seg button, .dias button, .tile",
-  }, window.MOTION_CFG || {});
-  const calmo = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const fino = window.matchMedia("(pointer: fine)").matches;
-  const mola = "cubic-bezier(.34, 1.56, .64, 1)";
+  const calmo = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const celular = () => innerWidth <= 760;
   const suave = "cubic-bezier(.2, .8, .2, 1)";
   let ultimoClique = { x: innerWidth / 2, y: innerHeight / 2 };
-  addEventListener("pointerdown", (e) => { ultimoClique = { x: e.clientX, y: e.clientY }; }, true);
+  addEventListener("pointerdown", (e) => { ultimoClique = { x: e.clientX, y: e.clientY }; }, { capture: true, passive: true });
 
   const anim = (el, quadros, opts) => (calmo || !el || !el.animate ? null : el.animate(quadros, opts));
-  // Espera a animação acabar — mas nunca fica preso (aba em segundo plano congela animações)
+  // Espera a animação acabar, sem nunca ficar preso (aba em segundo plano congela animações)
   const fim = (a) => {
     if (!a) return Promise.resolve();
-    const dur = (a.effect && a.effect.getComputedTiming().endTime) || 500;
+    const dur = (a.effect && a.effect.getComputedTiming().endTime) || 400;
     return Promise.race([a.finished.catch(() => {}), new Promise((r) => setTimeout(r, dur + 60))]);
   };
 
-  // ---------- Luz que segue o mouse (cartões, itens, tiles) ----------
-  const ALVOS_LUZ = C.luz;
-  if (C.luz && fino && !calmo) {
-    document.addEventListener("pointermove", (e) => {
-      const el = e.target.closest(ALVOS_LUZ);
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      el.style.setProperty("--mx", `${e.clientX - r.left}px`);
-      el.style.setProperty("--my", `${e.clientY - r.top}px`);
-    }, { passive: true });
-  }
+  // Troca de aba
+  const sairAba = (el) => (!el || el.hidden ? Promise.resolve()
+    : fim(anim(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: "ease-in" })));
+  const entrarAba = (el) => { anim(el, [{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 260, easing: suave }); };
 
-  // ---------- Inclinação 3D (cartões de promoção e atalhos) ----------
-  const ALVOS_TILT = C.tilt;
-  if (C.tilt && fino && !calmo) {
-    document.addEventListener("pointermove", (e) => {
-      const el = e.target.closest(ALVOS_TILT);
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
-      el.style.transform = `perspective(900px) rotateX(${(-y * C.tiltGraus * 0.8).toFixed(2)}deg) rotateY(${(x * C.tiltGraus).toFixed(2)}deg) translateY(-4px)`;
-      el.classList.add("tilt");
-    }, { passive: true });
-    document.addEventListener("pointerout", (e) => {
-      const el = e.target.closest(ALVOS_TILT);
-      if (el && !el.contains(e.relatedTarget)) { el.style.transform = ""; el.classList.remove("tilt"); }
-    });
-  }
-
-  // ---------- Botões magnéticos ----------
-  if (C.magnet && fino && !calmo) {
-    document.addEventListener("pointermove", (e) => {
-      const el = e.target.closest(C.magnet);
-      document.querySelectorAll(".magnet").forEach((m) => { if (m !== el) { m.style.translate = ""; m.classList.remove("magnet"); } });
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const dx = (e.clientX - (r.left + r.width / 2)) * 0.18, dy = (e.clientY - (r.top + r.height / 2)) * 0.25;
-      el.style.translate = `${dx.toFixed(1)}px ${dy.toFixed(1)}px`;
-      el.classList.add("magnet");
-    }, { passive: true });
-  }
-
-  // ---------- Dock com lupa (aumenta o ícone e os vizinhos) ----------
-  const dock = C.dock && document.querySelector(C.dock);
-  if (dock && fino && !calmo) {
-    const itens = () => [...dock.querySelectorAll(".dk")];
-    dock.addEventListener("pointermove", (e) => {
-      const vertical = getComputedStyle(dock).flexDirection === "column";
-      itens().forEach((it) => {
-        const r = it.getBoundingClientRect();
-        const c = vertical ? r.top + r.height / 2 : r.left + r.width / 2;
-        const d = Math.abs((vertical ? e.clientY : e.clientX) - c);
-        const s = 1 + Math.max(0, 1 - d / 110) * 0.45;
-        it.style.scale = s.toFixed(3);
-      });
-    });
-    dock.addEventListener("pointerleave", () => itens().forEach((it) => { it.style.scale = ""; }));
-  }
-
-  // ---------- Fundo reage ao mouse ----------
-  const bg = C.bg && document.querySelector(C.bg);
-  if (bg && fino && !calmo) {
-    let alvo = { x: 0, y: 0 }, atual = { x: 0, y: 0 };
-    addEventListener("pointermove", (e) => { alvo = { x: e.clientX / innerWidth - 0.5, y: e.clientY / innerHeight - 0.5 }; }, { passive: true });
-    const loop = () => {
-      atual.x += (alvo.x - atual.x) * 0.05; atual.y += (alvo.y - atual.y) * 0.05;
-      bg.style.translate = `${(atual.x * -40).toFixed(1)}px ${(atual.y * -40).toFixed(1)}px`;
-      requestAnimationFrame(loop);
-    };
-    loop();
-  }
-
-  // ---------- Pop + partículas ao ligar um botão (⭐, 👁️, pausar) ----------
-  function particulas(x, y, cor = "#ffc20e", qtd = 14, forca = 70) {
-    if (calmo) return;
-    for (let i = 0; i < qtd; i++) {
-      const p = document.createElement("i");
-      p.className = "particula";
-      p.style.cssText = `left:${x}px;top:${y}px;background:${cor}`;
-      document.body.appendChild(p);
-      const ang = (Math.PI * 2 * i) / qtd + Math.random() * 0.5;
-      const dist = forca * (0.6 + Math.random() * 0.6);
-      p.animate([
-        { transform: "translate(-50%,-50%) scale(1)", opacity: 1 },
-        { transform: `translate(calc(-50% + ${Math.cos(ang) * dist}px), calc(-50% + ${Math.sin(ang) * dist}px)) scale(0)`, opacity: 0 },
-      ], { duration: 600 + Math.random() * 300, easing: "cubic-bezier(.2,.7,.3,1)" }).onfinish = () => p.remove();
-    }
-  }
-  document.addEventListener("click", (e) => {
-    const b = C.pop && e.target.closest(C.pop);
-    if (!b) return;
-    anim(b, [{ scale: 1 }, { scale: 0.82 }, { scale: 1.12 }, { scale: 1 }], { duration: 420, easing: mola });
-    if (b.matches('.circ[data-a="destaque"]:not(.on)')) {
-      const r = b.getBoundingClientRect();
-      particulas(r.left + r.width / 2, r.top + r.height / 2, "#ffc20e", 16, 60);
-    }
-  });
-
-  // ---------- Confete (publicação) ----------
-  function confete(origem) {
-    if (calmo) return;
-    const r = origem ? origem.getBoundingClientRect() : { left: innerWidth / 2, top: 40, width: 0, height: 0 };
-    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    const cores = ["#ffc20e", "#ffd84d", "#f59e0b", "#ffffff", "#25d366"];
-    for (let i = 0; i < 70; i++) {
-      const c = document.createElement("i");
-      c.className = "confete";
-      c.style.cssText = `left:${cx}px;top:${cy}px;background:${cores[i % cores.length]};width:${6 + Math.random() * 6}px;height:${8 + Math.random() * 8}px`;
-      document.body.appendChild(c);
-      const ang = Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.3;
-      const v = 160 + Math.random() * 260;
-      const dx = Math.cos(ang) * v * (Math.random() < 0.5 ? -1 : 1), dy = Math.sin(ang) * v * 0.5;
-      c.animate([
-        { transform: "translate(-50%,-50%) rotate(0)", opacity: 1 },
-        { transform: `translate(calc(-50% + ${dx * 0.6}px), calc(-50% + ${dy * 0.4 - 60}px)) rotate(${Math.random() * 360}deg)`, opacity: 1, offset: 0.3 },
-        { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy + 420}px)) rotate(${Math.random() * 900}deg)`, opacity: 0 },
-      ], { duration: 1500 + Math.random() * 900, easing: "cubic-bezier(.15,.6,.4,1)" }).onfinish = () => c.remove();
-    }
-  }
-
-  // ---------- Troca de aba ----------
-  async function sairAba(el) {
-    if (!el || el.hidden) return;
-    await fim(anim(el, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(10px) scale(.99)" }], { duration: 160, easing: "ease-in" }));
-  }
-  function entrarAba(el) {
-    if (!el) return;
-    anim(el, [{ opacity: 0, transform: "translateY(14px)" }, { opacity: 1, transform: "none" }], { duration: 420, easing: suave });
-  }
-
-  // ---------- Modal abre/fecha a partir do clique ----------
+  // Janela abre / fecha
   function abrirModal(el) {
-    if (calmo) return;
-    const mobile = innerWidth <= 760;
-    if (mobile) {
-      anim(el, [{ transform: "translateY(100%)" }, { transform: "translateY(0)" }], { duration: 420, easing: suave });
-      return;
-    }
+    if (celular()) return anim(el, [{ transform: "translateY(100%)" }, { transform: "none" }], { duration: 300, easing: suave });
     const r = el.getBoundingClientRect();
-    const ox = ultimoClique.x - (r.left + r.width / 2), oy = ultimoClique.y - (r.top + r.height / 2);
+    const ox = (ultimoClique.x - (r.left + r.width / 2)) * 0.3, oy = (ultimoClique.y - (r.top + r.height / 2)) * 0.3;
     anim(el, [
-      { transform: `translate(-50%, -50%) translate(${ox}px, ${oy}px) scale(.3)`, opacity: 0, borderRadius: "60px" },
-      { transform: "translate(-50%, -50%) scale(1)", opacity: 1, borderRadius: "26px" },
-    ], { duration: 520, easing: "cubic-bezier(.2, 1.1, .3, 1)" });
-    [...el.querySelectorAll(".m-body > *, .pf-main > *, .pf-side")].slice(0, 12).forEach((c, i) =>
-      anim(c, [{ opacity: 0, transform: "translateY(12px)" }, { opacity: 1, transform: "none" }], { duration: 400, delay: 120 + i * 35, easing: suave, fill: "backwards" }));
+      { transform: `translate(-50%, -50%) translate(${ox}px, ${oy}px) scale(.92)`, opacity: 0 },
+      { transform: "translate(-50%, -50%) scale(1)", opacity: 1 },
+    ], { duration: 300, easing: suave });
   }
-  function fecharModal(el) {
-    const mobile = innerWidth <= 760;
-    return fim(anim(el, mobile
-      ? [{ transform: "translateY(0)" }, { transform: "translateY(100%)" }]
-      : [{ transform: "translate(-50%, -50%) scale(1)", opacity: 1 }, { transform: "translate(-50%, -48%) scale(.94)", opacity: 0 }],
-      { duration: 200, easing: "ease-in" }));
-  }
+  const fecharModal = (el) => fim(anim(el, celular()
+    ? [{ transform: "none" }, { transform: "translateY(100%)" }]
+    : [{ transform: "translate(-50%, -50%) scale(1)", opacity: 1 }, { transform: "translate(-50%, -48%) scale(.96)", opacity: 0 }],
+    { duration: 180, easing: "ease-in" }));
 
-  // ---------- Item some (excluir) ----------
-  function sair(el) {
-    if (!el) return Promise.resolve();
-    const h = el.offsetHeight;
-    return fim(anim(el, [
-      { opacity: 1, transform: "none", height: h + "px", marginBottom: getComputedStyle(el).marginBottom },
-      { opacity: 0, transform: "translateX(40px) scale(.96)", height: h + "px", offset: 0.55 },
-      { opacity: 0, transform: "translateX(40px) scale(.96)", height: "0px", paddingTop: 0, paddingBottom: 0, marginBottom: 0 },
-    ], { duration: 420, easing: suave }));
-  }
+  // Item sai da lista (excluir)
+  const sair = (el) => fim(anim(el, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateX(30px)" }], { duration: 220, easing: "ease-in" }));
 
-  // ---------- FLIP: lista se reorganiza deslizando ----------
+  // Lista reorganiza deslizando (só no computador e com listas pequenas)
   function flip(container, mudar, chave = (el) => el.dataset.key) {
-    if (calmo || !container) { mudar(); return; }
+    if (calmo || !container || celular() || container.children.length > 60) { mudar(); return; }
     const antes = new Map();
-    [...container.children].forEach((el) => { const k = chave(el); if (k) antes.set(k, el.getBoundingClientRect()); });
+    for (const el of container.children) { const k = chave(el); if (k) antes.set(k, el.getBoundingClientRect()); }
     mudar();
-    [...container.children].forEach((el) => {
+    for (const el of container.children) {
       const k = chave(el), a = k && antes.get(k);
-      if (!a) return;
-      el.style.animation = "none";
-      const b = el.getBoundingClientRect();
-      const dx = a.left - b.left, dy = a.top - b.top;
-      if (dx || dy) anim(el, [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { duration: 480, easing: mola });
-    });
+      if (!a) continue;
+      const b = el.getBoundingClientRect(), dx = a.left - b.left, dy = a.top - b.top;
+      if (dx || dy) anim(el, [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { duration: 320, easing: suave });
+    }
   }
 
-  // ---------- Número que "rola" quando muda ----------
-  function pulsar(el) { anim(el, [{ scale: 1 }, { scale: 1.25, color: "var(--accent-text)" }, { scale: 1 }], { duration: 500, easing: mola }); }
-
-  return { particulas, confete, sairAba, entrarAba, abrirModal, fecharModal, sair, flip, pulsar, calmo };
+  return { sairAba, entrarAba, abrirModal, fecharModal, sair, flip, calmo };
 })();
