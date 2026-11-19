@@ -4,7 +4,15 @@
   const brl = (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const norm = Geo.norm;
-  const num = (v) => { const x = parseFloat(String(v).replace(",", ".")); return isNaN(x) ? 0 : x; };
+  const num = (v) => {
+    let s = String(v ?? "").replace(/[^\d.,-]/g, "");
+    if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
+    else if (/^-?[1-9]\d{0,2}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, "");
+    const x = parseFloat(s);
+    return isNaN(x) ? 0 : x;
+  };
+  const virgula = (v) => (v === null || v === undefined || v === "" ? "" : String(v).replace(".", ","));
+  const precoTxt = (v) => (v === "" || v == null ? "" : Number(v).toFixed(2).replace(".", ","));
   const n = (v) => Number(v) || 0;
   const clone = (o) => JSON.parse(JSON.stringify(o));
   const plural = (q, s, p) => `${q} ${q === 1 ? s : p}`;
@@ -50,6 +58,7 @@
     up: '<path d="m18 15-6-6-6 6"/>',
     down: '<path d="m6 9 6 6 6-6"/>',
     undo: '<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/>',
+    more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
   };
   const ico = (nome, s = 18) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[nome] || ""}</svg>`;
   $$("[data-ico]").forEach((el) => el.insertAdjacentHTML("afterbegin", ico(el.dataset.ico, el.dataset.icoSize || 18)));
@@ -116,11 +125,28 @@
     }
     atualizarStatus();
   }
+  let cachePub = { s: null, o: {} };
+  function contarMudancas() {
+    if (!dados || !temMudancas()) return 0;
+    if (cachePub.s !== publicado) { cachePub = { s: publicado, o: publicado ? JSON.parse(publicado) : {} }; }
+    const o = cachePub.o, j = JSON.stringify;
+    const porId = (a, b) => {
+      const m = new Map((b || []).map((x) => [x.id, j(x)]));
+      let k = 0;
+      (a || []).forEach((x) => { if (m.get(x.id) !== j(x)) k++; m.delete(x.id); });
+      return k + m.size;
+    };
+    let c = porId(dados.produtos, o.produtos) + porId(dados.promocoes, o.promocoes);
+    for (const k of ["loja", "frete", "categorias"]) if (j(dados[k]) !== j(o[k])) c++;
+    return Math.max(1, c);
+  }
   function atualizarStatus() {
-    const sujo = temMudancas();
+    const sujo = temMudancas(), qtd = contarMudancas();
     $("status").className = "status " + (sujo ? "sujo" : gh.token ? "ok" : "off");
     $("statusTxt").textContent = sujo ? "Alterações não publicadas" : gh.token ? "Tudo publicado" : "Sem conexão";
-    $("pubDot").hidden = !sujo;
+    $("pubN").hidden = !sujo;
+    $("pubN").textContent = qtd;
+    $("btnPublicar").title = sujo ? plural(qtd, "alteração não publicada", "alterações não publicadas") : "Nada para publicar";
     $("btnPublicar").classList.toggle("pulsar", sujo && !!gh.token);
     $("avisoConexao").hidden = !!gh.token;
     $("dkConexao").classList.toggle("alerta", !gh.token);
@@ -332,6 +358,7 @@
         ...promos.map((pr) => `<span class="tag ${Promo.status(pr) === "ativa" ? "ouro" : ""}">${esc(Promo.selo(pr, p.preco) || pr.nome)}</span>`),
         p.esgotado ? '<span class="tag vermelho">Esgotado</span>' : "",
         p.ativo === false ? '<span class="tag">Oculto</span>' : "",
+        p.destaque ? '<span class="tag azul">Destaque</span>' : "",
         !p.imagem ? '<span class="tag">Sem foto</span>' : "",
       ].join("");
       return `<div class="item ${p.ativo === false ? "off" : ""}" data-key="p${p.id}" style="animation-delay:${Math.min(i, 14) * 18}ms">
@@ -340,13 +367,9 @@
           <div class="sub"><span>${esc(p.categoria)}</span>${tags}</div></div>
         <div class="preco ${v.preco < v.cheio ? "promo" : ""}">${v.preco < v.cheio ? `<s>${brl(v.cheio)}</s>${brl(v.preco)}` : brl(p.preco)}</div>
         <div class="acoes">
-          <button class="circ sm ${p.destaque ? "on" : ""}" data-a="destaque" data-id="${p.id}" title="${p.destaque ? "Remover dos destaques" : "Destacar"}">${ico("star", 15)}</button>
-          <button class="circ sm ${p.esgotado ? "on-bad" : ""}" data-a="esgotado" data-id="${p.id}" title="${p.esgotado ? "Marcar como disponível" : "Marcar como esgotado"}">${ico("ban", 15)}</button>
-          <button class="circ sm ${p.ativo !== false ? "on" : ""}" data-a="ativo" data-id="${p.id}" title="${p.ativo === false ? "Mostrar no site" : "Ocultar do site"}">${ico(p.ativo === false ? "eyeOff" : "eye", 15)}</button>
-          <button class="circ sm" data-a="promo" data-id="${p.id}" title="Criar promoção">${ico("percent", 15)}</button>
-          <button class="circ sm" data-a="duplicar" data-id="${p.id}" title="Duplicar">${ico("copy", 15)}</button>
-          <button class="circ sm" data-a="editar" data-id="${p.id}" title="Editar">${ico("edit", 15)}</button>
-          <button class="circ sm del" data-a="excluir" data-id="${p.id}" title="Excluir">${ico("trash", 15)}</button>
+          <button class="btn sm ghost estoque ${p.esgotado ? "esg" : ""}" data-a="esgotado" data-id="${p.id}" aria-pressed="${!!p.esgotado}" title="${p.esgotado ? "Clique para voltar a vender" : "Clique para marcar como esgotado"}">${ico(p.esgotado ? "ban" : "check", 14)}${p.esgotado ? "Esgotado" : "Em estoque"}</button>
+          <button class="btn sm ghost" data-a="editar" data-id="${p.id}">${ico("edit", 14)}Editar</button>
+          <button class="circ sm" data-a="mais" data-id="${p.id}" aria-haspopup="menu" aria-expanded="false" aria-label="Mais ações para ${esc(p.nome)}" title="Mais ações">${ico("more", 16)}</button>
         </div></div>`;
     }).join("") : (P.length
       ? vazio("search", "Nenhum produto encontrado", "Ajuste a busca ou o filtro.")
@@ -367,16 +390,70 @@
   }
   const proxIdProduto = () => dados.produtos.reduce((m, x) => Math.max(m, n(x.id)), 0) + 1;
 
+  // ---------- Menu "Mais ações" do produto ----------
+  let menuBtn = null;
+  function fecharMenu(devolverFoco) {
+    if (!menuBtn) return;
+    $("menuMais").hidden = true;
+    menuBtn.setAttribute("aria-expanded", "false");
+    if (devolverFoco && document.contains(menuBtn)) menuBtn.focus({ preventScroll: true });
+    menuBtn = null;
+  }
+  function abrirMenu(btn, p) {
+    const m = $("menuMais");
+    m.innerHTML = [
+      ["destaque", p.destaque ? "Remover dos destaques" : "Destacar no site", "star"],
+      ["ativo", p.ativo === false ? "Mostrar no site" : "Ocultar do site", p.ativo === false ? "eye" : "eyeOff"],
+      ["promo", "Criar promoção", "percent"],
+      ["duplicar", "Duplicar", "copy"],
+      ["excluir", "Excluir", "trash"],
+    ].map(([a, t, i]) => `<button type="button" role="menuitem" class="${a === "excluir" ? "del" : ""}" data-a="${a}" data-id="${p.id}">${ico(i, 16)}${t}</button>`).join("");
+    m.hidden = false;
+    const r = btn.getBoundingClientRect(), w = m.offsetWidth, hh = m.offsetHeight;
+    let top = r.bottom + 6;
+    if (top + hh > innerHeight - 8) top = r.top - hh - 6;
+    top = Math.max(8, Math.min(top, innerHeight - hh - 8));
+    m.style.top = top + "px";
+    m.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + "px";
+    menuBtn = btn;
+    btn.setAttribute("aria-expanded", "true");
+    m.querySelector("button").focus({ preventScroll: true });
+  }
+  document.addEventListener("click", (e) => {
+    if (!menuBtn) return;
+    const item = e.target.closest("#menuMais [data-a]");
+    if (item) {
+      const p = dados.produtos.find((x) => x.id === Number(item.dataset.id));
+      fecharMenu(false);
+      if (p) acaoProduto(item.dataset.a, p);
+      return;
+    }
+    if (!e.target.closest("#menuMais") && e.target.closest("[data-a='mais']") !== menuBtn) fecharMenu(false);
+  });
+  $("menuMais").addEventListener("keydown", (e) => {
+    const itens = [...$("menuMais").querySelectorAll("button")], i = itens.indexOf(document.activeElement);
+    if (e.key === "ArrowDown") { e.preventDefault(); itens[(i + 1) % itens.length].focus(); }
+    if (e.key === "ArrowUp") { e.preventDefault(); itens[(i - 1 + itens.length) % itens.length].focus(); }
+    if (e.key === "Escape") { e.stopPropagation(); fecharMenu(true); }
+    if (e.key === "Tab") fecharMenu(false);
+  });
+  addEventListener("resize", () => fecharMenu(false));
+  addEventListener("scroll", () => fecharMenu(false), true);
+
   $("pLista").addEventListener("click", (e) => {
     const b = e.target.closest("[data-a]"); if (!b) return;
     const p = dados.produtos.find((x) => x.id === Number(b.dataset.id)); if (!p) return;
-    const a = b.dataset.a;
+    if (b.dataset.a === "mais") { if (menuBtn === b) fecharMenu(false); else { fecharMenu(false); abrirMenu(b, p); } return; }
+    acaoProduto(b.dataset.a, p);
+  });
+  function acaoProduto(a, p) {
     if (a === "editar") return abrirProduto(p.id);
     if (a === "promo") return abrirPromo(null, { aplicaEm: "produtos", produtos: [p.id], nome: "Promoção " + p.nome });
     if (a === "duplicar") { const c = duplicarProduto(p); renderProdutos(); renderKpis(); toast("Produto duplicado"); return abrirProduto(c.id); }
     if (a === "excluir") {
       if (!confirm(`Excluir o produto "${p.nome}"? Esta ação não pode ser desfeita após publicar.`)) return;
-      Motion.sair(b.closest(".item")).then(() => {
+      const linha = $("pLista").querySelector(`[data-key="p${p.id}"]`);
+      (linha ? Motion.sair(linha) : Promise.resolve()).then(() => {
         liberarImagem(p.imagem, p);
         dados.produtos = dados.produtos.filter((x) => x !== p);
         dados.promocoes.forEach((pr) => { pr.produtos = (pr.produtos || []).filter((id) => id !== p.id); });
@@ -389,7 +466,7 @@
     if (a === "destaque") { p.destaque = !p.destaque; toast(p.destaque ? "Produto adicionado aos destaques" : "Produto removido dos destaques"); }
     if (a === "esgotado") { p.esgotado = !p.esgotado; toast(p.esgotado ? "Produto marcado como esgotado" : "Produto disponível novamente"); }
     mudou(); renderProdutos(); renderKpis();
-  });
+  }
 
   // ---------- Modais ----------
   let modalAberto = null;
@@ -424,7 +501,7 @@
       : manterCategoria && dados.categorias.includes(manterCategoria) ? manterCategoria
       : dados.categorias.includes(pFiltro) ? pFiltro : dados.categorias[0];
     $("mEmoji").value = p ? p.emoji || "" : "";
-    $("mPreco").value = p ? p.preco : "";
+    $("mPreco").value = p ? precoTxt(p.preco) : "";
     $("mDesc").value = p ? p.descricao || "" : "";
     $("mDestaque").checked = p ? !!p.destaque : false;
     $("mAtivo").checked = p ? p.ativo !== false : true;
@@ -611,8 +688,8 @@
   let ed = null;
   const CAMPOS_TIPO = {
     percentual: () => `<label class="f">Desconto (%)<input type="number" min="1" max="100" step="1" data-k="valor" value="${n(ed.valor)}"></label>`,
-    valorOff: () => `<label class="f">Desconto por unidade (R$)<input type="number" min="0.01" step="0.01" data-k="valor" value="${n(ed.valor)}"></label>`,
-    precoFixo: () => `<label class="f">Preço promocional (R$)<input type="number" min="0.01" step="0.01" data-k="valor" value="${n(ed.valor)}"></label>`,
+    valorOff: () => `<label class="f">Desconto por unidade (R$)<input type="text" inputmode="decimal" class="dinheiro" data-k="valor" value="${virgula(n(ed.valor))}"></label>`,
+    precoFixo: () => `<label class="f">Preço promocional (R$)<input type="text" inputmode="decimal" class="dinheiro" data-k="valor" value="${virgula(n(ed.valor))}"></label>`,
     leveXpagueY: () => `<label class="f">Leve<input type="number" min="2" step="1" data-k="leve" value="${n(ed.leve) || 3}"></label><label class="f">Pague<input type="number" min="1" step="1" data-k="pague" value="${n(ed.pague) || 2}"></label>`,
     segundaUnidade: () => `<label class="f">Desconto na 2ª unidade (%)<input type="number" min="1" max="100" step="1" data-k="valor" value="${n(ed.valor)}"></label>`,
   };
@@ -825,8 +902,8 @@
   function renderFrete() {
     const F = dados.frete;
     $("fLojaCep").value = F.lojaCep || "";
-    $("fLat").value = F.lojaLat ?? ""; $("fLng").value = F.lojaLng ?? "";
-    for (const [id, k] of Object.entries(camposFrete)) $(id).value = F[k] ?? 0;
+    $("fLat").value = virgula(F.lojaLat); $("fLng").value = virgula(F.lojaLng);
+    for (const [id, k] of Object.entries(camposFrete)) $(id).value = virgula(F[k] ?? 0);
     atualizarMapa(); atualizarFormula();
   }
   function atualizarMapa() {
@@ -840,7 +917,7 @@
   }
   for (const [id, k] of Object.entries(camposFrete)) $(id).addEventListener("input", () => { dados.frete[k] = Math.max(0, num($(id).value)); atualizarFormula(); mudou(); });
   ["fLat", "fLng"].forEach((id) => $(id).addEventListener("input", () => {
-    dados.frete[id === "fLat" ? "lojaLat" : "lojaLng"] = $(id).value === "" ? null : num($(id).value);
+    dados.frete[id === "fLat" ? "lojaLat" : "lojaLng"] = (() => { const x = parseFloat($(id).value.replace(",", ".")); return isNaN(x) ? null : x; })();
     atualizarMapa(); mudou();
   }));
   const mascaraCep = (e) => { let v = e.target.value.replace(/\D/g, "").slice(0, 8); if (v.length > 5) v = v.slice(0, 5) + "-" + v.slice(5); e.target.value = v; };
@@ -967,7 +1044,8 @@
     renderAberta();
     $("lWhats").value = formatarWhats(L.whatsapp);
     $("lNome").value = L.nome || ""; $("lSlogan").value = L.slogan || ""; $("lEndereco").value = L.endereco || "";
-    $("lMinimo").value = L.pedidoMinimo || 0; $("lPagamentos").value = (L.pagamentos || []).join(", ");
+    $("lMinimo").value = virgula(L.pedidoMinimo || 0);
+    renderPagamentos();
     validarWhats();
   }
   $("lAberta").addEventListener("change", () => { dados.loja.aberta = $("lAberta").checked; renderAberta(); mudou(); toast(dados.loja.aberta ? "Loja aberta para pedidos" : "Loja fechada para pedidos"); });
@@ -976,10 +1054,27 @@
   $("lWhats").addEventListener("blur", () => { if (validarWhats()) $("lWhats").value = formatarWhats(dados.loja.whatsapp); });
   [["lNome", "nome"], ["lSlogan", "slogan"], ["lEndereco", "endereco"]].forEach(([id, k]) => $(id).addEventListener("input", () => { dados.loja[k] = $(id).value; mudou(); }));
   $("lMinimo").addEventListener("input", () => { dados.loja.pedidoMinimo = Math.max(0, num($("lMinimo").value)); mudou(); });
-  $("lPagamentos").addEventListener("input", () => { dados.loja.pagamentos = $("lPagamentos").value.split(",").map((s) => s.trim()).filter(Boolean); mudou(); });
-  $("lPagamentos").addEventListener("blur", () => {
-    if (!dados.loja.pagamentos.length) { dados.loja.pagamentos = ["Pix"]; $("lPagamentos").value = "Pix"; mudou(); toast("É necessário ao menos uma forma de pagamento", "erro"); }
-  });
+  const PAGAMENTOS = ["Pix", "Cartão de crédito", "Cartão de débito", "Dinheiro"];
+  function renderPagamentos() {
+    const atuais = dados.loja.pagamentos || [];
+    $("lPags").innerHTML = PAGAMENTOS.map((f) => `<label class="pag"><input type="checkbox" value="${esc(f)}" ${atuais.includes(f) ? "checked" : ""}><span>${esc(f)}</span></label>`).join("");
+    $("lPagOutras").value = atuais.filter((f) => !PAGAMENTOS.includes(f)).join(", ");
+  }
+  function lerPagamentos(avisar) {
+    const marcadas = [...$("lPags").querySelectorAll("input:checked")].map((i) => i.value);
+    const outras = $("lPagOutras").value.split(",").map((s) => s.trim().replace(/\s+/g, " ")).filter(Boolean);
+    let lista = [...new Set([...marcadas, ...outras])];
+    if (!lista.length) {
+      lista = ["Pix"];
+      $("lPags").querySelector('input[value="Pix"]').checked = true;
+      if (avisar) toast("É necessário ao menos uma forma de pagamento", "erro");
+    }
+    dados.loja.pagamentos = lista;
+    mudou();
+  }
+  $("lPags").addEventListener("change", () => lerPagamentos(true));
+  $("lPagOutras").addEventListener("input", () => lerPagamentos(false));
+  $("lPagOutras").addEventListener("blur", () => { if (!dados.loja.pagamentos.length) lerPagamentos(true); });
 
   // =====================================================
   // CONEXÃO E BACKUP

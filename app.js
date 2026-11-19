@@ -60,7 +60,7 @@
   $("pagamento").innerHTML = LOJA.pagamentos.map((p) => `<option>${esc(p)}</option>`).join("");
   $("retiradaMsg").textContent = "Retirada em: " + LOJA.endereco;
   {
-    const zap = String(LOJA.whatsapp || "").replace(/D/g, "");
+    const zap = String(LOJA.whatsapp || "").replace(/\D/g, "");
     const fone = zap.length >= 12 ? `(${zap.slice(2, 4)}) ${zap.slice(4, -4)}-${zap.slice(-4)}` : zap;
     $("rodapeInfo").innerHTML = `<b>${esc(LOJA.nome)}</b>` +
       (LOJA.endereco ? `<span>${esc(LOJA.endereco)}</span>` : "") +

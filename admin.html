@@ -7,7 +7,7 @@
   <title>Painel administrativo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20261119f">
+  <link rel="stylesheet" href="admin.css?v=20261119h">
   <script>try { document.documentElement.dataset.theme = localStorage.getItem("adega_admin_tema") || "dark"; } catch (e) {}</script>
 </head>
 <body>
@@ -32,7 +32,7 @@
     </nav>
     <div class="top-act">
       <span class="status" id="status"><i></i><b id="statusTxt">Carregando…</b></span>
-      <button class="btn accent" id="btnPublicar"><span data-ico="send"></span><span class="lbl">Publicar</span><em class="pub-dot" id="pubDot" hidden></em></button>
+      <button class="btn accent" id="btnPublicar"><span data-ico="send"></span><span class="lbl">Publicar</span><em class="pub-n" id="pubN" hidden></em></button>
     </div>
   </header>
 
@@ -50,7 +50,7 @@
   <main class="app" id="main">
     <div class="aviso" id="avisoConexao" hidden>
       <span data-ico="alert" data-ico-size="22"></span>
-      <div><b>As alterações ainda não vão para o site.</b> Elas ficam salvas apenas neste aparelho até o painel ser conectado ao GitHub (configuração única).</div>
+      <div><span class="av-longo"><b>As alterações ainda não vão para o site.</b> Elas ficam salvas apenas neste aparelho até o painel ser conectado ao GitHub (configuração única).</span><span class="av-curto"><b>Painel não conectado.</b> Alterações só neste aparelho.</span></div>
       <button class="btn accent sm" data-acao="conexao">Conectar</button>
     </div>
 
@@ -137,21 +137,25 @@
           </div>
           <button class="btn ghost" id="fLocalizar"><span data-ico="pin"></span>Localizar pelo CEP</button>
           <p class="hint" id="fLocMsg"></p>
-          <div class="campos-2">
-            <label class="f">Latitude<input type="number" step="any" id="fLat"></label>
-            <label class="f">Longitude<input type="number" step="any" id="fLng"></label>
-          </div>
           <a href="#" target="_blank" id="fMapa" class="link"><span data-ico="pin"></span>Conferir no mapa</a>
+          <details class="avancado">
+            <summary>Ajuste avançado (coordenadas)</summary>
+            <p class="help">Só altere se a posição no mapa estiver errada. Copie os números do Google Maps (clique com o botão direito no local da loja).</p>
+            <div class="campos-2">
+              <label class="f">Latitude<input type="text" inputmode="decimal" id="fLat"></label>
+              <label class="f">Longitude<input type="text" inputmode="decimal" id="fLng"></label>
+            </div>
+          </details>
         </article>
         <article class="card">
           <header><h2>Valores</h2></header>
           <div class="campos-2">
-            <label class="f">Preço por km (R$)<input type="number" step="0.01" min="0" id="fPrecoKm"></label>
-            <label class="f">Taxa fixa de saída (R$)<input type="number" step="0.01" min="0" id="fTaxaFixa"></label>
-            <label class="f">Frete mínimo (R$)<input type="number" step="0.01" min="0" id="fTaxaMin"></label>
-            <label class="f">Entrega até (km) <small>0 = sem limite</small><input type="number" step="0.1" min="0" id="fRaio"></label>
-            <label class="f">Frete grátis acima de (R$) <small>0 = desativado</small><input type="number" step="0.01" min="0" id="fGratis"></label>
-            <label class="f">Taxa quando o endereço não é localizado (R$)<input type="number" step="0.01" min="0" id="fPadrao"></label>
+            <label class="f">Preço por km (R$)<input type="text" inputmode="decimal" class="dinheiro" id="fPrecoKm" placeholder="0,00"></label>
+            <label class="f">Taxa fixa de saída (R$)<input type="text" inputmode="decimal" class="dinheiro" id="fTaxaFixa" placeholder="0,00"></label>
+            <label class="f">Frete mínimo (R$)<input type="text" inputmode="decimal" class="dinheiro" id="fTaxaMin" placeholder="0,00"></label>
+            <label class="f">Entrega até (km) <small>0 = sem limite</small><input type="text" inputmode="decimal" class="dinheiro" id="fRaio" placeholder="0"></label>
+            <label class="f">Frete grátis acima de (R$) <small>0 = desativado</small><input type="text" inputmode="decimal" class="dinheiro" id="fGratis" placeholder="0,00"></label>
+            <label class="f">Taxa quando o endereço não é localizado (R$)<input type="text" inputmode="decimal" class="dinheiro" id="fPadrao" placeholder="0,00"></label>
           </div>
           <div class="formula" id="fFormula"></div>
         </article>
@@ -215,9 +219,12 @@
             <label class="f">Nome da loja<input type="text" id="lNome"></label>
             <label class="f">Slogan<input type="text" id="lSlogan"></label>
             <label class="f">Endereço para retirada<input type="text" id="lEndereco"></label>
-            <label class="f">Pedido mínimo (R$) <small>0 = sem mínimo</small><input type="number" step="0.01" min="0" id="lMinimo"></label>
+            <label class="f">Pedido mínimo (R$) <small>0 = sem mínimo</small><input type="text" inputmode="decimal" class="dinheiro" id="lMinimo" placeholder="0,00"></label>
           </div>
-          <label class="f">Formas de pagamento <small>separadas por vírgula</small><input type="text" id="lPagamentos"></label>
+          <div class="f"><span>Formas de pagamento <small>marque as que a loja aceita</small></span>
+            <div class="pags" id="lPags" role="group" aria-label="Formas de pagamento"></div>
+          </div>
+          <label class="f">Outras formas <small>opcional, separadas por vírgula (ex.: Vale-refeição)</small><input type="text" id="lPagOutras" placeholder="Nenhuma"></label>
         </article>
       </div>
     </section>
@@ -280,7 +287,7 @@
       <label class="f">Nome do produto<input type="text" id="mNome" placeholder="Ex.: Heineken Long Neck 330 ml" maxlength="80"></label>
       <div class="campos-3">
         <label class="f">Categoria<select id="mCategoria"></select></label>
-        <label class="f">Preço (R$)<input type="number" step="0.01" min="0" id="mPreco" placeholder="0,00"></label>
+        <label class="f">Preço (R$)<input type="text" inputmode="decimal" class="dinheiro" id="mPreco" placeholder="0,00" autocomplete="off"></label>
         <label class="f">Ícone sem foto <small>(opcional)</small><input type="text" id="mEmoji" maxlength="4"></label>
       </div>
       <label class="f">Descrição <small>(opcional)</small><input type="text" id="mDesc" placeholder="Ex.: Gelada, pack com 6 unidades" maxlength="120"></label>
@@ -384,14 +391,15 @@
     </footer>
   </section>
 
+  <div class="menu-mais" id="menuMais" role="menu" hidden></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');</script>
-  <script src="geo.js?v=20261119f"></script>
-  <script src="promo.js?v=20261119f"></script>
-  <script src="pedido.js?v=20261119f"></script>
+  <script src="geo.js?v=20261119h"></script>
+  <script src="promo.js?v=20261119h"></script>
+  <script src="pedido.js?v=20261119h"></script>
   <script>window.MOTION_CFG = { luz: null, tilt: null, magnet: null, dock: null, bg: null, pop: null };</script>
-  <script src="motion.js?v=20261119f"></script>
-  <script src="admin.js?v=20261119f"></script>
+  <script src="motion.js?v=20261119h"></script>
+  <script src="admin.js?v=20261119h"></script>
 </body>
 </html>
