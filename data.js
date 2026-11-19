@@ -27,9 +27,9 @@ window.DADOS = {
       "75159999"
     ],
     "lojaCep": "75130-510",
-    "lojaLat": -16.3285,
-    "lojaLng": -48.9534,
-    "precoKm": 1.5,
+    "lojaLat": -16.366539,
+    "lojaLng": -48.964843,
+    "precoKm": 1,
     "taxaFixa": 0,
     "taxaMinima": 0,
     "raioMaximoKm": 0,
