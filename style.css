@@ -349,3 +349,17 @@ main, .footer { position: relative; z-index: 1; }
 
 /* Logo no rodapé */
 .footer-info .rodape-logo { display: block; height: 76px; width: auto; margin: 0 auto 8px; }
+
+/* Redes sociais no rodapé */
+.rodape-redes { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 8px; }
+.footer-info .rede {
+  display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px;
+  font-weight: 700; font-size: 14px; text-decoration: none; border: 1px solid var(--border-2); background: rgba(255, 255, 255, .04);
+  transition: border-color .2s, background .2s;
+}
+.footer-info .rede svg { width: 20px; height: 20px; flex: none; }
+.footer-info .rede-zap { color: #25d366; }
+.footer-info .rede-zap:hover { border-color: #25d366; background: rgba(37, 211, 102, .1); text-decoration: none; }
+.footer-info .rede-insta { color: #f0f0f0; }
+.footer-info .rede-insta svg { color: #e1306c; }
+.footer-info .rede-insta:hover { border-color: #e1306c; background: rgba(225, 48, 108, .1); text-decoration: none; }

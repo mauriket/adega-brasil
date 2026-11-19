@@ -7,7 +7,7 @@
   <title>Painel administrativo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20261119k">
+  <link rel="stylesheet" href="admin.css?v=20261119t">
   <script>try { document.documentElement.dataset.theme = localStorage.getItem("adega_admin_tema") || "dark"; } catch (e) {}</script>
 </head>
 <body>
@@ -226,6 +226,16 @@
           </div>
           <label class="f">Outras formas <small>opcional, separadas por vírgula (ex.: Vale-refeição)</small><input type="text" id="lPagOutras" placeholder="Nenhuma"></label>
         </article>
+        <article class="card span-2">
+          <header><h2>Rodapé do site</h2></header>
+          <p class="help">Aparece no fim da página do catálogo, abaixo do logo e do endereço.</p>
+          <div class="campos-2">
+            <label class="f">Instagram <small>@usuario ou link do perfil</small><input type="text" id="lInsta" placeholder="@adegabrasil" autocomplete="off"></label>
+            <label class="f">WhatsApp do rodapé <small>vazio = mesmo número dos pedidos</small><input type="tel" id="lWhatsRodape" placeholder="(62) 99999-9999"></label>
+          </div>
+          <p class="hint" id="lRedesMsg"></p>
+          <label class="f">Texto do aviso <small>deixe vazio para não mostrar</small><textarea id="lRodape" rows="2"></textarea></label>
+        </article>
       </div>
     </section>
 
@@ -403,10 +413,10 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>document.write('<script src="data.js?v=' + Date.now() + '"><\/script>');</script>
-  <script src="geo.js?v=20261119k"></script>
-  <script src="promo.js?v=20261119k"></script>
-  <script src="pedido.js?v=20261119k"></script>
-  <script src="motion.js?v=20261119k"></script>
-  <script src="admin.js?v=20261119k"></script>
+  <script src="geo.js?v=20261119t"></script>
+  <script src="promo.js?v=20261119t"></script>
+  <script src="pedido.js?v=20261119t"></script>
+  <script src="motion.js?v=20261119t"></script>
+  <script src="admin.js?v=20261119t"></script>
 </body>
 </html>

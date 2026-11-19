@@ -104,11 +104,20 @@ window.Pedido = (() => {
     if (typeof L.mensagem !== "string") L.mensagem = PADRAO;
     if (typeof L.mensagemItem !== "string") L.mensagemItem = PADRAO_ITEM;
     if (typeof L.aberta !== "boolean") L.aberta = true;
+    if (typeof L.instagram !== "string") L.instagram = "";
+    if (typeof L.whatsappRodape !== "string") L.whatsappRodape = "";
+    if (typeof L.rodapeTexto !== "string") L.rodapeTexto = "Proibida a venda de bebidas alcoólicas para menores de 18 anos. Beba com moderação.";
     if (typeof L.avisoFechada !== "string") L.avisoFechada = "Estamos fechados no momento. Você pode montar seu carrinho, mas os pedidos voltam a ser aceitos quando abrirmos.";
     d.categorias ||= [];
     d.produtos ||= [];
     return d;
   }
 
-  return { PADRAO, PADRAO_ITEM, VARIAVEIS, VARIAVEIS_ITEM, preencher, montar, normalizar };
+  // "@adega", "adega" ou "https://instagram.com/adega/" -> "adega" ("" se inválido)
+  function arroba(v) {
+    const s = String(v || "").trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/^@/, "").split(/[/?#\s]/)[0];
+    return /^[A-Za-z0-9._]{1,30}$/.test(s) ? s : "";
+  }
+
+  return { PADRAO, PADRAO_ITEM, VARIAVEIS, VARIAVEIS_ITEM, preencher, montar, normalizar, arroba };
 })();

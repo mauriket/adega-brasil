@@ -60,11 +60,18 @@
   $("pagamento").innerHTML = LOJA.pagamentos.map((p) => `<option>${esc(p)}</option>`).join("");
   $("retiradaMsg").textContent = "Retirada em: " + LOJA.endereco;
   {
-    const zap = String(LOJA.whatsapp || "").replace(/\D/g, "");
+    const zap = String(LOJA.whatsappRodape || LOJA.whatsapp || "").replace(/\D/g, "");
     const fone = zap.length >= 12 ? `(${zap.slice(2, 4)}) ${zap.slice(4, -4)}-${zap.slice(-4)}` : zap;
+    const insta = Pedido.arroba(LOJA.instagram);
+    const icoZap = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.5 14.4c-.3-.1-1.8-.9-2-1s-.5-.1-.7.1-.8 1-.9 1.2-.3.2-.6.1a8 8 0 0 1-4-3.5c-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6a1.1 1.1 0 0 0-.8.4 3.4 3.4 0 0 0-1 2.5 5.9 5.9 0 0 0 1.2 3.1 13.5 13.5 0 0 0 5.2 4.6c1.9.8 2.7.9 3.6.7a3.1 3.1 0 0 0 2-1.4 2.5 2.5 0 0 0 .2-1.4c-.1-.1-.3-.2-.6-.3zM12 21.8a9.8 9.8 0 0 1-5-1.4l-.4-.2-3.7 1 1-3.6-.2-.4a9.8 9.8 0 1 1 8.3 4.6zM12 0a12 12 0 0 0-10.3 18L0 24l6.2-1.6A12 12 0 1 0 12 0z"/></svg>';
+    const icoInsta = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg>';
+    const redes = (zap ? `<a class="rede rede-zap" href="https://wa.me/${zap}" target="_blank" rel="noopener" aria-label="WhatsApp ${esc(fone)}">${icoZap}<span>${esc(fone)}</span></a>` : "") +
+      (insta ? `<a class="rede rede-insta" href="https://instagram.com/${insta}" target="_blank" rel="noopener" aria-label="Instagram @${esc(insta)}">${icoInsta}<span>@${esc(insta)}</span></a>` : "");
     $("rodapeInfo").innerHTML = `<img class="rodape-logo" src="img/logo.webp" alt="${esc(LOJA.nome)}" width="136" height="96" loading="lazy">` +
       (LOJA.endereco ? `<span>${esc(LOJA.endereco)}</span>` : "") +
-      (zap ? `<a href="https://wa.me/${zap}" target="_blank" rel="noopener">WhatsApp ${esc(fone)}</a>` : "");
+      (redes ? `<div class="rodape-redes">${redes}</div>` : "");
+    $("rodapeTexto").textContent = LOJA.rodapeTexto || "";
+    $("rodapeTexto").hidden = !String(LOJA.rodapeTexto || "").trim();
   }
   if (LOJA.aberta === false) { $("lojaFechada").hidden = false; $("lojaFechadaTxt").textContent = LOJA.avisoFechada || "Estamos fechados no momento."; }
 

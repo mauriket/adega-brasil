@@ -1057,6 +1057,10 @@
     $("lWhats").value = formatarWhats(L.whatsapp);
     $("lNome").value = L.nome || ""; $("lSlogan").value = L.slogan || ""; $("lEndereco").value = L.endereco || "";
     $("lMinimo").value = virgula(L.pedidoMinimo || 0);
+    $("lInsta").value = L.instagram ? "@" + (Pedido.arroba(L.instagram) || L.instagram.replace(/^@/, "")) : "";
+    $("lWhatsRodape").value = formatarWhats(L.whatsappRodape);
+    $("lRodape").value = L.rodapeTexto || "";
+    validarRedes();
     renderPagamentos();
     validarWhats();
   }
@@ -1066,6 +1070,34 @@
   $("lWhats").addEventListener("blur", () => { if (validarWhats()) $("lWhats").value = formatarWhats(dados.loja.whatsapp); });
   [["lNome", "nome"], ["lSlogan", "slogan"], ["lEndereco", "endereco"]].forEach(([id, k]) => $(id).addEventListener("input", () => { dados.loja[k] = $(id).value; mudou(); }));
   $("lMinimo").addEventListener("input", () => { dados.loja.pedidoMinimo = Math.max(0, num($("lMinimo").value)); mudou(); });
+  // ---------- Rodapé: Instagram, WhatsApp e aviso ----------
+  function validarRedes() {
+    const L = dados.loja, msgs = [];
+    let ok = true;
+    const ins = $("lInsta").value.trim();
+    if (ins && !Pedido.arroba(ins)) { msgs.push("Instagram inválido. Use @usuario ou o link do perfil."); ok = false; }
+    else if (ins) msgs.push(`Instagram: instagram.com/${esc(Pedido.arroba(ins))}`);
+    let d = $("lWhatsRodape").value.replace(/\D/g, "");
+    if (d.startsWith("55") && d.length >= 12) d = d.slice(2);
+    if (d && d.length !== 10 && d.length !== 11) { msgs.push("WhatsApp do rodapé: informe DDD e número."); ok = false; }
+    else msgs.push(`WhatsApp no rodapé: +55 ${esc(formatarWhats(d || L.whatsapp))}${d ? "" : " (o mesmo dos pedidos)"}`);
+    $("lRedesMsg").className = "hint " + (ok ? "ok" : "bad");
+    $("lRedesMsg").innerHTML = msgs.join("<br>");
+    return d;
+  }
+  $("lInsta").addEventListener("input", () => {
+    const v = $("lInsta").value.trim();
+    validarRedes();
+    if (!v || Pedido.arroba(v)) { dados.loja.instagram = Pedido.arroba(v); mudou(); }
+  });
+  $("lInsta").addEventListener("blur", () => { if (dados.loja.instagram) $("lInsta").value = "@" + dados.loja.instagram; });
+  $("lWhatsRodape").addEventListener("input", () => {
+    const d = validarRedes();
+    if (!d || d.length === 10 || d.length === 11) { dados.loja.whatsappRodape = d ? "55" + d : ""; mudou(); }
+  });
+  $("lWhatsRodape").addEventListener("blur", () => { $("lWhatsRodape").value = formatarWhats(dados.loja.whatsappRodape); });
+  $("lRodape").addEventListener("input", () => { dados.loja.rodapeTexto = $("lRodape").value; mudou(); });
+
   const PAGAMENTOS = ["Pix", "Cartão de crédito", "Cartão de débito", "Dinheiro"];
   function renderPagamentos() {
     const atuais = dados.loja.pagamentos || [];
