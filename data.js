@@ -22,9 +22,9 @@ window.DADOS = {
     "lojaCep": "",
     "lojaLat": -16.3285,
     "lojaLng": -48.9534,
-    "precoKm": 1.5,
+    "precoKm": 1,
     "taxaFixa": 0,
-    "taxaMinima": 5,
+    "taxaMinima": 0,
     "raioMaximoKm": 0,
     "taxaPadrao": 0,
     "freteGratisAcima": 150
@@ -37,28 +37,6 @@ window.DADOS = {
     "Gelo e Petiscos"
   ],
   "produtos": [
-    {
-      "id": 1,
-      "nome": "Heineken Long Neck 330ml",
-      "categoria": "Cervejas",
-      "preco": 7.5,
-      "emoji": "🍺",
-      "imagem": "",
-      "descricao": "",
-      "destaque": false,
-      "ativo": true
-    },
-    {
-      "id": 2,
-      "nome": "Budweiser Lata 350ml",
-      "categoria": "Cervejas",
-      "preco": 4.99,
-      "emoji": "🍺",
-      "imagem": "",
-      "descricao": "",
-      "destaque": false,
-      "ativo": true
-    },
     {
       "id": 3,
       "nome": "Brahma Duplo Malte 350ml",
@@ -280,94 +258,5 @@ window.DADOS = {
       "ativo": true
     }
   ],
-  "promocoes": [
-    {
-      "id": 1,
-      "nome": "Heineken Long Neck 330ml",
-      "ativa": false,
-      "tipo": "precoFixo",
-      "valor": 6.5,
-      "leve": 3,
-      "pague": 2,
-      "aplicaEm": "produtos",
-      "produtos": [
-        1
-      ],
-      "categoria": "",
-      "inicio": "",
-      "fim": "",
-      "dias": [],
-      "horaInicio": "",
-      "horaFim": "",
-      "vitrine": "nenhuma",
-      "limite": 0,
-      "selo": ""
-    },
-    {
-      "id": 2,
-      "nome": "Fardo Skol 12 latas",
-      "ativa": false,
-      "tipo": "precoFixo",
-      "valor": 34.9,
-      "leve": 3,
-      "pague": 2,
-      "aplicaEm": "produtos",
-      "produtos": [
-        5
-      ],
-      "categoria": "",
-      "inicio": "",
-      "fim": "",
-      "dias": [],
-      "horaInicio": "",
-      "horaFim": "",
-      "vitrine": "nenhuma",
-      "limite": 0,
-      "selo": ""
-    },
-    {
-      "id": 3,
-      "nome": "Whisky Red Label 1L",
-      "ativa": false,
-      "tipo": "precoFixo",
-      "valor": 99.9,
-      "leve": 3,
-      "pague": 2,
-      "aplicaEm": "produtos",
-      "produtos": [
-        12
-      ],
-      "categoria": "",
-      "inicio": "",
-      "fim": "",
-      "dias": [],
-      "horaInicio": "",
-      "horaFim": "",
-      "vitrine": "nenhuma",
-      "limite": 0,
-      "selo": ""
-    },
-    {
-      "id": 4,
-      "nome": "Red Bull 250ml",
-      "ativa": false,
-      "tipo": "precoFixo",
-      "valor": 8.5,
-      "leve": 3,
-      "pague": 2,
-      "aplicaEm": "produtos",
-      "produtos": [
-        30
-      ],
-      "categoria": "",
-      "inicio": "",
-      "fim": "",
-      "dias": [],
-      "horaInicio": "",
-      "horaFim": "",
-      "vitrine": "nenhuma",
-      "limite": 0,
-      "selo": ""
-    }
-  ]
+  "promocoes": []
 };
