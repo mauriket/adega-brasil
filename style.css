@@ -453,3 +453,98 @@ main, .footer { position: relative; z-index: 1; }
   .cursor-luz, .progresso { display: none; }
   .cat-title.rv { opacity: 1; transform: none; }
 }
+
+/* =====================================================
+   GLASS: vidro fosco com movimento no catálogo inteiro
+   ===================================================== */
+:root {
+  --vidro: rgba(255, 255, 255, .045);
+  --vidro-2: rgba(255, 255, 255, .075);
+  --vidro-borda: rgba(255, 255, 255, .11);
+  --vidro-rim: inset 0 1px 0 rgba(255, 255, 255, .14), inset 0 -1px 0 rgba(255, 255, 255, .03);
+  --vidro-blur: blur(18px) saturate(170%);
+  --vidro-sombra: 0 20px 50px -24px rgba(0, 0, 0, .85);
+}
+
+/* Luzes douradas que flutuam atrás do vidro */
+.orb { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .55; will-change: transform; }
+.orb.o1 { width: 42vw; height: 42vw; left: -10vw; top: -8vw; background: #ffc20e; opacity: .22; animation: vagar1 28s ease-in-out infinite; }
+.orb.o2 { width: 34vw; height: 34vw; right: -8vw; top: 30vh; background: #f59e0b; opacity: .18; animation: vagar2 34s ease-in-out infinite; }
+.orb.o3 { width: 28vw; height: 28vw; left: 30vw; bottom: -10vw; background: #ffd84d; opacity: .14; animation: vagar1 40s ease-in-out infinite reverse; }
+.orb.o4 { width: 18vw; height: 18vw; left: 55vw; top: 10vh; background: #fff; opacity: .05; animation: vagar2 24s ease-in-out infinite reverse; }
+@keyframes vagar1 { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(18vw, 12vh) scale(1.15); } 66% { transform: translate(6vw, 30vh) scale(.9); } }
+@keyframes vagar2 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-22vw, -14vh) scale(1.2); } }
+
+/* Topo de vidro */
+.topbar { background: rgba(10, 10, 10, .32); backdrop-filter: var(--vidro-blur); -webkit-backdrop-filter: var(--vidro-blur); border-bottom: 1px solid var(--vidro-borda); }
+.topbar.scrolled { background: rgba(10, 10, 10, .5); }
+
+/* Busca e categorias de vidro */
+#busca { background: var(--vidro); border-color: var(--vidro-borda); backdrop-filter: var(--vidro-blur); -webkit-backdrop-filter: var(--vidro-blur); box-shadow: var(--vidro-rim); }
+#busca:focus { background: var(--vidro-2); }
+.chip:not(.active) { background: var(--vidro); border-color: var(--vidro-borda); backdrop-filter: var(--vidro-blur); -webkit-backdrop-filter: var(--vidro-blur); box-shadow: var(--vidro-rim); }
+
+/* Cards de vidro */
+.card {
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, .09) 0%, rgba(255, 255, 255, .02) 38%, rgba(255, 255, 255, .03) 100%);
+  border: 1px solid var(--vidro-borda);
+  backdrop-filter: var(--vidro-blur); -webkit-backdrop-filter: var(--vidro-blur);
+  box-shadow: var(--vidro-rim), var(--vidro-sombra);
+}
+.card-img { background: radial-gradient(circle at 50% 45%, rgba(255, 194, 14, .26), transparent 66%); }
+.card .qty { background: var(--vidro-2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+/* reflexo que atravessa o vidro quando o card aparece, e de novo no hover */
+.card::before {
+  content: ""; position: absolute; z-index: 3; top: -20%; bottom: -20%; left: -60%; width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .16), transparent);
+  transform: skewX(-18deg); pointer-events: none; opacity: 0;
+}
+.card.in::before { animation: reflexo 1.3s calc(var(--d, 0) * 60ms + .25s) cubic-bezier(.3, .7, .3, 1) both; }
+.card.in:hover::before { animation: reflexo .9s cubic-bezier(.3, .7, .3, 1) both; }
+@keyframes reflexo { 0% { left: -60%; opacity: 0; } 15% { opacity: 1; } 100% { left: 140%; opacity: 0; } }
+/* borda que acende de dourado no hover */
+.card.in:hover { border-color: rgba(255, 216, 77, .45); box-shadow: var(--vidro-rim), 0 24px 50px -20px rgba(0, 0, 0, .9), 0 0 0 1px rgba(255, 194, 14, .15), 0 0 40px rgba(255, 194, 14, .12); }
+
+/* Promoção do dia: vidro com a borda animada */
+.sec-promo {
+  background: linear-gradient(rgba(16, 14, 10, .55), rgba(16, 14, 10, .55)) padding-box,
+              linear-gradient(120deg, #ffd84d, #f59e0b, #e11d48, #ffc20e) border-box;
+  background-size: 100% 100%, 300% 300%;
+  backdrop-filter: var(--vidro-blur); -webkit-backdrop-filter: var(--vidro-blur);
+}
+.sec-promo .card, .carrossel .card { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.contador-box { background: var(--vidro); border-color: var(--vidro-borda); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+
+/* Carrinho de vidro */
+.overlay { background: rgba(0, 0, 0, .35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.drawer {
+  background: linear-gradient(180deg, rgba(22, 20, 16, .62), rgba(12, 11, 9, .72));
+  backdrop-filter: blur(26px) saturate(170%); -webkit-backdrop-filter: blur(26px) saturate(170%);
+  border-left: 1px solid var(--vidro-borda); box-shadow: -30px 0 80px -30px rgba(0, 0, 0, .9), inset 1px 0 0 rgba(255, 255, 255, .06);
+}
+.drawer-head, .drawer-body .cart-item { border-color: var(--vidro-borda); }
+.drawer-foot { background: rgba(255, 255, 255, .035); border-top: 1px solid var(--vidro-borda); }
+.drawer-body input, .drawer-body select, .drawer-body textarea, .seg label { background: var(--vidro); border-color: var(--vidro-borda); box-shadow: var(--vidro-rim); }
+.icon-btn { background: var(--vidro-2); border: 1px solid var(--vidro-borda); }
+
+/* Barra flutuante e aviso de idade */
+.floating-cart { background: linear-gradient(135deg, rgba(255, 216, 77, .92), rgba(255, 194, 14, .9) 45%, rgba(245, 158, 11, .92)); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), 0 14px 34px rgba(255, 194, 14, .32); }
+.age-gate { background: rgba(5, 5, 5, .55); backdrop-filter: blur(22px) saturate(140%); -webkit-backdrop-filter: blur(22px) saturate(140%); }
+.modal { background: linear-gradient(155deg, rgba(255, 255, 255, .1), rgba(255, 255, 255, .03)); border-color: rgba(255, 216, 77, .35); backdrop-filter: var(--vidro-blur); -webkit-backdrop-filter: var(--vidro-blur); box-shadow: var(--vidro-rim), 0 0 60px rgba(255, 194, 14, .15); }
+.btn-ghost { background: var(--vidro); border-color: var(--vidro-borda); }
+
+/* Rodapé e faixa de prévia */
+.footer { background: rgba(10, 10, 10, .3); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--vidro-borda); }
+.previa { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+
+/* Celular: menos desfoque (mais leve) */
+@media (max-width: 760px) {
+  :root { --vidro-blur: blur(10px) saturate(150%); }
+  .orb { filter: blur(50px); }
+  .sec-promo .card, .carrossel .card { backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orb { animation: none; }
+  .card.in::before, .card.in:hover::before { animation: none; }
+}
