@@ -34,7 +34,7 @@ window.DADOS = {
     "taxaMinima": 0,
     "raioMaximoKm": 0,
     "taxaPadrao": 0,
-    "freteGratisAcima": 0
+    "freteGratisAcima": 250
   },
   "categorias": [
     "Cervejas",
