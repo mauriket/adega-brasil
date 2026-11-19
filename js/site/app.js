@@ -174,7 +174,7 @@ window.carregarDados = (async () => {
     const agora = new Date();
     const fins = PROMOS.filter((pr) => pr.vitrine === "promoDia" && Promo.estaAtiva(pr, agora)).map((pr) => Promo.terminaEm(pr, agora)).filter(Boolean);
     let fim = fins.length ? new Date(Math.min(...fins)) : null;
-    if (!fim) { fim = new Date(agora); fim.setHours(24, 0, 0, 0); }
+    if (!fim) fim = Promo.meiaNoite(agora);
     const s = Math.max(0, Math.floor((fim - agora) / 1000)), h = Math.floor(s / 3600), pad = (n) => String(n).padStart(2, "0");
     $("contador").textContent = h >= 48 ? `${Math.floor(h / 24)} dias` : `${pad(h)}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
   }
@@ -221,8 +221,15 @@ window.carregarDados = (async () => {
     const b = e.target.closest("[data-act]"); if (!b) return;
     const id = Number(b.dataset.id);
     if (!produtoPorId[id] || (b.dataset.act === "inc" && produtoPorId[id].esgotado)) return;
-    if (b.dataset.act === "inc") { const card = b.closest(".card"); if (card) voar(card.querySelector(".card-img"), produtoPorId[id]); alterar(id, 1); }
-    if (b.dataset.act === "dec") alterar(id, -1);
+    const act = b.dataset.act, area = b.closest(".acao"), teclado = e.detail === 0;
+    if (act === "inc") { const card = b.closest(".card"); if (card) voar(card.querySelector(".card-img"), produtoPorId[id]); alterar(id, 1); }
+    if (act === "dec") alterar(id, -1);
+    // o botão foi redesenhado: devolve o foco a quem usa teclado
+    if (teclado) {
+      const dentro = b.isConnected ? null : area && area.isConnected ? area : $("cartItems");
+      const alvo = dentro && (dentro.querySelector(`[data-act="${act}"][data-id="${id}"]`) || dentro.querySelector(`[data-id="${id}"]`));
+      if (alvo) alvo.focus({ preventScroll: true });
+    }
   });
 
   const itens = () => Object.entries(carrinho).map(([id, q]) => { const p = produtoPorId[id]; return { ...p, qtd: q, calc: Promo.linha(p, q, PROMOS) }; });
@@ -234,8 +241,10 @@ window.carregarDados = (async () => {
     if (isRetirada()) return 0;
     if (!frete) return null;
     const lim = Number(FRETE.freteGratisAcima) || 0;
-    return lim > 0 && soma((i) => i.calc.total) >= lim ? 0 : frete.valor;
+    if (lim > 0 && soma((i) => i.calc.total) >= lim) return 0;
+    return frete.aCombinar ? "combinar" : frete.valor;
   }
+  const freteNum = (f) => (typeof f === "number" ? f : 0);
 
   function renderCarrinho() {
     const lista = itens(), qtd = soma((i) => i.qtd), vazio = !lista.length;
@@ -263,15 +272,16 @@ window.carregarDados = (async () => {
     $("tSub").textContent = brl(sub);
     $("linhaEco").hidden = eco <= 0;
     $("tEco").textContent = "- " + brl(eco);
-    $("tFrete").textContent = f === null ? "Informe o CEP" : f === 0 ? (isRetirada() ? "Retirada" : "Grátis") : brl(f);
-    $("tTotal").textContent = brl(sub + (f || 0));
-    $("floatTotal").textContent = brl(sub + (f || 0));
+    $("tFrete").textContent = f === null ? "Informe o CEP" : f === "combinar" ? "A combinar" : f === 0 ? (isRetirada() ? "Retirada" : "Grátis") : brl(f);
+    $("tTotal").textContent = brl(sub + freteNum(f));
+    $("floatTotal").textContent = brl(sub + freteNum(f));
 
     if (!isRetirada() && frete) {
       const lim = Number(FRETE.freteGratisAcima) || 0;
       const onde = esc($("bairro").value.trim() || enderecoCep.cidade) + (frete.km != null ? ` · ${kmTxt(frete.km)}` : "");
       if (lim > 0 && sub >= lim) msgFrete(`${onde}: <b>frete grátis!</b>`, "ok");
-      else msgFrete(`${onde}: frete <b>${brl(frete.valor)}</b>.${lim > 0 ? ` Faltam ${brl(lim - sub)} para frete grátis!` : ""}`, "ok");
+      else if (frete.aCombinar) msgFrete(`${onde}: não achamos seu endereço no mapa. O frete será <b>combinado pelo WhatsApp</b>.`);
+      else msgFrete(`${onde}: frete <b>${frete.valor > 0 ? brl(frete.valor) : "grátis"}</b>.${lim > 0 ? ` Faltam ${brl(lim - sub)} para frete grátis!` : ""}`, "ok");
     }
     $("erro").textContent = "";
 
@@ -321,6 +331,12 @@ window.carregarDados = (async () => {
     let v = e.target.value.replace(/\D/g, "").slice(0, 8);
     if (v.length > 5) v = v.slice(0, 5) + "-" + v.slice(5);
     e.target.value = v;
+    // CEP mudou depois do cálculo: o frete e o endereço antigos não valem mais
+    if (enderecoCep && enderecoCep.cep.replace(/\D/g, "") !== v.replace(/\D/g, "")) {
+      calcId++; frete = null; enderecoCep = null;
+      $("enderecoCampos").hidden = true; msgFrete("");
+      renderCarrinho();
+    }
     if (v.length === 9) buscarCep();
   });
   $("cep").addEventListener("keydown", (e) => e.key === "Enter" && buscarCep());
@@ -367,7 +383,9 @@ window.carregarDados = (async () => {
     if (!r.ok) {
       msgFrete(r.motivo === "longe"
         ? `Você está a ${kmTxt(r.km)} da loja — entregamos até ${FRETE.raioMaximoKm} km. Escolha <b>Retirar na loja</b>.`
-        : `Desculpe, não entregamos em ${esc(end.cidade)}. Você pode escolher <b>Retirar na loja</b>.`, "bad");
+        : r.motivo === "foraCidade"
+        ? `Desculpe, não entregamos em ${esc(end.cidade)}. Você pode escolher <b>Retirar na loja</b>.`
+        : `Não encontramos esse endereço no mapa. Confira a <b>rua</b> e o <b>bairro</b>, ou escolha <b>Retirar na loja</b>.`, "bad");
       renderCarrinho(); return;
     }
     frete = r;
@@ -376,7 +394,9 @@ window.carregarDados = (async () => {
   ["rua", "bairro"].forEach((c) => $(c).addEventListener("change", () => {
     if (enderecoCep && ($("rua").value.trim() || $("bairro").value.trim())) calcularDistancia();
   }));
-  $("pagamento").addEventListener("change", () => { $("troco").hidden = norm($("pagamento").value) !== "dinheiro"; });
+  const trocoVisivel = () => { $("troco").hidden = norm($("pagamento").value) !== "dinheiro"; };
+  $("pagamento").addEventListener("change", trocoVisivel);
+  trocoVisivel();
 
   // ---------- Enviar pelo WhatsApp ----------
   $("enviar").onclick = () => {
@@ -395,7 +415,7 @@ window.carregarDados = (async () => {
     if (!nome) return erro("Informe seu nome.");
     if (LOJA.aberta === false) return erro("A loja está fechada no momento. Tente novamente mais tarde.");
 
-    const f = valorFrete() || 0;
+    const fv = valorFrete(), f = freteNum(fv);
     const v = (id) => $(id).value.trim();
     let linhaRua = `${v("rua")}, ${v("numero")}`;
     if (v("complemento")) linhaRua += ` - ${v("complemento")}`;
@@ -406,7 +426,7 @@ window.carregarDados = (async () => {
         qtd: i.qtd, produto: i.nome, valor: i.calc.total, unitario: i.preco,
         promo: i.calc.promo ? (Promo.selo(i.calc.promo, i.preco) || i.calc.promo.nome) : "",
       })),
-      subtotal: sub, economia: eco, frete: f, total: sub + f,
+      subtotal: sub, economia: eco, frete: f, freteACombinar: fv === "combinar", total: sub + f,
       distancia: !retirada && frete && frete.km != null ? kmTxt(frete.km) : "",
       retirada,
       endereco: retirada ? [] : [

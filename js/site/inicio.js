@@ -13,6 +13,7 @@
   document.getElementById("ageNo").onclick = function () {
     gate.querySelector("p").textContent = "Desculpe, o acesso é permitido apenas para maiores de 18 anos.";
     gate.querySelector("h2").textContent = "Acesso não permitido";
+    document.getElementById("ageYes").remove();
     this.remove();
   };
 })();

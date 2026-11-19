@@ -62,9 +62,10 @@ window.Pedido = (() => {
     const saida = [];
     for (const linha of linhas) {
       // só variáveis conhecidas contam; uma {digitada_errada} fica visível no texto
-      const vars = [...linha.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).filter((v) => v in valores);
+      const tem = (v) => Object.prototype.hasOwnProperty.call(valores, v);
+      const vars = [...linha.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).filter(tem);
       if (vars.length && vars.every((v) => !String(valores[v] ?? "").trim())) continue;
-      saida.push(linha.replace(/\{(\w+)\}/g, (m, v) => (v in valores ? String(valores[v] ?? "") : m)).replace(/[ \t]+$/g, ""));
+      saida.push(linha.replace(/\{(\w+)\}/g, (m, v) => (tem(v) ? String(valores[v] ?? "") : m)).replace(/[ \t]+$/g, ""));
     }
     return saida.join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
@@ -75,7 +76,10 @@ window.Pedido = (() => {
   function montar(loja, d) {
     const brl = (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     const agora = d.quando || new Date();
-    const itens = (d.itens || []).map((i) => preencher(loja.mensagemItem || PADRAO_ITEM, {
+    const fuso = { timeZone: "America/Sao_Paulo" };
+    // modelo de item sem o nome do produto deixaria o pedido sem a lista: usa o padrão
+    const modeloItem = itemValido(loja.mensagemItem) ? loja.mensagemItem : PADRAO_ITEM;
+    const itens = (d.itens || []).map((i) => preencher(modeloItem, {
       qtd: i.qtd, produto: i.produto, valor: brl(i.valor), unitario: brl(i.unitario), promo: i.promo ? `(${i.promo})` : "",
     })).join("\n");
     return preencher(loja.mensagem || PADRAO, {
@@ -84,16 +88,17 @@ window.Pedido = (() => {
       qtd_itens: (d.itens || []).reduce((s, i) => s + i.qtd, 0),
       subtotal: brl(d.subtotal),
       economia: d.economia > 0 ? brl(d.economia) : "",
-      frete: d.retirada ? "Retirada na loja" : d.frete > 0 ? brl(d.frete) : "Grátis",
+      frete: d.retirada ? "Retirada na loja" : d.freteACombinar ? "A combinar" : d.frete > 0 ? brl(d.frete) : "Grátis",
       distancia: d.distancia ? `(${d.distancia})` : "",
       total: brl(d.total),
       entrega: d.retirada ? "Retirada na loja" : "Endereço de entrega:",
       endereco: d.retirada ? "" : (d.endereco || []).filter(Boolean).join("\n"),
       pagamento: d.pagamento, troco: d.troco, obs: d.obs,
-      data: agora.toLocaleDateString("pt-BR"),
-      hora: agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+      data: agora.toLocaleDateString("pt-BR", fuso),
+      hora: agora.toLocaleTimeString("pt-BR", { ...fuso, hour: "2-digit", minute: "2-digit" }),
     });
   }
+  const itemValido = (m) => typeof m === "string" && m.includes("{produto}");
 
   // Preenche campos novos da loja quando o data.js for antigo
   function normalizar(d) {
@@ -110,14 +115,18 @@ window.Pedido = (() => {
     if (typeof L.avisoFechada !== "string") L.avisoFechada = "Estamos fechados no momento. Você pode montar seu carrinho, mas os pedidos voltam a ser aceitos quando abrirmos.";
     d.categorias ||= [];
     d.produtos ||= [];
+    // ids sempre numéricos (vão para atributos HTML)
+    for (const x of d.produtos) x.id = Number(x.id);
+    for (const x of d.promocoes || []) { x.id = Number(x.id); if (Array.isArray(x.produtos)) x.produtos = x.produtos.map(Number); }
+    d.frete ||= {};
     return d;
   }
 
   // "@adega", "adega" ou "https://instagram.com/adega/" -> "adega" ("" se inválido)
   function arroba(v) {
-    const s = String(v || "").trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/^@/, "").split(/[/?#\s]/)[0];
+    const s = String(v || "").trim().replace(/^(https?:\/\/)?((www|m)\.)?instagram\.com\//i, "").replace(/^@/, "").split(/[/?#\s]/)[0];
     return /^[A-Za-z0-9._]{1,30}$/.test(s) ? s : "";
   }
 
-  return { PADRAO, PADRAO_ITEM, VARIAVEIS, VARIAVEIS_ITEM, preencher, montar, normalizar, arroba };
+  return { PADRAO, PADRAO_ITEM, VARIAVEIS, VARIAVEIS_ITEM, preencher, montar, normalizar, arroba, itemValido };
 })();

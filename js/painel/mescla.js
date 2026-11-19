@@ -76,7 +76,8 @@
   function renumerar(base, minha, deles) {
     const B = new Set((base.produtos || []).map((p) => p.id));
     const T = new Map((deles.produtos || []).map((p) => [p.id, p]));
-    let max = Math.max(0, ...[...(base.produtos || []), ...(minha.produtos || []), ...(deles.produtos || [])].map((p) => Number(p.id) || 0));
+    const cont = (k) => Math.max(0, ...[base, minha, deles].map((d) => Number((d.ultimoId || {})[k]) || 0));
+    let max = Math.max(cont("produto"), ...[...(base.produtos || []), ...(minha.produtos || []), ...(deles.produtos || [])].map((p) => Number(p.id) || 0));
     const mapa = new Map();
     for (const p of minha.produtos || []) {
       if (!B.has(p.id) && T.has(p.id) && !igual(T.get(p.id), p)) { mapa.set(p.id, ++max); p.id = max; }
@@ -86,7 +87,7 @@
     }
     const BP = new Set((base.promocoes || []).map((p) => p.id));
     const TP = new Map((deles.promocoes || []).map((p) => [p.id, p]));
-    let maxP = Math.max(0, ...[...(base.promocoes || []), ...(minha.promocoes || []), ...(deles.promocoes || [])].map((p) => Number(p.id) || 0));
+    let maxP = Math.max(cont("promo"), ...[...(base.promocoes || []), ...(minha.promocoes || []), ...(deles.promocoes || [])].map((p) => Number(p.id) || 0));
     for (const pr of minha.promocoes || []) {
       if (!BP.has(pr.id) && TP.has(pr.id) && !igual(TP.get(pr.id), pr)) pr.id = ++maxP;
     }
@@ -100,10 +101,37 @@
     for (const k of chaves) {
       if (k === "produtos" || k === "promocoes") out[k] = lista(base[k], minha[k], deles[k]);
       else if (k === "categorias") out[k] = nomes(base[k], minha[k], deles[k]);
+      else if (k === "ultimoId") out[k] = maiorId(base[k], minha[k], deles[k]);
       else if (ehObj(minha[k]) || ehObj(deles[k])) out[k] = objeto(base[k], minha[k], deles[k]);
       else out[k] = copia(igual(minha[k], base[k]) ? deles[k] : minha[k]);
     }
+    if (Array.isArray(out.categorias)) categoriasOrfas(out, base, minha, deles);
     return out;
+  }
+
+  // Contador de ids (nunca anda para trás: id de produto apagado não é reaproveitado)
+  function maiorId(...vs) {
+    const out = {};
+    for (const v of vs) for (const k in v || {}) out[k] = Math.max(out[k] || 0, Number(v[k]) || 0);
+    return out;
+  }
+
+  // Um aparelho renomeou/excluiu uma categoria enquanto o outro cadastrava nela:
+  // leva o produto para o nome novo (ou devolve a categoria à lista)
+  function categoriasOrfas(out, base, minha, deles) {
+    const renomes = new Map();
+    for (const lado of [minha, deles]) {
+      const b = base.categorias || [], l = lado.categorias || [];
+      if (b.length !== l.length) continue;
+      b.forEach((c, i) => { if (l[i] !== c && !l.includes(c) && !b.includes(l[i])) renomes.set(c, l[i]); });
+    }
+    const existe = new Set(out.categorias);
+    for (const x of [...(out.produtos || []), ...(out.promocoes || [])]) {
+      if (!x.categoria || existe.has(x.categoria)) continue;
+      const novo = renomes.get(x.categoria);
+      if (novo && existe.has(novo)) x.categoria = novo;
+      else if (out.produtos && out.produtos.includes(x)) { out.categorias.push(x.categoria); existe.add(x.categoria); }
+    }
   }
 
   raiz.Mescla = { mesclar, lista, objeto, nomes };

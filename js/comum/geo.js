@@ -112,11 +112,16 @@ window.Geo = (() => {
   async function calcularFrete(end, cfg) {
     const temLoja = cfg.lojaLat != null && cfg.lojaLng != null && cfg.lojaLat !== "" && cfg.lojaLng !== "";
     const mesmaCidade = norm(end.cidade) === norm(cfg.cidade);
+    const temRaio = Number(cfg.raioMaximoKm) > 0;
+    // Sem raio definido, só entrega na cidade da loja
+    if (!mesmaCidade && !temRaio) return { ok: false, motivo: "foraCidade" };
     let destino = end.lat != null && end.lng != null ? { lat: end.lat, lng: end.lng } : await geocodificar(end);
 
     if (!temLoja || !destino) {
-      if (mesmaCidade) return { ok: true, valor: Number(cfg.taxaPadrao) || 0, km: null, estimado: true };
-      return { ok: false, motivo: "naoLocalizado" };
+      if (!mesmaCidade) return { ok: false, motivo: "naoLocalizado" };
+      // endereço não achado no mapa: taxa padrão, ou "a combinar" se ela não foi definida (nunca grátis por engano)
+      const padrao = Number(cfg.taxaPadrao) || 0;
+      return padrao > 0 ? { ok: true, valor: padrao, km: null, estimado: true } : { ok: true, valor: 0, km: null, estimado: true, aCombinar: true };
     }
     const loja = { lat: Number(cfg.lojaLat), lng: Number(cfg.lojaLng) };
     const { km, metodo } = await distanciaKm(loja, destino);

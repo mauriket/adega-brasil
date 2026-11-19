@@ -35,58 +35,73 @@ window.Promo = (() => {
   };
   const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
+  // Horário de Brasília (UTC-3, sem horário de verão), qualquer que seja o fuso do aparelho.
+  // br(agora) devolve uma data cujos campos getUTC* são a hora de Brasília.
+  const OFF = 3 * 3600e3;
+  const br = (agora) => new Date(agora.getTime() - OFF);
+  const ymdBR = (b) => b.toISOString().slice(0, 10);
+  const minBR = (b) => b.getUTCHours() * 60 + b.getUTCMinutes();
+  // Janela de horário normalizada (início = fim conta como o dia todo)
+  function janela(pr) {
+    let ini = hm(pr.horaInicio), fim = hm(pr.horaFim);
+    if (ini != null && ini === fim) ini = fim = null;
+    return { ini, fim, vira: ini != null && fim != null && ini > fim };
+  }
+
   // ---------- Quando vale ----------
   function estaAtiva(pr, agora = new Date()) {
     if (!pr || pr.ativa === false) return false;
-    const hoje = ymd(agora);
-    if (pr.inicio && hoje < pr.inicio) return false;
-    if (pr.fim && hoje > pr.fim) return false;
-    const ini = hm(pr.horaInicio), fim = hm(pr.horaFim);
-    const min = agora.getHours() * 60 + agora.getMinutes();
-    let dia = agora.getDay();
-    if (ini != null && fim != null && ini !== fim) {
-      if (ini < fim) {
-        if (min < ini || min >= fim) return false;
-      } else {
-        // horário que vira a noite (ex: 22:00 → 02:00)
-        if (min >= fim && min < ini) return false;
-        if (min < fim) dia = (dia + 6) % 7; // madrugada conta como o dia anterior
-      }
-    } else if (ini != null && fim == null) {
-      if (min < ini) return false;
-    } else if (fim != null && ini == null) {
-      if (min >= fim) return false;
+    const b = br(agora), min = minBR(b);
+    const { ini, fim, vira } = janela(pr);
+    let ref = b; // dia a que a hora pertence
+    if (vira) {
+      // horário que vira a noite (ex: 22:00 → 02:00)
+      if (min >= fim && min < ini) return false;
+      if (min < fim) ref = new Date(b.getTime() - 864e5); // madrugada conta como o dia anterior
+    } else {
+      if (ini != null && min < ini) return false;
+      if (fim != null && min >= fim) return false;
     }
-    if (pr.dias && pr.dias.length && !pr.dias.includes(dia)) return false;
+    const dia = ymdBR(ref);
+    if (pr.inicio && dia < pr.inicio) return false;
+    if (pr.fim && dia > pr.fim) return false;
+    if (pr.dias && pr.dias.length && !pr.dias.includes(ref.getUTCDay())) return false;
     return true;
   }
 
   // "ativa" | "foraHorario" | "agendada" | "pausada" | "encerrada"
   function status(pr, agora = new Date()) {
     if (pr.ativa === false) return "pausada";
-    const hoje = ymd(agora);
+    if (estaAtiva(pr, agora)) return "ativa";
+    const hoje = ymdBR(br(agora));
     if (pr.fim && hoje > pr.fim) return "encerrada";
     if (pr.inicio && hoje < pr.inicio) return "agendada";
-    return estaAtiva(pr, agora) ? "ativa" : "foraHorario";
+    return "foraHorario";
   }
 
   // Quando acaba a janela atual (Date) — ou null se não tem fim
   function terminaEm(pr, agora = new Date()) {
     const fins = [];
-    const ini = hm(pr.horaInicio), fim = hm(pr.horaFim);
-    const min = agora.getHours() * 60 + agora.getMinutes();
+    const b = br(agora), min = minBR(b);
+    const { ini, fim, vira } = janela(pr);
     if (fim != null) {
-      const d = new Date(agora);
-      d.setHours(Math.floor(fim / 60), fim % 60, 0, 0);
-      if (ini != null && ini > fim && min >= ini) d.setDate(d.getDate() + 1);
-      fins.push(d);
+      const d = new Date(b);
+      d.setUTCHours(Math.floor(fim / 60), fim % 60, 0, 0);
+      if (vira && min >= ini) d.setUTCDate(d.getUTCDate() + 1);
+      fins.push(new Date(d.getTime() + OFF));
     }
-    if (pr.fim) fins.push(new Date(pr.fim + "T23:59:59"));
+    // a última noite de uma janela que vira a noite termina na madrugada seguinte (já coberto acima)
+    if (pr.fim && !vira) fins.push(new Date(pr.fim + "T23:59:59-03:00"));
     if (pr.dias && pr.dias.length && fim == null) {
-      const amanha = (agora.getDay() + 1) % 7;
-      if (!pr.dias.includes(amanha)) { const d = new Date(agora); d.setHours(24, 0, 0, 0); fins.push(d); }
+      const amanha = (b.getUTCDay() + 1) % 7;
+      if (!pr.dias.includes(amanha)) { const d = new Date(b); d.setUTCHours(24, 0, 0, 0); fins.push(new Date(d.getTime() + OFF)); }
     }
     return fins.length ? new Date(Math.min(...fins)) : null;
+  }
+  // Meia-noite de hoje em Brasília (para contagens sem fim definido)
+  function meiaNoite(agora = new Date()) {
+    const d = br(agora); d.setUTCHours(24, 0, 0, 0);
+    return new Date(d.getTime() + OFF);
   }
 
   // ---------- Em quem vale ----------
@@ -199,5 +214,5 @@ window.Promo = (() => {
     return d;
   }
 
-  return { TIPOS, TIPOS_QTD, DIAS, estaAtiva, status, terminaEm, aplicaA, ativasDo, precoUnit, linha, vitrine, selo, descricao, nova, migrar, ymd };
+  return { TIPOS, TIPOS_QTD, DIAS, estaAtiva, status, terminaEm, meiaNoite, aplicaA, ativasDo, precoUnit, linha, vitrine, selo, descricao, nova, migrar, ymd };
 })();

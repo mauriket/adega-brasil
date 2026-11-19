@@ -456,7 +456,14 @@ window.Motion = (() => {
     mudou();
     return c;
   }
-  const proxIdProduto = () => dados.produtos.reduce((m, x) => Math.max(m, n(x.id)), 0) + 1;
+  // Ids nunca são reaproveitados (o carrinho do cliente guarda o id): o contador fica salvo no data.js
+  function proxId(tipo, lista) {
+    const u = (dados.ultimoId ||= {});
+    const id = lista.reduce((m, x) => Math.max(m, n(x.id)), n(u[tipo])) + 1;
+    u[tipo] = id;
+    return id;
+  }
+  const proxIdProduto = () => proxId("produto", dados.produtos);
 
   // ---------- Menu "Mais ações" do produto ----------
   let menuBtn = null;
@@ -524,9 +531,15 @@ window.Motion = (() => {
       (linha ? Motion.sair(linha) : Promise.resolve()).then(() => {
         liberarImagem(p.imagem, p);
         dados.produtos = dados.produtos.filter((x) => x !== p);
-        dados.promocoes.forEach((pr) => { pr.produtos = (pr.produtos || []).filter((id) => id !== p.id); });
+        let pausadas = 0;
+        dados.promocoes.forEach((pr) => {
+          const tinha = (pr.produtos || []).includes(p.id);
+          pr.produtos = (pr.produtos || []).filter((id) => id !== p.id);
+          // promoção que ficou sem nenhum produto é pausada
+          if (tinha && pr.aplicaEm === "produtos" && !pr.produtos.length && pr.ativa !== false) { pr.ativa = false; pausadas++; }
+        });
         mudou(); renderProdutos(); renderKpis();
-        toast("Produto excluído");
+        toast(pausadas ? `Produto excluído. ${plural(pausadas, "promoção ficou", "promoções ficaram")} sem produtos e foi pausada.` : "Produto excluído", null, pausadas ? 4500 : undefined);
       });
       return;
     }
@@ -610,8 +623,12 @@ window.Motion = (() => {
   }
   $("mFoto").addEventListener("change", async (e) => {
     const f = e.target.files[0]; if (!f) return;
+    // enquanto a foto é preparada, os botões de salvar ficam travados (senão a foto se perdia)
+    const botoes = ["mSalvar", "mSalvarNovo", "mDuplicar"].map($).filter(Boolean);
+    botoes.forEach((b) => { b.disabled = true; });
     try { fotoNova = await reduzirImagem(f); fotoRemovida = false; previewFoto(fotoNova); }
     catch { toast("Não foi possível abrir esta imagem. Use JPG ou PNG.", "erro"); }
+    finally { botoes.forEach((b) => { b.disabled = false; }); }
   });
   $("mFotoRemover").onclick = () => { fotoNova = null; fotoRemovida = true; $("mFoto").value = ""; previewFoto(null); };
 
@@ -750,7 +767,7 @@ window.Motion = (() => {
     }
     mudou(); renderPromos(); renderKpis();
   });
-  const proxIdPromo = () => dados.promocoes.reduce((m, x) => Math.max(m, n(x.id)), 0) + 1;
+  const proxIdPromo = () => proxId("promo", dados.promocoes);
 
   // ---------- Modal: promoção ----------
   let ed = null;
@@ -893,6 +910,7 @@ window.Motion = (() => {
     if (ed.aplicaEm === "produtos" && !(ed.produtos || []).length) return erro("Selecione pelo menos um produto.");
     if (ed.aplicaEm === "categoria") { ed.categoria = $("prCategoria").value; if (!ed.categoria) return erro("Selecione uma categoria."); }
     if (ed.inicio && ed.fim && ed.fim < ed.inicio) return erro("A data de término é anterior à data de início.");
+    if (ed.horaInicio && ed.horaFim && ed.horaInicio === ed.horaFim) return erro("O horário de início e de fim são iguais. Para valer o dia todo, deixe os dois vazios.");
     if (ed.tipo === "precoFixo") {
       const caros = dados.produtos.filter((p) => Promo.aplicaA({ ...ed, ativa: true }, p) && n(p.preco) <= n(ed.valor));
       if (caros.length && !confirm(`O preço promocional (${brl(ed.valor)}) não é menor que o preço de ${plural(caros.length, "produto", "produtos")}. Nesses itens não haverá desconto. Salvar mesmo assim?`)) return;
@@ -955,11 +973,14 @@ window.Motion = (() => {
       const qtd = dados.produtos.filter((p) => p.categoria === cats[i]).length;
       if (qtd && cats.length === 1) return toast("Não é possível excluir a única categoria que tem produtos.", "erro", 3500);
       const destino = cats[i === 0 ? 1 : 0];
-      if (!confirm(qtd ? `Excluir "${cats[i]}"? ${plural(qtd, "produto será movido", "produtos serão movidos")} para "${destino}".` : `Excluir a categoria "${cats[i]}"?`)) return;
+      // promoções da categoria NÃO passam para outra (daria desconto onde não devia): ficam pausadas
+      const promos = dados.promocoes.filter((pr) => pr.aplicaEm === "categoria" && pr.categoria === cats[i]);
+      const avisoPromo = promos.length ? `\n\n${plural(promos.length, "promoção desta categoria será pausada", "promoções desta categoria serão pausadas")}: ${promos.map((pr) => pr.nome).join(", ")}.` : "";
+      if (!confirm((qtd ? `Excluir "${cats[i]}"? ${plural(qtd, "produto será movido", "produtos serão movidos")} para "${destino}".` : `Excluir a categoria "${cats[i]}"?`) + avisoPromo)) return;
       dados.produtos.forEach((p) => { if (p.categoria === cats[i]) p.categoria = destino; });
-      dados.promocoes.forEach((pr) => { if (pr.categoria === cats[i]) pr.categoria = destino; });
+      promos.forEach((pr) => { pr.ativa = false; pr.categoria = ""; pr.aplicaEm = "produtos"; pr.produtos = []; });
       cats.splice(i, 1);
-      mudou(); renderCategorias(); renderKpis(); toast("Categoria excluída");
+      mudou(); renderCategorias(); renderKpis(); toast(promos.length ? "Categoria excluída e promoções pausadas" : "Categoria excluída");
     }
   });
 
@@ -985,7 +1006,14 @@ window.Motion = (() => {
   }
   for (const [id, k] of Object.entries(camposFrete)) $(id).addEventListener("input", () => { dados.frete[k] = Math.max(0, num($(id).value)); atualizarFormula(); mudou(); });
   ["fLat", "fLng"].forEach((id) => $(id).addEventListener("input", () => {
-    dados.frete[id === "fLat" ? "lojaLat" : "lojaLng"] = (() => { const x = parseFloat($(id).value.replace(",", ".")); return isNaN(x) ? null : x; })();
+    const lim = id === "fLat" ? 90 : 180, txt = $(id).value.trim();
+    const x = parseFloat(txt.replace(",", "."));
+    const ok = !txt || (!isNaN(x) && Math.abs(x) <= lim);
+    $(id).setCustomValidity(ok ? "" : "inválido");
+    $("fLocMsg").className = "hint " + (ok ? "" : "bad");
+    $("fLocMsg").textContent = ok ? "" : `${id === "fLat" ? "Latitude" : "Longitude"} inválida (use algo como -16,3285).`;
+    if (!ok) return; // valor errado não é gravado
+    dados.frete[id === "fLat" ? "lojaLat" : "lojaLng"] = txt ? x : null;
     atualizarMapa(); mudou();
   }));
   const mascaraCep = (e) => { let v = e.target.value.replace(/\D/g, "").slice(0, 8); if (v.length > 5) v = v.slice(0, 5) + "-" + v.slice(5); e.target.value = v; };
@@ -1056,7 +1084,12 @@ window.Motion = (() => {
     $("msgTeste").href = numero ? `https://wa.me/${numero}?text=${encodeURIComponent("[TESTE] " + txt)}` : "#";
     const faltam = ["itens", "total"].filter((v) => !dados.loja.mensagem.includes(`{${v}}`));
     $("msgAviso").className = "hint " + (faltam.length ? "bad" : "");
-    $("msgAviso").textContent = faltam.length ? `Atenção: a mensagem não inclui ${faltam.map((v) => `{${v}}`).join(" e ")}. O pedido chegará incompleto.` : "";
+    const itemRuim = !Pedido.itemValido(dados.loja.mensagemItem);
+    const avisos = [];
+    if (faltam.length) avisos.push(`a mensagem não inclui ${faltam.map((v) => `{${v}}`).join(" e ")}. O pedido chegará incompleto.`);
+    if (itemRuim) avisos.push("a linha de cada produto não tem {produto}. Enquanto isso, o site usa a linha padrão para o pedido não chegar sem a lista.");
+    $("msgAviso").className = "hint " + (avisos.length ? "bad" : "");
+    $("msgAviso").textContent = avisos.length ? "Atenção: " + avisos.join(" Também: ") : "";
   }
   function renderMensagem() {
     $("msgVars").innerHTML = Pedido.VARIAVEIS.map(([v, d]) => `<button class="var" data-v="${v}" title="${esc(d)}">{${v}}<small>${esc(d)}</small></button>`).join("");
@@ -1124,7 +1157,11 @@ window.Motion = (() => {
   $("lAviso").addEventListener("input", () => { dados.loja.avisoFechada = $("lAviso").value; mudou(); });
   $("lWhats").addEventListener("input", () => { const v = validarWhats(); if (v) { dados.loja.whatsapp = v; mudou(); } });
   $("lWhats").addEventListener("blur", () => { if (validarWhats()) $("lWhats").value = formatarWhats(dados.loja.whatsapp); });
-  [["lNome", "nome"], ["lSlogan", "slogan"], ["lEndereco", "endereco"]].forEach(([id, k]) => $(id).addEventListener("input", () => { dados.loja[k] = $(id).value; mudou(); }));
+  [["lNome", "nome"], ["lSlogan", "slogan"], ["lEndereco", "endereco"]].forEach(([id, k]) => $(id).addEventListener("input", () => {
+    if (k === "nome" && !$(id).value.trim()) return; // o nome da loja não pode ficar vazio
+    dados.loja[k] = $(id).value; mudou();
+  }));
+  $("lNome").addEventListener("blur", () => { if (!$("lNome").value.trim()) { $("lNome").value = dados.loja.nome || ""; toast("O nome da loja não pode ficar vazio.", "erro"); } });
   $("lMinimo").addEventListener("input", () => { dados.loja.pedidoMinimo = Math.max(0, num($("lMinimo").value)); mudou(); });
   // ---------- Rodapé: Instagram, WhatsApp e aviso ----------
   function validarRedes() {
@@ -1211,7 +1248,7 @@ window.Motion = (() => {
       gMsg(e.status === 401 ? "Chave inválida ou expirada." : e.status === 404 ? "Repositório não encontrado, ou a chave não tem acesso a ele." : "Erro: " + esc(e.message), "bad");
     }
   };
-  $("gEsquecer").onclick = () => sair();
+  $("gEsquecer").onclick = () => { if (confirm("Remover a chave deste aparelho? Você vai precisar entrar de novo com e-mail e senha.")) sair(); };
 
   // =====================================================
   // CONTAS DE ACESSO (e-mail + senha)
@@ -1321,7 +1358,10 @@ window.Motion = (() => {
       $("skeleton").classList.add("fora");
       if (info) { $("loginInfo").textContent = info; $("loginAvancado").open = true; }
       setTimeout(() => $(info ? "loginToken" : "loginEmail").focus(), 50);
-      let falhas = 0;
+      // erros de senha contam mesmo se a página for recarregada (some depois de 15 min sem erro)
+      const LS_FALHAS = "adega_admin_falhas";
+      const lerFalhas = () => { const f = store.get(LS_FALHAS, null); return f && f.em > Date.now() - 15 * 60e3 ? f.n : 0; };
+      let falhas = lerFalhas();
       const pronto = () => {
         $("login").hidden = true; document.documentElement.classList.remove("com-login");
         $("loginSenha").value = ""; $("loginToken").value = ""; $("skeleton").classList.remove("fora");
@@ -1331,17 +1371,19 @@ window.Motion = (() => {
         ev.preventDefault();
         const btn = $("loginBtn"); if (btn.disabled) return;
         btn.disabled = true; $("loginErro").textContent = ""; btn.lastChild.textContent = "Verificando…";
+        falhas = Math.max(falhas, lerFalhas());
+        if (falhas) await new Promise((r) => setTimeout(r, Math.min(falhas, 5) * 1000));
         try {
           const { conta, segredo } = await Acesso.entrar(cofre, $("loginEmail").value, $("loginSenha").value);
           gh = { owner: segredo.owner || gh.owner, repo: segredo.repo || gh.repo, branch: segredo.branch || gh.branch, token: segredo.token };
           store.set(LS_GH, gh);
           sessao = { id: conta.id, nome: conta.nome, ate: Date.now() + SESSAO_DIAS * 864e5 }; store.set(LS_SESSAO, sessao);
+          store.del(LS_FALHAS);
           pronto();
         } catch (err) {
-          falhas++;
+          falhas++; store.set(LS_FALHAS, { n: falhas, em: Date.now() });
           $("loginErro").textContent = err.message;
           $("loginSenha").value = ""; $("loginSenha").focus();
-          await new Promise((r) => setTimeout(r, Math.min(falhas, 5) * 1000)); // espera cresce a cada erro
         } finally { btn.disabled = false; btn.lastChild.textContent = "Entrar"; }
       };
       $("loginTokenBtn").onclick = async () => {
@@ -1390,6 +1432,12 @@ window.Motion = (() => {
       const d = parseDataJs(await f.text());
       if (!d || !Array.isArray(d.produtos) || !Array.isArray(d.categorias) || !d.loja || !d.frete) throw new Error("formato");
       Pedido.normalizar(d);
+      // ids inteiros e sem repetição; categorias que faltam na lista são recriadas
+      const ids = d.produtos.map((p) => p.id);
+      if (ids.some((id) => !Number.isInteger(id) || id <= 0) || new Set(ids).size !== ids.length) throw new Error("formato");
+      const idsPr = d.promocoes.map((p) => p.id);
+      if (idsPr.some((id) => !Number.isInteger(id) || id <= 0) || new Set(idsPr).size !== idsPr.length) throw new Error("formato");
+      for (const p of d.produtos) if (p.categoria && !d.categorias.includes(p.categoria)) d.categorias.push(p.categoria);
       if (!confirm(`Importar backup com ${plural(d.produtos.length, "produto", "produtos")} e ${plural(d.promocoes.length, "promoção", "promoções")}? Os dados atuais do painel serão substituídos (o site só muda ao publicar).`)) return;
       dados = d;
       mudou(); abrirAba("inicio"); toast("Backup importado. Confira e clique em Publicar.", null, 4000);
@@ -1457,42 +1505,47 @@ window.Motion = (() => {
   // =====================================================
   // PUBLICAR
   // =====================================================
+  let ocupado = false; // publicar e sincronizar nunca rodam ao mesmo tempo
   async function publicar() {
     if (!gh.token) { abrirAba("conexao"); return toast("Conecte o painel ao site para publicar.", "erro", 3200); }
     if (!temMudancas()) return toast("Não há alterações para publicar.");
+    if (ocupado) return toast("Aguarde um instante e tente de novo.");
+    ocupado = true;
     const btn = $("btnPublicar"); btn.disabled = true;
     const status = (t) => { $("statusTxt").textContent = t; };
+    // Retrato do que vai ser publicado: o que for editado durante o envio não se perde (é juntado no fim)
+    const envio = clone(dados), baseEnvio = publicado;
     try {
-      const usadas = new Set(dados.produtos.map((p) => p.imagem).filter(Boolean));
-      const imgs = Object.entries(pendentes).filter(([path]) => usadas.has(path));
-      for (let i = 0; i < imgs.length; i++) {
-        const [path, dataUrl] = imgs[i];
-        status(`Enviando foto ${i + 1} de ${imgs.length}…`);
-        await gravarArquivo(path, dataUrl.split(",")[1], `Foto de produto (${path})`);
-        cacheImgs[path] = dataUrl;
-        delete pendentes[path];
-      }
-      pendentes = {};
       status("Salvando…");
       // Lê o que está publicado agora. Se outro aparelho publicou depois, junta (nunca substitui).
       let juntou = false, enviado = null;
       for (let tentativa = 0; tentativa < 3 && !enviado; tentativa++) {
         const atual = await lerArquivo("data.js");
-        let enviar = dados, remoto = null;
+        let enviar = envio, remoto = null;
         if (atual) {
           try { remoto = Pedido.normalizar(parseDataJs(atual.texto)); } catch { remoto = null; }
-          if (remoto && JSON.stringify(remoto) !== publicado) {
-            enviar = Pedido.normalizar(Mescla.mesclar(JSON.parse(publicado), dados, remoto));
+          if (remoto && JSON.stringify(remoto) !== baseEnvio) {
+            enviar = Pedido.normalizar(Mescla.mesclar(JSON.parse(baseEnvio), envio, remoto));
             juntou = true;
           }
         }
-        // Trava: publicação que tira muitos produtos do site pede confirmação
-        if (remoto) {
+        // Trava: publicação que tira muitos produtos do site pede confirmação (antes de enviar fotos)
+        if (remoto && tentativa === 0) {
           const antes = remoto.produtos.length, depois = enviar.produtos.length;
           if (antes - depois >= 5 && !confirm(`Atenção: o site tem ${antes} produtos e ficará com ${depois} (${antes - depois} serão removidos). Publicar mesmo assim?`)) {
             throw new Error("cancelado");
           }
         }
+        // Fotos novas usadas pelo que vai ao site (só as que ainda não subiram)
+        const imgs = [...new Set(enviar.produtos.map((p) => p.imagem).filter((p) => p && pendentes[p]))];
+        for (let i = 0; i < imgs.length; i++) {
+          const path = imgs[i], dataUrl = pendentes[path];
+          status(`Enviando foto ${i + 1} de ${imgs.length}…`);
+          await gravarArquivo(path, dataUrl.split(",")[1], `Foto de produto (${path})`);
+          cacheImgs[path] = dataUrl;
+          delete pendentes[path];
+        }
+        status("Salvando…");
         try {
           await gravarArquivo("data.js", b64DeTexto(gerarDataJs(enviar)), "Atualiza catálogo pelo painel admin", atual && atual.sha);
           enviado = enviar;
@@ -1502,15 +1555,20 @@ window.Motion = (() => {
         }
       }
       if (!enviado) throw new Error("o site está sendo alterado em outro aparelho. Tente de novo em instantes.");
-      dados = enviado;
+      const editouDurante = JSON.stringify(dados) !== JSON.stringify(envio);
+      dados = editouDurante ? Pedido.normalizar(Mescla.mesclar(envio, dados, enviado)) : enviado;
       publicado = JSON.stringify(enviado);
-      store.del(LS_DRAFT);
-      if (juntou) { renderKpis(); RENDER[abaAtual](); }
+      // fotos que ninguém mais usa saem da fila; as que foram escolhidas durante o envio ficam
+      const usadas = new Set(dados.produtos.map((p) => p.imagem).filter(Boolean));
+      for (const p in pendentes) if (!usadas.has(p)) delete pendentes[p];
+      if (temMudancas()) mudou(); else store.del(LS_DRAFT);
+      if (juntou || editouDurante) { renderKpis(); if (!modalAberto) RENDER[abaAtual](); }
       toast(juntou ? "Publicado e juntado com as alterações feitas em outro aparelho." : "Publicado. Os clientes veem a atualização ao recarregar o site.", null, 4500);
     } catch (e) {
       mudou();
       if (e.message !== "cancelado") toast(e.status === 401 ? "Chave inválida. Verifique a conexão." : "Erro ao publicar: " + e.message, "erro", 5000);
     } finally {
+      ocupado = false;
       btn.disabled = false;
       atualizarStatus();
     }
@@ -1518,20 +1576,20 @@ window.Motion = (() => {
   $("btnPublicar").onclick = publicar;
 
   // Mantém o painel em dia quando outro aparelho publica (junta, nunca apaga)
-  let sincronizando = false;
+  const digitando = () => { const a = document.activeElement; return !!a && a.matches("input, textarea, select") && a.type !== "file"; };
   async function sincronizar() {
-    if (sincronizando || !dados || !gh.token || document.hidden || modalAberto || $("btnPublicar").disabled) return;
-    sincronizando = true;
+    if (ocupado || !dados || !gh.token || document.hidden || modalAberto || digitando()) return;
+    ocupado = true;
     try {
       const atual = await lerArquivo("data.js"); if (!atual) return;
       const remoto = Pedido.normalizar(parseDataJs(atual.texto)), s = JSON.stringify(remoto);
-      if (s === publicado || modalAberto) return;
+      if (s === publicado || modalAberto || digitando()) return;
       dados = temMudancas() ? Pedido.normalizar(Mescla.mesclar(JSON.parse(publicado), dados, remoto)) : clone(remoto);
       publicado = s;
       if (temMudancas()) mudou(); else store.del(LS_DRAFT);
       atualizarStatus(); renderKpis(); RENDER[abaAtual]();
       toast("Atualizado com o que foi publicado em outro aparelho.");
-    } catch { /* sem internet: tenta de novo depois */ } finally { sincronizando = false; }
+    } catch { /* sem internet: tenta de novo depois */ } finally { ocupado = false; }
   }
   document.addEventListener("visibilitychange", sincronizar);
   setInterval(sincronizar, 90000);
