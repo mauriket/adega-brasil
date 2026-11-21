@@ -39,6 +39,7 @@ window.DADOS = {
   "categorias": [
     "Cervejas",
     "Destilados",
+    "Combos",
     "Licores",
     "Vinhos",
     "Mansão Maromba",
@@ -170,7 +171,7 @@ window.DADOS = {
     },
     {
       "id": 43,
-      "imagem": "",
+      "imagem": "img/produtos/p43-1795267107105.jpg",
       "nome": "Gin Tanqueray Royale 700ml",
       "preco": 145,
       "categoria": "Destilados",
