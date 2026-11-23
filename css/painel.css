@@ -709,3 +709,8 @@ html.com-login body > :not(.login) { visibility: hidden; }
 .cf-tab tr.sep td { border-top: 1px solid var(--line-2); }
 .cf-tab small { color: var(--muted); }
 .txt-ok { color: var(--good); font-weight: 700; }
+
+/* Configuração técnica (fechada por padrão) */
+.tecnico > details > summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+.tecnico > details > summary b { color: var(--text); }
+.tecnico > details[open] > summary { margin-bottom: 12px; }

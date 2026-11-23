@@ -10,8 +10,8 @@
   <link rel="icon" type="image/png" href="img/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/painel.css?v=20261121d">
-  <script src="js/painel/tema.js?v=20261121d"></script>
+  <link rel="stylesheet" href="css/painel.css?v=20261123b">
+  <script src="js/painel/tema.js?v=20261123b"></script>
 </head>
 <body>
   <!-- ===== Login ===== -->
@@ -25,9 +25,9 @@
       <p class="erro" id="loginErro" role="alert"></p>
       <button class="btn accent" id="loginBtn" type="submit"><span data-ico="key"></span>Entrar</button>
       <details class="avancado" id="loginAvancado">
-        <summary>Recuperação: entrar com a chave do GitHub</summary>
+        <summary>Recuperação: entrar com a chave de publicação</summary>
         <p class="help">Use só se ninguém conseguir entrar com e-mail e senha.</p>
-        <label class="f">Chave (token)<input type="password" id="loginToken" autocomplete="off" placeholder="github_pat_…"></label>
+        <label class="f">Chave de publicação<input type="password" id="loginToken" autocomplete="off" placeholder="Cole a chave aqui"></label>
         <button class="btn ghost" type="button" id="loginTokenBtn">Entrar com a chave</button>
       </details>
     </form>
@@ -73,7 +73,7 @@
   <main class="app" id="main">
     <div class="aviso" id="avisoConexao" hidden>
       <span data-ico="alert" data-ico-size="22"></span>
-      <div><span class="av-longo"><b>Este aparelho ainda não publica no site.</b> Entre com sua conta ou conecte a chave do GitHub.</span><span class="av-curto"><b>Sem acesso para publicar.</b></span></div>
+      <div><span class="av-longo"><b>Este aparelho ainda não publica no site.</b> Entre com sua conta de acesso.</span><span class="av-curto"><b>Sem acesso para publicar.</b></span></div>
       <button class="btn accent sm" data-acao="conexao">Conectar</button>
     </div>
 
@@ -284,33 +284,9 @@
     <!-- ===== CONEXÃO E BACKUP ===== -->
     <section class="tab" id="tab-conexao" hidden>
       <div class="grid-2">
-        <article class="card">
-          <header><h2>Conectar o painel ao site</h2></header>
-          <p class="help">O site fica hospedado no GitHub. Para que o botão <b>Publicar</b> funcione, este aparelho precisa de uma chave de acesso (configuração única). A chave fica salva apenas neste navegador.</p>
-          <ol class="passos">
-            <li>Acesse <a href="#" target="_blank" class="link" id="gLinkToken">criar chave no GitHub</a> (nome e validade já vêm preenchidos)</li>
-            <li>Em <b>Repository access</b>, selecione <b>Only select repositories</b> e escolha <b id="gRepoNome">adega-brasil</b></li>
-            <li>Em <b>Permissions</b>, defina <b>Contents</b> como <b>Read and write</b></li>
-            <li>Clique em <b>Generate token</b>, copie a chave e cole abaixo</li>
-          </ol>
-          <label class="f">Chave (token)<input type="password" id="gToken" placeholder="github_pat_…" autocomplete="off"></label>
-          <div class="row">
-            <button class="btn accent" id="gSalvar"><span data-ico="check"></span>Salvar e testar</button>
-            <button class="btn ghost" id="gEsquecer">Remover deste aparelho</button>
-          </div>
-          <p class="hint" id="gMsg"></p>
-          <details class="avancado">
-            <summary>Avançado</summary>
-            <div class="campos-3">
-              <label class="f">Usuário<input type="text" id="gOwner"></label>
-              <label class="f">Repositório<input type="text" id="gRepo"></label>
-              <label class="f">Branch<input type="text" id="gBranch"></label>
-            </div>
-          </details>
-        </article>
         <article class="card span-2" id="cardContas">
           <header><h2>Contas de acesso</h2><button class="btn ghost sm" id="cSair" type="button"><span data-ico="arrow"></span>Sair deste aparelho</button></header>
-          <p class="help">Cada pessoa entra no painel com o próprio e-mail e senha. A chave do GitHub fica guardada criptografada com a senha de cada conta. Use senhas fortes (10+ caracteres, com letras e números) e não as compartilhe.</p>
+          <p class="help">Cada pessoa entra no painel com o próprio e-mail e senha. A chave de publicação fica guardada criptografada com a senha de cada conta. Use senhas fortes (10+ caracteres, com letras e números) e não as compartilhe.</p>
           <p class="hint" id="cSessao"></p>
           <div class="lista" id="cLista2"></div>
           <hr class="sep">
@@ -348,6 +324,33 @@
               <button class="btn danger" id="hAntigoApagar"><span data-ico="trash"></span>Apagar</button>
             </div>
           </div>
+        </article>
+        <!-- Configuração técnica: a chave de publicação já vem das contas; aqui só para trocar a chave -->
+        <article class="card span-2 tecnico">
+          <details id="gTecnico">
+            <summary><b>Configuração técnica</b> <small>(só para trocar a chave de publicação)</small></summary>
+            <p class="help">A chave de publicação é o que deixa o botão <b>Publicar</b> salvar as alterações. Ela já fica guardada, criptografada, nas contas de acesso. Só mexa aqui para trocar a chave (por exemplo, quando ela vencer); depois, salve as contas de novo.</p>
+            <ol class="passos">
+              <li>Acesse <a href="#" target="_blank" class="link" id="gLinkToken">criar chave nova</a> (nome e validade já vêm preenchidos)</li>
+              <li>Em <b>Repository access</b>, selecione <b>Only select repositories</b> e escolha <b id="gRepoNome">adega-brasil</b></li>
+              <li>Em <b>Permissions</b>, defina <b>Contents</b> como <b>Read and write</b></li>
+              <li>Clique em <b>Generate token</b>, copie a chave e cole abaixo</li>
+            </ol>
+            <label class="f">Chave de publicação<input type="password" id="gToken" placeholder="Cole a chave aqui" autocomplete="off"></label>
+            <div class="row">
+              <button class="btn accent" id="gSalvar"><span data-ico="check"></span>Salvar e testar</button>
+              <button class="btn ghost" id="gEsquecer">Remover deste aparelho</button>
+            </div>
+            <p class="hint" id="gMsg"></p>
+            <details class="avancado">
+              <summary>Endereço dos dados</summary>
+              <div class="campos-3">
+                <label class="f">Usuário<input type="text" id="gOwner"></label>
+                <label class="f">Repositório<input type="text" id="gRepo"></label>
+                <label class="f">Branch<input type="text" id="gBranch"></label>
+              </div>
+            </details>
+          </details>
         </article>
       </div>
     </section>
@@ -477,11 +480,11 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="data.js"></script>
-  <script src="js/comum/geo.js?v=20261121d"></script>
-  <script src="js/comum/promo.js?v=20261121d"></script>
-  <script src="js/comum/pedido.js?v=20261121d"></script>
-  <script src="js/painel/mescla.js?v=20261121d"></script>
-  <script src="js/painel/acesso.js?v=20261121d"></script>
-  <script src="js/painel/admin.js?v=20261121d"></script>
+  <script src="js/comum/geo.js?v=20261123b"></script>
+  <script src="js/comum/promo.js?v=20261123b"></script>
+  <script src="js/comum/pedido.js?v=20261123b"></script>
+  <script src="js/painel/mescla.js?v=20261123b"></script>
+  <script src="js/painel/acesso.js?v=20261123b"></script>
+  <script src="js/painel/admin.js?v=20261123b"></script>
 </body>
 </html>

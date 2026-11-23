@@ -1297,8 +1297,9 @@ window.Motion = (() => {
   function renderConexao() {
     $("gOwner").value = gh.owner; $("gRepo").value = gh.repo; $("gBranch").value = gh.branch;
     $("gToken").value = ""; // a chave nunca é mostrada na tela
-    $("gToken").placeholder = gh.token ? "Chave salva neste aparelho (oculta)" : "github_pat_…";
+    $("gToken").placeholder = gh.token ? "Chave salva neste aparelho (oculta)" : "Cole a chave aqui";
     $("gRepoNome").textContent = gh.repo;
+    if (!gh.token) $("gTecnico").open = true; // sem chave: já mostra onde colocar
     renderAntigo();
     renderContas();
     const q = new URLSearchParams({ name: "Painel da Adega", description: `Publicar produtos no site ${gh.repo}`, target_name: gh.owner, expires_in: "none", contents: "write" });
@@ -1315,7 +1316,7 @@ window.Motion = (() => {
       const repo = await api("");
       if (repo.permissions && repo.permissions.push === false) { gh = antes; return gMsg("A chave funciona, mas não tem permissão de gravação. Defina Contents como Read and write.", "bad"); }
       store.set(LS_GH, gh);
-      if (!sessao) { sessao = { id: "chave", nome: "Chave do GitHub", ate: Date.now() + 864e5 }; store.set(LS_SESSAO, sessao); }
+      if (!sessao) { sessao = { id: "chave", nome: "Chave de publicação", ate: Date.now() + 864e5 }; store.set(LS_SESSAO, sessao); }
       const temContas = (cofre.contas || []).length > 0;
       gMsg(`Conectado a <b>${esc(repo.full_name)}</b>.${temContas ? " Como a chave mudou, salve de novo cada conta abaixo (com a senha de cada um) para elas usarem a chave nova." : ""}`, "ok");
       renderConexao();
@@ -1370,7 +1371,7 @@ window.Motion = (() => {
   function renderContas() {
     const contas = cofre.contas || [];
     $("cSessao").textContent = sessao && sessao.id !== "chave" ? `Você entrou como ${sessao.nome}. Este aparelho fica conectado por ${SESSAO_DIAS} dias ou até clicar em Sair.`
-      : gh.token ? "Este aparelho está conectado pela chave do GitHub." : "";
+      : gh.token ? "Este aparelho está conectado pela chave de publicação." : "";
     $("cLista2").innerHTML = contas.length ? contas.map((c) => `<div class="item conta">
         <div class="thumb">${ico("key", 20)}</div>
         <div style="min-width:0"><div class="nome">${esc(c.nome)}</div>
@@ -1416,7 +1417,7 @@ window.Motion = (() => {
     const conta = (cofre.contas || []).find((c) => c.id === b.dataset.rm); if (!conta) return;
     const ultima = cofre.contas.length === 1;
     if (!confirm(ultima
-      ? `Remover "${conta.nome}", a última conta? Sem contas, o painel volta a abrir só pela chave do GitHub.`
+      ? `Remover "${conta.nome}", a última conta? Sem contas, o painel volta a abrir só pela chave de publicação.`
       : `Remover a conta "${conta.nome}"? Essa pessoa não vai mais conseguir entrar.`)) return;
     b.disabled = true;
     try {
@@ -1472,7 +1473,7 @@ window.Motion = (() => {
           const repo = await api("");
           if (repo.permissions && repo.permissions.push === false) throw Object.assign(new Error("sem permissão de gravação"), { status: 403 });
           store.set(LS_GH, gh);
-          sessao = { id: "chave", nome: "Chave do GitHub", ate: Date.now() + 864e5 }; store.set(LS_SESSAO, sessao);
+          sessao = { id: "chave", nome: "Chave de publicação", ate: Date.now() + 864e5 }; store.set(LS_SESSAO, sessao);
           pronto();
         } catch (err) {
           gh.token = antes;
@@ -1488,14 +1489,14 @@ window.Motion = (() => {
     if (!lido) {
       if (gh.token && sessaoValida(true)) return; // sem internet agora: mantém a sessão deste aparelho
       gh.token = ""; store.set(LS_GH, gh);
-      return pedirLogin("Não foi possível verificar o acesso agora. Confira a internet ou entre com a chave do GitHub.");
+      return pedirLogin("Não foi possível verificar o acesso agora. Confira a internet ou entre com a chave de publicação.");
     }
     cofre = lido.cofre && Array.isArray(lido.cofre.contas) ? lido.cofre : { versao: 1, contas: [] };
     const temContas = cofre.contas.length > 0;
     if (gh.token && sessaoValida()) return;              // sessão válida neste aparelho
     if (gh.token && !temContas) return;                  // primeira configuração: entra para criar as contas
     gh.token = ""; store.set(LS_GH, gh); store.del(LS_SESSAO); sessao = null;
-    return pedirLogin(temContas ? "" : "Ainda não há contas. Entre com a chave do GitHub para criar as contas de acesso.");
+    return pedirLogin(temContas ? "" : "Ainda não há contas. Entre com a chave de publicação para criar as contas de acesso.");
   }
   $("gBaixar").onclick = () => {
     const a = document.createElement("a");
@@ -1541,7 +1542,7 @@ window.Motion = (() => {
           ${i === 0 ? "" : `<button class="btn ghost sm" data-sha="${esc(c.sha)}" data-quando="${esc(quando(c.commit.author.date))}">Carregar esta versão</button>`}
         </div>`).join("") || '<p class="hint">Nenhuma publicação encontrada.</p>';
     } catch (e) {
-      $("hLista").innerHTML = `<p class="hint bad">Não foi possível carregar o histórico${e.status === 403 ? " (limite do GitHub, tente em alguns minutos)" : ""}.</p>`;
+      $("hLista").innerHTML = `<p class="hint bad">Não foi possível carregar o histórico${e.status === 403 ? " (limite de acessos, tente em alguns minutos)" : ""}.</p>`;
     } finally { b.disabled = false; }
   };
   $("hLista").addEventListener("click", async (e) => {
