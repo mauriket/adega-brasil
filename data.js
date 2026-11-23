@@ -363,7 +363,7 @@ window.DADOS = {
     },
     {
       "id": 59,
-      "imagem": "",
+      "imagem": "img/produtos/p59-1795436504018.jpg",
       "nome": "Extra Power 473 ML",
       "preco": 10,
       "categoria": "Energéticos e Refri",
@@ -375,7 +375,7 @@ window.DADOS = {
     },
     {
       "id": 60,
-      "imagem": "",
+      "imagem": "img/produtos/p60-1795436412754.jpg",
       "nome": "Red Bull 250 ML",
       "preco": 12,
       "categoria": "Energéticos e Refri",
@@ -387,7 +387,7 @@ window.DADOS = {
     },
     {
       "id": 61,
-      "imagem": "",
+      "imagem": "img/produtos/p61-1795436531642.jpg",
       "nome": "Monster 473 ML",
       "preco": 12.5,
       "categoria": "Energéticos e Refri",
@@ -399,7 +399,7 @@ window.DADOS = {
     },
     {
       "id": 62,
-      "imagem": "",
+      "imagem": "img/produtos/p62-1795436560178.jpg",
       "nome": "Extra Power 2 LT",
       "preco": 16,
       "categoria": "Energéticos e Refri",
@@ -411,7 +411,7 @@ window.DADOS = {
     },
     {
       "id": 63,
-      "imagem": "",
+      "imagem": "img/produtos/p63-1795436597098.jpg",
       "nome": "Bally 2 LT",
       "preco": 12,
       "categoria": "Energéticos e Refri",
@@ -423,7 +423,7 @@ window.DADOS = {
     },
     {
       "id": 64,
-      "imagem": "",
+      "imagem": "img/produtos/p64-1795436635731.jpg",
       "nome": "Coca Cola Original 2 LT",
       "preco": 12,
       "categoria": "Energéticos e Refri",
@@ -435,7 +435,7 @@ window.DADOS = {
     },
     {
       "id": 65,
-      "imagem": "",
+      "imagem": "img/produtos/p65-1795436664314.jpg",
       "nome": "Coca Cola Zero Açúcar 2 LT",
       "preco": 12,
       "categoria": "Energéticos e Refri",
@@ -447,7 +447,7 @@ window.DADOS = {
     },
     {
       "id": 66,
-      "imagem": "",
+      "imagem": "img/produtos/p66-1795436705330.jpg",
       "nome": "Sprite 2 LT",
       "preco": 10,
       "categoria": "Energéticos e Refri",
@@ -459,7 +459,7 @@ window.DADOS = {
     },
     {
       "id": 67,
-      "imagem": "",
+      "imagem": "img/produtos/p67-1795436738370.jpg",
       "nome": "Fanta Laranja 2 LT",
       "preco": 10,
       "categoria": "Energéticos e Refri",
@@ -471,7 +471,7 @@ window.DADOS = {
     },
     {
       "id": 68,
-      "imagem": "",
+      "imagem": "img/produtos/p68-1795436851418.jpg",
       "nome": "Mineiro 2 LT",
       "preco": 10,
       "categoria": "Energéticos e Refri",
@@ -483,7 +483,7 @@ window.DADOS = {
     },
     {
       "id": 69,
-      "imagem": "",
+      "imagem": "img/produtos/p69-1795436251443.jpg",
       "nome": "Mansão Maromba Maçã Verde",
       "preco": 14.99,
       "categoria": "Mansão Maromba",
@@ -495,7 +495,7 @@ window.DADOS = {
     },
     {
       "id": 70,
-      "imagem": "",
+      "imagem": "img/produtos/p70-1795436299659.jpg",
       "nome": "Mansão Maromba Dark",
       "preco": 14.99,
       "categoria": "Mansão Maromba",
@@ -507,7 +507,7 @@ window.DADOS = {
     },
     {
       "id": 71,
-      "imagem": "",
+      "imagem": "img/produtos/p71-1795436360019.jpg",
       "nome": "Mansão Maromba Tigrinho",
       "preco": 14.99,
       "categoria": "Mansão Maromba",
@@ -939,7 +939,7 @@ window.DADOS = {
     },
     {
       "id": 107,
-      "imagem": "",
+      "imagem": "img/produtos/p107-1795437157034.jpg",
       "nome": "Suco Nutri Nectar 1 LT",
       "preco": 8,
       "categoria": "Energéticos e Refri",
@@ -951,7 +951,7 @@ window.DADOS = {
     },
     {
       "id": 108,
-      "imagem": "",
+      "imagem": "img/produtos/p108-1795437181242.jpg",
       "nome": "Suco Nutri Nectar 200 ML",
       "preco": 3,
       "categoria": "Energéticos e Refri",
