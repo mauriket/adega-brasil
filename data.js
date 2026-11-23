@@ -831,7 +831,7 @@ window.DADOS = {
     },
     {
       "id": 98,
-      "imagem": "",
+      "imagem": "img/produtos/p98-1795437373761.jpg",
       "nome": "Amendoim Temperado Yoki",
       "preco": 5,
       "categoria": "Gelo e Petiscos",
