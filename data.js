@@ -807,7 +807,7 @@ window.DADOS = {
     },
     {
       "id": 96,
-      "imagem": "",
+      "imagem": "img/produtos/p96-1795437238217.jpg",
       "nome": "Doritos 120 g",
       "preco": 13,
       "categoria": "Gelo e Petiscos",
@@ -819,7 +819,7 @@ window.DADOS = {
     },
     {
       "id": 97,
-      "imagem": "",
+      "imagem": "img/produtos/p97-1795437268185.jpg",
       "nome": "Doritos 30 g",
       "preco": 7,
       "categoria": "Gelo e Petiscos",
