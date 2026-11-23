@@ -843,8 +843,8 @@ window.DADOS = {
     },
     {
       "id": 99,
-      "imagem": "",
-      "nome": "Cigarro Country",
+      "imagem": "img/produtos/p99-1795437411153.jpg",
+      "nome": "Cigarro Dunhill Country",
       "preco": 16.75,
       "categoria": "Tabaco",
       "emoji": "",
@@ -855,7 +855,7 @@ window.DADOS = {
     },
     {
       "id": 100,
-      "imagem": "",
+      "imagem": "img/produtos/p100-1795437484921.jpg",
       "nome": "Cigarro Malboro",
       "preco": 12,
       "categoria": "Tabaco",
@@ -867,7 +867,7 @@ window.DADOS = {
     },
     {
       "id": 101,
-      "imagem": "",
+      "imagem": "img/produtos/p101-1795437527465.jpg",
       "nome": "Cigarro Lucky Strike Tradicional",
       "preco": 11.5,
       "categoria": "Tabaco",
@@ -879,7 +879,7 @@ window.DADOS = {
     },
     {
       "id": 102,
-      "imagem": "",
+      "imagem": "img/produtos/p102-1795437653226.jpg",
       "nome": "Cigarro Lucky Strike Doubble Ice",
       "preco": 16,
       "categoria": "Tabaco",
@@ -891,7 +891,7 @@ window.DADOS = {
     },
     {
       "id": 103,
-      "imagem": "",
+      "imagem": "img/produtos/p103-1795437670145.jpg",
       "nome": "Cigarro Marlboro Menta",
       "preco": 16.75,
       "categoria": "Tabaco",
@@ -903,7 +903,7 @@ window.DADOS = {
     },
     {
       "id": 104,
-      "imagem": "",
+      "imagem": "img/produtos/p104-1795437687761.jpg",
       "nome": "Cigarro Marlboro Melancia",
       "preco": 16.75,
       "categoria": "Tabaco",
@@ -915,7 +915,7 @@ window.DADOS = {
     },
     {
       "id": 105,
-      "imagem": "",
+      "imagem": "img/produtos/p105-1795437715081.jpg",
       "nome": "Palheiros Piracanjuba",
       "preco": 24,
       "categoria": "Tabaco",
@@ -927,7 +927,7 @@ window.DADOS = {
     },
     {
       "id": 106,
-      "imagem": "",
+      "imagem": "img/produtos/p106-1795437746953.jpg",
       "nome": "Palheiros Paulistinha",
       "preco": 38,
       "categoria": "Tabaco",
@@ -963,7 +963,7 @@ window.DADOS = {
     },
     {
       "id": 109,
-      "imagem": "",
+      "imagem": "img/produtos/p109-1795437783377.jpg",
       "nome": "Seda Papelito com Piteira",
       "preco": 9.99,
       "categoria": "Tabaco",
@@ -975,7 +975,7 @@ window.DADOS = {
     },
     {
       "id": 110,
-      "imagem": "",
+      "imagem": "img/produtos/p110-1795437836249.jpg",
       "nome": "Seda Papelito",
       "preco": 8.99,
       "categoria": "Tabaco",
@@ -987,7 +987,7 @@ window.DADOS = {
     },
     {
       "id": 111,
-      "imagem": "",
+      "imagem": "img/produtos/p111-1795437880673.jpg",
       "nome": "Seda Zoomo",
       "preco": 3,
       "categoria": "Tabaco",
