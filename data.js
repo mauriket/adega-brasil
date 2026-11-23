@@ -999,7 +999,7 @@ window.DADOS = {
     },
     {
       "id": 112,
-      "imagem": "",
+      "imagem": "img/produtos/p112-1795440259110.jpg",
       "nome": "Gelo Pequeno 4kg",
       "preco": 12,
       "categoria": "Gelo e Petiscos",
@@ -1011,7 +1011,7 @@ window.DADOS = {
     },
     {
       "id": 113,
-      "imagem": "",
+      "imagem": "img/produtos/p113-1795440263086.jpg",
       "nome": "Gelo Grande 7kg",
       "preco": 15,
       "categoria": "Gelo e Petiscos",
@@ -1023,7 +1023,7 @@ window.DADOS = {
     },
     {
       "id": 114,
-      "imagem": "",
+      "imagem": "img/produtos/p114-1795440067559.jpg",
       "nome": "Trento Limão",
       "preco": 4,
       "categoria": "Gelo e Petiscos",
@@ -1035,7 +1035,7 @@ window.DADOS = {
     },
     {
       "id": 115,
-      "imagem": "",
+      "imagem": "img/produtos/p115-1795440098670.jpg",
       "nome": "Trento Maracujá",
       "preco": 4,
       "categoria": "Gelo e Petiscos",
@@ -1047,7 +1047,7 @@ window.DADOS = {
     },
     {
       "id": 116,
-      "imagem": "",
+      "imagem": "img/produtos/p116-1795440137415.jpg",
       "nome": "Trento Dark",
       "preco": 4,
       "categoria": "Gelo e Petiscos",
@@ -1059,7 +1059,7 @@ window.DADOS = {
     },
     {
       "id": 117,
-      "imagem": "",
+      "imagem": "img/produtos/p117-1795440169038.jpg",
       "nome": "Chocolate Garoto Batom",
       "preco": 3.5,
       "categoria": "Gelo e Petiscos",
