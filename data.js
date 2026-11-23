@@ -519,7 +519,7 @@ window.DADOS = {
     },
     {
       "id": 72,
-      "imagem": "",
+      "imagem": "img/produtos/p72-1795435768843.jpg",
       "nome": "Licor 43 Original 700 ML",
       "preco": 180,
       "categoria": "Licores",
@@ -531,7 +531,7 @@ window.DADOS = {
     },
     {
       "id": 73,
-      "imagem": "",
+      "imagem": "img/produtos/p73-1795435829403.jpg",
       "nome": "Licor 43 Chocolate 700 ML",
       "preco": 130,
       "categoria": "Licores",
@@ -543,7 +543,7 @@ window.DADOS = {
     },
     {
       "id": 74,
-      "imagem": "",
+      "imagem": "img/produtos/p74-1795435904123.jpg",
       "nome": "Bolena Tradicional 750 ML",
       "preco": 145,
       "categoria": "Licores",
@@ -555,7 +555,7 @@ window.DADOS = {
     },
     {
       "id": 75,
-      "imagem": "",
+      "imagem": "img/produtos/p75-1795435921523.jpg",
       "nome": "Bolena Chocolate 750 ML",
       "preco": 145,
       "categoria": "Licores",
@@ -567,7 +567,7 @@ window.DADOS = {
     },
     {
       "id": 76,
-      "imagem": "",
+      "imagem": "img/produtos/p76-1795436070283.jpg",
       "nome": "Bolena Coco 750 ML",
       "preco": 145,
       "categoria": "Licores",
@@ -579,7 +579,7 @@ window.DADOS = {
     },
     {
       "id": 77,
-      "imagem": "",
+      "imagem": "img/produtos/p77-1795436120571.jpg",
       "nome": "Bolena Chocolate com Caramelo 750 ML",
       "preco": 145,
       "categoria": "Licores",
@@ -591,7 +591,7 @@ window.DADOS = {
     },
     {
       "id": 78,
-      "imagem": "",
+      "imagem": "img/produtos/p78-1795436149075.jpg",
       "nome": "Campari 748 ML",
       "preco": 70,
       "categoria": "Licores",
