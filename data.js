@@ -38,8 +38,8 @@ window.DADOS = {
   },
   "categorias": [
     "Cervejas",
-    "Destilados",
     "Combos",
+    "Destilados",
     "Licores",
     "Vinhos",
     "Mansão Maromba",
@@ -603,7 +603,7 @@ window.DADOS = {
     },
     {
       "id": 79,
-      "imagem": "",
+      "imagem": "img/produtos/p79-1795439541287.jpg",
       "nome": "Essência Zomo Maçã Verde",
       "preco": 11,
       "categoria": "Narguilé Essências",
@@ -615,7 +615,7 @@ window.DADOS = {
     },
     {
       "id": 80,
-      "imagem": "",
+      "imagem": "img/produtos/p80-1795439565431.jpg",
       "nome": "Essência Zomo Gum",
       "preco": 11,
       "categoria": "Narguilé Essências",
@@ -627,7 +627,7 @@ window.DADOS = {
     },
     {
       "id": 81,
-      "imagem": "",
+      "imagem": "img/produtos/p81-1795439606063.jpg",
       "nome": "Essência Zomo Blue",
       "preco": 11,
       "categoria": "Narguilé Essências",
@@ -639,7 +639,7 @@ window.DADOS = {
     },
     {
       "id": 82,
-      "imagem": "",
+      "imagem": "img/produtos/p82-1795439624191.jpg",
       "nome": "Essência Zomo Menta",
       "preco": 11,
       "categoria": "Narguilé Essências",
@@ -651,7 +651,7 @@ window.DADOS = {
     },
     {
       "id": 83,
-      "imagem": "",
+      "imagem": "img/produtos/p83-1795439677839.jpg",
       "nome": "Essência Zomo Pêssego",
       "preco": 11,
       "categoria": "Narguilé Essências",
@@ -663,7 +663,7 @@ window.DADOS = {
     },
     {
       "id": 84,
-      "imagem": "",
+      "imagem": "img/produtos/p84-1795439697071.jpg",
       "nome": "Essência Zomo Milk-shake de Banana",
       "preco": 11,
       "categoria": "Narguilé Essências",
@@ -675,7 +675,7 @@ window.DADOS = {
     },
     {
       "id": 85,
-      "imagem": "",
+      "imagem": "img/produtos/p85-1795439080751.jpg",
       "nome": "Essência Ziggy Menta",
       "preco": 12,
       "categoria": "Narguilé Essências",
@@ -687,7 +687,7 @@ window.DADOS = {
     },
     {
       "id": 86,
-      "imagem": "",
+      "imagem": "img/produtos/p86-1795439116719.jpg",
       "nome": "Essência Ziggy Maçã Verde",
       "preco": 12,
       "categoria": "Narguilé Essências",
@@ -699,7 +699,7 @@ window.DADOS = {
     },
     {
       "id": 87,
-      "imagem": "",
+      "imagem": "img/produtos/p87-1795439175671.jpg",
       "nome": "Essência Ziggy Uva",
       "preco": 12,
       "categoria": "Narguilé Essências",
@@ -711,7 +711,7 @@ window.DADOS = {
     },
     {
       "id": 88,
-      "imagem": "",
+      "imagem": "img/produtos/p88-1795439198567.jpg",
       "nome": "Essência Ziggy Tutti-Frutti",
       "preco": 12,
       "categoria": "Narguilé Essências",
@@ -723,7 +723,7 @@ window.DADOS = {
     },
     {
       "id": 89,
-      "imagem": "",
+      "imagem": "img/produtos/p89-1795439360175.jpg",
       "nome": "Essência Ziggy Tropical",
       "preco": 12,
       "categoria": "Narguilé Essências",
@@ -735,7 +735,7 @@ window.DADOS = {
     },
     {
       "id": 90,
-      "imagem": "",
+      "imagem": "img/produtos/p90-1795439402407.jpg",
       "nome": "Essência Ziggy Morango",
       "preco": 12,
       "categoria": "Narguilé Essências",
@@ -747,7 +747,7 @@ window.DADOS = {
     },
     {
       "id": 91,
-      "imagem": "",
+      "imagem": "img/produtos/p91-1795439388495.jpg",
       "nome": "Essência Ziggy Cereja",
       "preco": 12,
       "categoria": "Narguilé Essências",
@@ -759,7 +759,7 @@ window.DADOS = {
     },
     {
       "id": 92,
-      "imagem": "",
+      "imagem": "img/produtos/p92-1795439515839.jpg",
       "nome": "Essência Ziggy Iogurte",
       "preco": 12,
       "categoria": "Narguilé Essências",
@@ -771,7 +771,7 @@ window.DADOS = {
     },
     {
       "id": 93,
-      "imagem": "",
+      "imagem": "img/produtos/p93-1795439479615.jpg",
       "nome": "Essência Ziggy Manga Tropical",
       "preco": 12,
       "categoria": "Narguilé Essências",
@@ -783,7 +783,7 @@ window.DADOS = {
     },
     {
       "id": 94,
-      "imagem": "",
+      "imagem": "img/produtos/p94-1795439022848.jpg",
       "nome": "Carvão UN",
       "preco": 2,
       "categoria": "Narguilé Essências",
@@ -795,7 +795,7 @@ window.DADOS = {
     },
     {
       "id": 95,
-      "imagem": "",
+      "imagem": "img/produtos/p95-1795438983752.jpg",
       "nome": "Papel Alumínio UN",
       "preco": 1,
       "categoria": "Narguilé Essências",
