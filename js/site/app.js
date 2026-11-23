@@ -443,6 +443,7 @@ window.carregarDados = (async () => {
       obs: v("obs"),
       codigo: Pedido.codigo({ itens: lista.map((i) => ({ id: i.id, qtd: i.qtd })), retirada, cep: retirada ? "" : enderecoCep.cep }),
     });
+    $("erro").textContent = "";
     window.open(`https://wa.me/${String(LOJA.whatsapp).replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
