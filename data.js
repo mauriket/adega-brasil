@@ -544,7 +544,7 @@ window.DADOS = {
     {
       "id": 74,
       "imagem": "img/produtos/p74-1795435904123.jpg",
-      "nome": "Bolena Tradicional 750 ML",
+      "nome": "Ballena Tradicional 750 ML",
       "preco": 145,
       "categoria": "Licores",
       "emoji": "",
@@ -556,7 +556,7 @@ window.DADOS = {
     {
       "id": 75,
       "imagem": "img/produtos/p75-1795435921523.jpg",
-      "nome": "Bolena Chocolate 750 ML",
+      "nome": "Ballena Chocolate 750 ML",
       "preco": 145,
       "categoria": "Licores",
       "emoji": "",
@@ -568,7 +568,7 @@ window.DADOS = {
     {
       "id": 76,
       "imagem": "img/produtos/p76-1795436070283.jpg",
-      "nome": "Bolena Coco 750 ML",
+      "nome": "Ballena Coco 750 ML",
       "preco": 145,
       "categoria": "Licores",
       "emoji": "",
@@ -580,7 +580,7 @@ window.DADOS = {
     {
       "id": 77,
       "imagem": "img/produtos/p77-1795436120571.jpg",
-      "nome": "Bolena Chocolate com Caramelo 750 ML",
+      "nome": "Ballena Chocolate com Caramelo 750 ML",
       "preco": 145,
       "categoria": "Licores",
       "emoji": "",
