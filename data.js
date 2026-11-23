@@ -996,7 +996,82 @@ window.DADOS = {
       "destaque": false,
       "ativo": true,
       "esgotado": false
+    },
+    {
+      "id": 112,
+      "imagem": "",
+      "nome": "Gelo Pequeno 4kg",
+      "preco": 12,
+      "categoria": "Gelo e Petiscos",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 113,
+      "imagem": "",
+      "nome": "Gelo Grande 7kg",
+      "preco": 15,
+      "categoria": "Gelo e Petiscos",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 114,
+      "imagem": "",
+      "nome": "Trento Limão",
+      "preco": 4,
+      "categoria": "Gelo e Petiscos",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 115,
+      "imagem": "",
+      "nome": "Trento Maracujá",
+      "preco": 4,
+      "categoria": "Gelo e Petiscos",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 116,
+      "imagem": "",
+      "nome": "Trento Dark",
+      "preco": 4,
+      "categoria": "Gelo e Petiscos",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 117,
+      "imagem": "",
+      "nome": "Chocolate Garoto Batom",
+      "preco": 3.5,
+      "categoria": "Gelo e Petiscos",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
     }
   ],
-  "promocoes": []
+  "promocoes": [],
+  "ultimoId": {
+    "produto": 117
+  }
 };
