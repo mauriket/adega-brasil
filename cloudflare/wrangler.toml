@@ -1,0 +1,13 @@
+# Configuração da Cloudflare Pages (projeto adega-brasil). Usado por cloudflare/publicar.sh.
+name = "adega-brasil"
+pages_build_output_dir = "public"
+compatibility_date = "2026-11-01"
+
+[vars]
+REPO = "mauriket/adega-brasil"
+
+# Pedidos do site (guardados por 3 dias)
+[[d1_databases]]
+binding = "DB"
+database_name = "adega-pedidos"
+database_id = "baeb7309-55a6-49a6-b9a8-05f694ab3e4f"

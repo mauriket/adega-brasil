@@ -121,13 +121,14 @@ window.Geo = (() => {
       if (!mesmaCidade) return { ok: false, motivo: "naoLocalizado" };
       // endereço não achado no mapa: taxa padrão, ou "a combinar" se ela não foi definida (nunca grátis por engano)
       const padrao = Number(cfg.taxaPadrao) || 0;
-      return padrao > 0 ? { ok: true, valor: padrao, km: null, estimado: true } : { ok: true, valor: 0, km: null, estimado: true, aCombinar: true };
+      const pos = destino || null; // posição no mapa (quando achada) vai junto com o pedido
+      return padrao > 0 ? { ok: true, valor: padrao, km: null, estimado: true, pos } : { ok: true, valor: 0, km: null, estimado: true, aCombinar: true, pos };
     }
     const loja = { lat: Number(cfg.lojaLat), lng: Number(cfg.lojaLng) };
     const { km, metodo } = await distanciaKm(loja, destino);
     const valor = valorPorKm(km, cfg);
     if (valor === null) return { ok: false, motivo: "longe", km };
-    return { ok: true, valor, km, metodo };
+    return { ok: true, valor, km, metodo, pos: destino };
   }
 
   return { norm, buscarCep, geocodificar, distanciaKm, valorPorKm, calcularFrete, linhaReta };

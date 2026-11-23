@@ -697,18 +697,28 @@ html.com-login body > :not(.login) { visibility: hidden; }
 .sub-h { margin: 0 0 8px; font-size: 15px; }
 .item.conta { grid-template-columns: 48px minmax(0, 1fr) auto auto; }
 
-/* Conferir pedido */
-.acoes-linha { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-.cf-veredito { padding: 14px 16px; border-radius: 14px; font-weight: 800; font-size: 16px; margin-bottom: 10px; }
-.cf-veredito.ok { background: rgba(166, 227, 95, .14); color: var(--good); border: 1px solid rgba(166, 227, 95, .45); }
-.cf-veredito.bad { background: rgba(255, 143, 115, .14); color: var(--bad); border: 1px solid rgba(255, 143, 115, .5); }
-.cf-lista { margin: 0 0 12px; padding-left: 20px; color: var(--bad); font-size: 14px; }
-.cf-tab { width: 100%; border-collapse: collapse; font-size: 14px; }
-.cf-tab td { padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+/* Pedidos (chegam do site) */
+.nav-badge { margin-left: 6px; min-width: 18px; padding: 1px 6px; border-radius: 99px; background: var(--bad); color: #fff; font-size: 11px; font-weight: 800; line-height: 16px; display: inline-block; text-align: center; }
+.ped-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.ped-topo .help { margin: 0; flex: 1 1 260px; }
+#pedLista { display: grid; gap: var(--gap); }
+.pedido > header { align-items: flex-start; }
+.pedido h2 { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pedido.novo { border-color: rgba(166, 227, 95, .55); box-shadow: 0 0 0 1px rgba(166, 227, 95, .25); }
+.ped-total { font-size: 20px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ped-alertas { margin: 0 0 12px; padding: 10px 12px 10px 28px; border-radius: 12px; background: rgba(255, 143, 115, .12); border: 1px solid rgba(255, 143, 115, .45); color: var(--bad); font-size: 13px; }
+.ped-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.ped-grid p { margin: 0 0 10px; font-size: 14px; }
+.ped-cli { font-size: 15px !important; }
+.ped-mapa iframe { width: 100%; height: 240px; border: 1px solid var(--line); border-radius: 12px; background: var(--well); display: block; margin-bottom: 8px; }
+.ped-mapa.sem { padding: 12px; border: 1px dashed var(--line-2); border-radius: 12px; }
+@media (max-width: 760px) { .ped-grid { grid-template-columns: 1fr; } }
+.cf-tab { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 10px; }
+.cf-tab td { padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .cf-tab td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.cf-tab td.num.quebra { white-space: normal; }
 .cf-tab tr.sep td { border-top: 1px solid var(--line-2); }
 .cf-tab small { color: var(--muted); }
-.txt-ok { color: var(--good); font-weight: 700; }
 
 /* Configuração técnica (fechada por padrão) */
 .tecnico > details > summary { cursor: pointer; color: var(--muted); font-size: 14px; }

@@ -252,11 +252,11 @@ window.Motion = (() => {
   // =====================================================
   const TITULOS = {
     inicio: "Visão geral", produtos: "Produtos", promocoes: "Promoções", categorias: "Categorias",
-    frete: "Frete por km", mensagem: "Mensagem do pedido", loja: "Loja", conexao: "Acesso e backup", conferir: "Conferir pedido",
+    frete: "Frete por km", mensagem: "Mensagem do pedido", loja: "Loja", conexao: "Acesso e backup", pedidos: "Pedidos",
   };
   const RENDER = {
     inicio: () => renderInicio(), produtos: () => renderProdutos(), promocoes: () => renderPromos(), categorias: () => renderCategorias(),
-    frete: () => renderFrete(), mensagem: () => renderMensagem(), loja: () => renderLoja(), conexao: () => renderConexao(), conferir: () => renderConferir(),
+    frete: () => renderFrete(), mensagem: () => renderMensagem(), loja: () => renderLoja(), conexao: () => renderConexao(), pedidos: () => renderPedidos(),
   };
 
   function moverPill() {
@@ -270,7 +270,7 @@ window.Motion = (() => {
 
   let abaSeq = 0;
   async function abrirAba(nome) {
-    if (!TITULOS[nome]) nome = "inicio";
+    if (!TITULOS[nome]) nome = "pedidos"; // a primeira aba é a de pedidos
     const seq = ++abaSeq;
     const velha = $$(".tab").find((s) => !s.hidden);
     const trocou = !velha || velha.id !== "tab-" + nome;
@@ -1164,82 +1164,99 @@ window.Motion = (() => {
   $("lNome").addEventListener("blur", () => { if (!$("lNome").value.trim()) { $("lNome").value = dados.loja.nome || ""; toast("O nome da loja não pode ficar vazio.", "erro"); } });
   $("lMinimo").addEventListener("input", () => { dados.loja.pedidoMinimo = Math.max(0, num($("lMinimo").value)); mudou(); });
   // =====================================================
-  // CONFERIR PEDIDO (anti-fraude): recalcula o valor certo a partir do código do pedido
+  // PEDIDOS: chegam sozinhos do site (servidor da Cloudflare) e somem depois de 3 dias. Só para ver.
   // =====================================================
-  function renderConferir() { /* a aba só reage ao botão */ }
-  const semNbsp = (s) => String(s).replace(/ /g, " ");
-  const dinheiro = (s) => { const m = semNbsp(s).match(/R\$ ?([\d.]+,\d{2})(?!.*R\$)/); return m ? Number(m[1].replace(/\./g, "").replace(",", ".")) : null; };
-  $("cfLimpar").onclick = () => { $("cfTexto").value = ""; $("cfRes").innerHTML = '<p class="hint">O resultado aparece aqui.</p>'; $("cfTexto").focus(); };
-  $("cfBtn").onclick = async () => {
-    const texto = semNbsp($("cfTexto").value), out = $("cfRes");
-    const cod = Pedido.lerCodigo(texto);
-    if (!cod) {
-      out.innerHTML = `<div class="cf-veredito bad">Código de conferência não encontrado</div><p class="hint">Cole a mensagem inteira, incluindo a última linha "Código de conferência: AB1-…". Pedido sem código pode ter sido apagado de propósito ou feito antes desta função existir: confira item por item.</p>`;
-      return;
+  const LS_VISTOS = "adega_admin_pedidos_vistos";
+  const vistos = new Set(store.get(LS_VISTOS, []));
+  const salvarVistos = () => store.set(LS_VISTOS, [...vistos].slice(-500));
+  const destaque = new Map(); // pedido ainda não visto → quando chegou (fica verde por 10 min)
+  let pedidos = [], pedStatus = "", pedUltimo = 0, pedCarregando = false, pedJaCarregou = false, pedAssinatura = "";
+  const horaPed = (ms) => new Date(ms).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+  async function carregarPedidos(tudo) {
+    if (!gh.token || pedCarregando) return;
+    pedCarregando = true;
+    try {
+      const r = await fetch(`api/pedidos?desde=${tudo ? 0 : pedUltimo}`, { headers: { Authorization: `Bearer ${gh.token}` }, cache: "no-store" });
+      if (r.status === 404 || r.status === 405) { pedStatus = "sem-servidor"; return; }
+      if (r.status === 401) { pedStatus = "acesso"; return; }
+      if (!r.ok) throw new Error(String(r.status));
+      const j = await r.json();
+      const mapa = new Map((tudo ? [] : pedidos).map((p) => [p.id, p]));
+      const chegaram = j.pedidos.filter((p) => !mapa.has(p.id) && !vistos.has(p.id));
+      chegaram.forEach((p) => destaque.set(p.id, Date.now()));
+      j.pedidos.forEach((p) => mapa.set(p.id, p));
+      const limite = j.agora - 3 * 864e5;
+      pedidos = [...mapa.values()].filter((p) => p.criado > limite).sort((a, b) => b.criado - a.criado);
+      if (pedidos.length) pedUltimo = Math.max(pedUltimo, pedidos[0].criado);
+      pedStatus = "ok";
+      if (chegaram.length && pedJaCarregou) toast(chegaram.length === 1 ? `Novo pedido de ${chegaram[0].cliente || "cliente"}!` : `${chegaram.length} pedidos novos!`, null, 6000);
+      pedJaCarregou = true;
+    } catch { pedStatus = pedidos.length ? "ok" : "erro"; }
+    finally {
+      pedCarregando = false;
+      badgePedidos();
+      // só redesenha se algo mudou (não recarrega os mapas à toa)
+      const ass = pedStatus + "|" + pedidos.map((p) => p.id).join(",");
+      if (abaAtual === "pedidos" && ass !== pedAssinatura) renderPedidos();
     }
-    const site = publicado ? JSON.parse(publicado) : dados; // preços que o cliente viu
-    const prods = Object.fromEntries(site.produtos.map((p) => [p.id, p]));
-    const linhasMsg = texto.split("\n");
-    let sub = 0, problemas = [];
-    const itensHTML = cod.itens.map(({ id, qtd }) => {
-      const p = prods[id];
-      if (!p) { problemas.push(`produto nº ${id} não existe mais no catálogo`); return `<tr><td colspan="3" class="txt-bad">Produto nº ${id} (não existe mais no catálogo) × ${qtd}</td></tr>`; }
-      const l = Promo.linha(p, qtd, site.promocoes || [], cod.quando);
-      sub += l.total;
-      // linha do produto: o nome precisa terminar ali ("Skol" não pega a linha da "Skol Beats")
-      const fimNome = (x) => { const i = x.indexOf(p.nome); return i >= 0 && !/[\p{L}\p{N}]/u.test(x.charAt(i + p.nome.length)); };
-      const linha = linhasMsg.find(fimNome) || linhasMsg.find((x) => x.includes(p.nome));
-      let estado = "ok";
-      if (!linha) estado = "falta";
-      else if (!linha.includes(semNbsp(brl(l.total))) || !new RegExp(`(^|\\D)${qtd}(\\D|$)`).test(linha)) estado = "diferente";
-      if (estado === "diferente") problemas.push(`"${p.nome}" está com quantidade ou valor diferente na mensagem`);
-      if (estado === "falta") problemas.push(`"${p.nome}" não aparece na mensagem`);
-      const marca = estado === "ok" ? '<span class="txt-ok">ok</span>' : `<span class="txt-bad">${estado === "falta" ? "não está na mensagem" : "alterado na mensagem"}</span>`;
-      return `<tr><td>${qtd}× ${esc(p.nome)}${l.promo ? ` <small>(${esc(Promo.selo(l.promo, p.preco) || l.promo.nome)})</small>` : ""}</td><td class="num">${brl(l.total)}</td><td>${marca}</td></tr>`;
-    }).join("");
-    sub = Math.round(sub * 100) / 100;
-    out.innerHTML = '<p class="hint"><span class="spin"></span>Calculando o frete…</p>';
-    // frete
-    let frete = 0, freteTxt = "Retirada na loja", freteExato = true;
-    if (!cod.retirada) {
-      const F = site.frete || {}, lim = n(F.freteGratisAcima);
-      const end = cod.cep.length === 8 ? await Geo.buscarCep(cod.cep) : null;
-      const r = end ? await Geo.calcularFrete(end, F) : null;
-      if (!r) { freteExato = false; freteTxt = "não foi possível calcular (CEP não encontrado)"; }
-      else if (!r.ok) { freteExato = false; freteTxt = "endereço fora da área de entrega"; problemas.push("o CEP do pedido está fora da área de entrega"); }
-      else if (lim > 0 && sub >= lim) { frete = 0; freteTxt = "Grátis (acima de " + brl(lim) + ")"; }
-      else if (r.aCombinar) { freteExato = false; freteTxt = "a combinar (endereço não achado no mapa)"; }
-      else { frete = r.valor; freteTxt = brl(r.valor) + (r.km != null ? ` (${r.km.toFixed(1).replace(".", ",")} km pelo CEP)` : "") + (r.estimado || r.metodo === "estimada" ? " — estimado" : ""); freteExato = !r.estimado && r.metodo !== "estimada"; }
-    }
-    const total = Math.round((sub + frete) * 100) / 100;
-    const lTotal = linhasMsg.find((x) => /total/i.test(x) && !/subtotal/i.test(x));
-    const lSub = linhasMsg.find((x) => /subtotal/i.test(x));
-    const totalMsg = lTotal ? dinheiro(lTotal) : null, subMsg = lSub ? dinheiro(lSub) : null;
-    const avisos = [];
-    if (subMsg != null && Math.abs(subMsg - sub) > 0.01) problemas.push(`subtotal da mensagem (${brl(subMsg)}) é diferente do certo (${brl(sub)})`);
-    if (totalMsg == null) problemas.push("não achei o total na mensagem");
-    else if (totalMsg + 0.01 < sub) problemas.push(`total da mensagem (${brl(totalMsg)}) é menor que a soma dos produtos (${brl(sub)})`);
-    else if (freteExato && Math.abs(totalMsg - total) > 0.01) {
-      // produtos certos e só o frete diferente: pode ser a rua digitada pelo cliente (o painel calcula pelo CEP)
-      const freteMsg = Math.round((totalMsg - sub) * 100) / 100;
-      if (!problemas.length && Math.abs(freteMsg - frete) <= Math.max(3, frete * 0.3)) avisos.push(`O frete da mensagem (${brl(freteMsg)}) é um pouco diferente do calculado pelo CEP (${brl(frete)}). Pode ser o número ou a rua do cliente; confira o endereço.`);
-      else problemas.push(`total da mensagem (${brl(totalMsg)}) é diferente do certo (${brl(total)})`);
-    }
-    const dias = (Date.now() - cod.quando) / 864e5;
-    if (dias > 2) avisos.push(`Este pedido foi montado em ${cod.quando.toLocaleString("pt-BR")}, há ${Math.floor(dias)} dias. Cuidado com mensagem antiga reaproveitada.`);
-    if (!freteExato) avisos.push("O frete não pôde ser conferido exatamente: confira o endereço.");
-    avisos.push("Os preços usados são os publicados agora no site; se vocês mudaram algum preço depois do pedido, a diferença pode vir daí.");
-    out.innerHTML = `
-      <div class="cf-veredito ${problemas.length ? "bad" : "ok"}">${problemas.length ? "Atenção: a mensagem foi alterada ou não confere" : "Valor confere"}</div>
-      ${problemas.length ? `<ul class="cf-lista">${problemas.map((p) => `<li>${esc(p)}</li>`).join("")}</ul>` : ""}
-      <table class="cf-tab"><tbody>${itensHTML}
-        <tr class="sep"><td>Subtotal certo</td><td class="num">${brl(sub)}</td><td>${subMsg != null ? `<small>mensagem: ${brl(subMsg)}</small>` : ""}</td></tr>
-        <tr><td>Frete</td><td class="num" colspan="2">${esc(freteTxt)}</td></tr>
-        <tr class="sep"><td><b>Total certo</b></td><td class="num"><b>${brl(total)}</b></td><td>${totalMsg != null ? `<small>mensagem: ${brl(totalMsg)}</small>` : ""}</td></tr>
-      </tbody></table>
-      <p class="hint">Pedido montado em ${cod.quando.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })} · ${cod.retirada ? "retirada na loja" : "entrega, CEP " + cod.cep.replace(/(\d{5})(\d{3})/, "$1-$2")}</p>
-      ${avisos.map((a) => `<p class="hint">${esc(a)}</p>`).join("")}`;
-  };
+  }
+  function badgePedidos() {
+    const n = pedidos.filter((p) => !vistos.has(p.id)).length, b = $("pedNovos");
+    b.textContent = n; b.hidden = !n;
+  }
+  function renderPedidos() {
+    const L = $("pedLista");
+    pedAssinatura = pedStatus + "|" + pedidos.map((p) => p.id).join(",");
+    if (!gh.token) { L.innerHTML = vazio("key", "Entre com sua conta", "Os pedidos aparecem depois do login."); return; }
+    if (!pedStatus) { L.innerHTML = '<p class="hint"><span class="spin"></span>Carregando pedidos…</p>'; if (!pedCarregando) carregarPedidos(true); return; }
+    if (pedStatus === "sem-servidor") { L.innerHTML = vazio("alert", "Pedidos só no endereço novo", "Abra o painel pelo endereço adega-brasil.pages.dev para ver os pedidos."); return; }
+    if (pedStatus === "acesso") { L.innerHTML = vazio("key", "Sem acesso aos pedidos", "Saia deste aparelho e entre de novo com seu e-mail e senha."); return; }
+    if (pedStatus === "erro") { L.innerHTML = vazio("alert", "Não foi possível carregar agora", "Confira a internet. O painel tenta de novo sozinho."); return; }
+    if (!pedidos.length) { L.innerHTML = vazio("box", "Nenhum pedido nos últimos 3 dias", "Quando um cliente enviar um pedido pelo site, ele aparece aqui sozinho."); return; }
+    L.innerHTML = pedidos.map(cartaoPedido).join("");
+    pedidos.forEach((p) => vistos.add(p.id)); // conta como visto (o destaque verde continua por 10 min)
+    salvarVistos(); badgePedidos();
+  }
+  function cartaoPedido(p) {
+    const novo = Date.now() - (destaque.get(p.id) || 0) < 10 * 60e3, e = p.endereco || {}, f = p.frete || {};
+    let tel = String(p.telefone || "").replace(/\D/g, "");
+    if (tel.length === 10 || tel.length === 11) tel = "55" + tel;
+    const telHTML = p.telefone ? " · " + (tel.length >= 12 ? `<a class="link" target="_blank" rel="noopener" href="https://wa.me/${tel}">${esc(p.telefone)}</a>` : esc(p.telefone)) : "";
+    const ende = p.retirada ? "<b>Retirada na loja</b>"
+      : `${esc(e.rua)}, ${esc(e.numero)}${e.complemento ? " - " + esc(e.complemento) : ""}<br>${esc(e.bairro)} - ${esc(e.cidade)}/${esc(e.uf)} · CEP ${esc(e.cep)}${e.referencia ? `<br><small>Referência: ${esc(e.referencia)}</small>` : ""}`;
+    let mapa = "";
+    if (p.pos) {
+      const lat = Number(p.pos.lat), lng = Number(p.pos.lng);
+      const osm = `https://www.openstreetmap.org/export/embed.html?bbox=${(lng - .006).toFixed(6)},${(lat - .004).toFixed(6)},${(lng + .006).toFixed(6)},${(lat + .004).toFixed(6)}&layer=mapnik&marker=${lat},${lng}`;
+      mapa = `<div class="ped-mapa"><iframe loading="lazy" title="Local da entrega" src="${osm}"></iframe>
+        <div class="row"><a class="btn ghost sm" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">${ico("pin", 15)}Google Maps</a>
+        <a class="btn ghost sm" target="_blank" rel="noopener" href="https://waze.com/ul?ll=${lat},${lng}&navigate=yes">${ico("send", 15)}Waze</a></div></div>`;
+    } else if (!p.retirada) mapa = `<div class="ped-mapa sem"><p class="hint">Endereço não localizado no mapa. Confira com o cliente.</p></div>`;
+    const itens = (p.itens || []).map((i) => `<tr><td>${i.qtd}×</td><td>${esc(i.nome)}${i.promo ? ` <small>(${esc(i.promo)})</small>` : ""}</td><td class="num">${brl(i.total)}</td></tr>`).join("");
+    return `<article class="card pedido${novo ? " novo" : ""}">
+      <header><div><h2>Pedido ${esc(p.id)}${novo ? ' <span class="tag verde">Novo</span>' : ""}</h2><small class="hint">${esc(horaPed(p.criado))}</small></div><b class="ped-total">${brl(p.total)}</b></header>
+      ${p.alertas && p.alertas.length ? `<ul class="ped-alertas">${p.alertas.map((a) => `<li>${esc(a)}</li>`).join("")}</ul>` : ""}
+      <div class="ped-grid">
+        <div>
+          <p class="ped-cli"><b>${esc(p.cliente || "Sem nome")}</b>${telHTML}</p>
+          <p>${ende}</p>
+          <table class="cf-tab"><tbody>${itens}
+            <tr class="sep"><td></td><td>Subtotal</td><td class="num">${brl(p.subtotal)}</td></tr>
+            ${p.economia > 0 ? `<tr><td></td><td>Economia</td><td class="num">- ${brl(p.economia)}</td></tr>` : ""}
+            <tr><td></td><td>Frete</td><td class="num quebra">${esc(f.texto || "-")}</td></tr>
+            <tr class="sep"><td></td><td><b>Total</b></td><td class="num"><b>${brl(p.total)}</b></td></tr>
+          </tbody></table>
+          <p><b>Pagamento:</b> ${esc(p.pagamento || "-")}${p.troco ? ` · troco para ${esc(p.troco)}` : ""}</p>
+          ${p.obs ? `<p><b>Observações:</b> ${esc(p.obs)}</p>` : ""}
+        </div>
+        ${mapa}
+      </div>
+    </article>`;
+  }
+  $("pedAtualizar").onclick = () => carregarPedidos(true);
+  setInterval(() => { if (!document.hidden) carregarPedidos(false); }, 30000); // novos pedidos a cada 30 s
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) carregarPedidos(false); });
 
   // ---------- Rodapé: Instagram, WhatsApp e aviso ----------
   function validarRedes() {
@@ -1727,5 +1744,5 @@ window.Motion = (() => {
     $("skeleton").classList.add("fora");
     setTimeout(() => $("skeleton").remove(), 600);
   }
-  portaria().then(iniciar);
+  portaria().then(iniciar).then(() => carregarPedidos(true));
 })();

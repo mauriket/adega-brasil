@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://raw.githubusercontent.com; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://viacep.com.br https://brasilapi.com.br https://nominatim.openstreetmap.org https://router.project-osrm.org; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; manifest-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://raw.githubusercontent.com; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://viacep.com.br https://brasilapi.com.br https://nominatim.openstreetmap.org https://router.project-osrm.org; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src https://www.openstreetmap.org; manifest-src 'none'">
   <title>Painel administrativo</title>
   <link rel="icon" type="image/png" href="img/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/painel.css?v=20261123b">
-  <script src="js/painel/tema.js?v=20261123b"></script>
+  <link rel="stylesheet" href="css/painel.css?v=20261123c">
+  <script src="js/painel/tema.js?v=20261123c"></script>
 </head>
 <body>
   <!-- ===== Login ===== -->
@@ -44,6 +44,7 @@
     </a>
     <nav class="nav" id="nav" aria-label="Seções">
       <span class="nav-pill" id="navPill" aria-hidden="true"></span>
+      <button data-tab="pedidos">Pedidos<b class="nav-badge" id="pedNovos" hidden></b></button>
       <button data-tab="inicio">Visão geral</button>
       <button data-tab="produtos">Produtos</button>
       <button data-tab="promocoes">Promoções</button>
@@ -51,7 +52,6 @@
       <button data-tab="frete">Frete</button>
       <button data-tab="mensagem">Mensagem</button>
       <button data-tab="loja">Loja</button>
-      <button data-tab="conferir">Conferir pedido</button>
     </nav>
     <div class="top-act">
       <span class="status" id="status"><i></i><b id="statusTxt">Carregando…</b></span>
@@ -221,23 +221,13 @@
       </div>
     </section>
 
-    <!-- ===== CONFERIR PEDIDO (anti-fraude) ===== -->
-    <section class="tab" id="tab-conferir" hidden>
-      <div class="grid-msg">
-        <article class="card">
-          <header><h2>Conferir pedido do WhatsApp</h2></header>
-          <p class="help">Copie a mensagem inteira do pedido no WhatsApp e cole aqui. O painel recalcula o valor com os preços, promoções e frete da loja e avisa se alguém mudou os valores na mensagem.</p>
-          <textarea class="code" id="cfTexto" rows="14" spellcheck="false" placeholder="Cole aqui a mensagem do pedido (precisa ter a linha &quot;Código de conferência&quot;)"></textarea>
-          <div class="acoes-linha">
-            <button class="btn accent" id="cfBtn"><span data-ico="check"></span>Conferir</button>
-            <button class="btn ghost" id="cfLimpar">Limpar</button>
-          </div>
-        </article>
-        <article class="card">
-          <header><h2>Resultado</h2></header>
-          <div id="cfRes"><p class="hint">O resultado aparece aqui.</p></div>
-        </article>
+    <!-- ===== PEDIDOS (chegam sozinhos do site; somem depois de 3 dias) ===== -->
+    <section class="tab" id="tab-pedidos" hidden>
+      <div class="ped-topo">
+        <p class="help" id="pedInfo">Os pedidos enviados pelo site aparecem aqui sozinhos, com o valor conferido pela loja. Cada pedido some depois de 3 dias.</p>
+        <button class="btn ghost sm" id="pedAtualizar"><span data-ico="clock"></span>Atualizar</button>
       </div>
+      <div id="pedLista"></div>
     </section>
 
     <!-- ===== LOJA ===== -->
@@ -480,11 +470,11 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="data.js"></script>
-  <script src="js/comum/geo.js?v=20261123b"></script>
-  <script src="js/comum/promo.js?v=20261123b"></script>
-  <script src="js/comum/pedido.js?v=20261123b"></script>
-  <script src="js/painel/mescla.js?v=20261123b"></script>
-  <script src="js/painel/acesso.js?v=20261123b"></script>
-  <script src="js/painel/admin.js?v=20261123b"></script>
+  <script src="js/comum/geo.js?v=20261123c"></script>
+  <script src="js/comum/promo.js?v=20261123c"></script>
+  <script src="js/comum/pedido.js?v=20261123c"></script>
+  <script src="js/painel/mescla.js?v=20261123c"></script>
+  <script src="js/painel/acesso.js?v=20261123c"></script>
+  <script src="js/painel/admin.js?v=20261123c"></script>
 </body>
 </html>

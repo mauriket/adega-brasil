@@ -418,7 +418,7 @@ window.carregarDados = (async () => {
     if (!nome) return erro("Informe seu nome.");
     if (LOJA.aberta === false) return erro("A loja está fechada no momento. Tente novamente mais tarde.");
 
-    const fv = valorFrete(), f = freteNum(fv);
+    const fv = valorFrete(), f = freteNum(fv), numero = Pedido.novoNumero();
     const v = (id) => $(id).value.trim();
     let linhaRua = `${v("rua")}, ${v("numero")}`;
     if (v("complemento")) linhaRua += ` - ${v("complemento")}`;
@@ -441,9 +441,24 @@ window.carregarDados = (async () => {
       pagamento: $("pagamento").value,
       troco: !$("troco").hidden ? v("troco") : "",
       obs: v("obs"),
-      codigo: Pedido.codigo({ itens: lista.map((i) => ({ id: i.id, qtd: i.qtd })), retirada, cep: retirada ? "" : enderecoCep.cep }),
+      numero,
     });
+    // o pedido também vai para a aba Pedidos do painel (o servidor recalcula os valores); não atrasa o WhatsApp
+    try {
+      fetch("api/pedido", {
+        method: "POST", keepalive: true, headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          id: numero, itens: lista.map((i) => ({ id: i.id, qtd: i.qtd })), retirada,
+          cliente: nome, telefone: v("telefone"), pagamento: $("pagamento").value,
+          troco: !$("troco").hidden ? v("troco") : "", obs: v("obs"), totalCliente: Math.round((sub + f) * 100) / 100,
+          endereco: retirada ? null : { rua: v("rua"), numero: v("numero"), complemento: v("complemento"), bairro: v("bairro"),
+            cidade: enderecoCep.cidade, uf: enderecoCep.uf, cep: enderecoCep.cep, referencia: v("referencia") },
+          pos: !retirada && frete && frete.pos ? frete.pos : null,
+        }),
+      }).catch(() => {});
+    } catch (e) { /* sem servidor (ex.: cópia antiga): segue só pelo WhatsApp */ }
     $("erro").textContent = "";
+    $("enviar").disabled = true; setTimeout(() => { $("enviar").disabled = false; renderCarrinho(); }, 3000); // evita pedido em dobro
     window.open(`https://wa.me/${String(LOJA.whatsapp).replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
