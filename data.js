@@ -139,7 +139,7 @@ window.DADOS = {
       "categoria": "Vinhos",
       "preco": 59.9,
       "emoji": "🍷",
-      "imagem": "",
+      "imagem": "img/produtos/p20-1795434761365.jpg",
       "descricao": "",
       "destaque": false,
       "ativo": true,
@@ -151,7 +151,7 @@ window.DADOS = {
       "categoria": "Vinhos",
       "preco": 30,
       "emoji": "🍷",
-      "imagem": "",
+      "imagem": "img/produtos/p21-1795434766580.jpg",
       "descricao": "",
       "destaque": false,
       "ativo": true,
@@ -163,7 +163,7 @@ window.DADOS = {
       "categoria": "Vinhos",
       "preco": 30,
       "emoji": "🍾",
-      "imagem": "",
+      "imagem": "img/produtos/p22-1795434795884.jpg",
       "descricao": "",
       "destaque": false,
       "ativo": true,
@@ -207,7 +207,7 @@ window.DADOS = {
     },
     {
       "id": 46,
-      "imagem": "",
+      "imagem": "img/produtos/p46-1795434850612.jpg",
       "nome": "Michelob Long Neck",
       "preco": 7.5,
       "categoria": "Cervejas",
@@ -231,7 +231,7 @@ window.DADOS = {
     },
     {
       "id": 48,
-      "imagem": "",
+      "imagem": "img/produtos/p48-1795434995860.jpg",
       "nome": "Brahma 269 ML",
       "preco": 3.5,
       "categoria": "Cervejas",
@@ -243,7 +243,7 @@ window.DADOS = {
     },
     {
       "id": 49,
-      "imagem": "",
+      "imagem": "img/produtos/p49-1795435000300.jpg",
       "nome": "Brahma 350 ML",
       "preco": 4,
       "categoria": "Cervejas",
@@ -255,7 +255,7 @@ window.DADOS = {
     },
     {
       "id": 50,
-      "imagem": "",
+      "imagem": "img/produtos/p50-1795435041692.jpg",
       "nome": "Amstel 269 ML",
       "preco": 3.5,
       "categoria": "Cervejas",
@@ -267,7 +267,7 @@ window.DADOS = {
     },
     {
       "id": 51,
-      "imagem": "",
+      "imagem": "img/produtos/p51-1795435046876.jpg",
       "nome": "Amstel 350 ML",
       "preco": 4,
       "categoria": "Cervejas",
@@ -279,7 +279,7 @@ window.DADOS = {
     },
     {
       "id": 52,
-      "imagem": "",
+      "imagem": "img/produtos/p52-1795435237900.jpg",
       "nome": "Original 269 ML",
       "preco": 4.5,
       "categoria": "Cervejas",
@@ -291,7 +291,7 @@ window.DADOS = {
     },
     {
       "id": 53,
-      "imagem": "",
+      "imagem": "img/produtos/p53-1795435276540.jpg",
       "nome": "Heineken 269 ML",
       "preco": 4.75,
       "categoria": "Cervejas",
@@ -303,7 +303,7 @@ window.DADOS = {
     },
     {
       "id": 54,
-      "imagem": "",
+      "imagem": "img/produtos/p54-1795435305916.jpg",
       "nome": "Budweiser 269 ML",
       "preco": 4,
       "categoria": "Cervejas",
@@ -315,7 +315,7 @@ window.DADOS = {
     },
     {
       "id": 55,
-      "imagem": "",
+      "imagem": "img/produtos/p55-1795435408940.jpg",
       "nome": "Budweiser 350 ML",
       "preco": 4.5,
       "categoria": "Cervejas",
@@ -327,7 +327,7 @@ window.DADOS = {
     },
     {
       "id": 56,
-      "imagem": "",
+      "imagem": "img/produtos/p56-1795435470843.jpg",
       "nome": "Antarctica 269 ML",
       "preco": 3.5,
       "categoria": "Cervejas",
@@ -339,7 +339,7 @@ window.DADOS = {
     },
     {
       "id": 57,
-      "imagem": "",
+      "imagem": "img/produtos/p57-1795435523779.jpg",
       "nome": "Antarctica 350 ML",
       "preco": 4,
       "categoria": "Cervejas",
@@ -351,7 +351,7 @@ window.DADOS = {
     },
     {
       "id": 58,
-      "imagem": "",
+      "imagem": "img/produtos/p58-1795435568067.jpg",
       "nome": "Bavaria 350 ML",
       "preco": 3.25,
       "categoria": "Cervejas",
