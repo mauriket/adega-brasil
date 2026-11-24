@@ -10,8 +10,8 @@
   <link rel="icon" type="image/png" href="img/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/painel.css?v=20261124b">
-  <script src="js/painel/tema.js?v=20261124b"></script>
+  <link rel="stylesheet" href="css/painel.css?v=20261124c">
+  <script src="js/painel/tema.js?v=20261124c"></script>
 </head>
 <body>
   <!-- ===== Login ===== -->
@@ -250,7 +250,7 @@
           <header><h2>Dados da loja</h2></header>
           <div class="campos-2">
             <label class="f">Nome da loja<input type="text" id="lNome"></label>
-            <label class="f">Slogan<input type="text" id="lSlogan"></label>
+            <label class="f">Slogan <small>aparece no rodapé do site e no nome da aba do navegador</small><input type="text" id="lSlogan" maxlength="80" placeholder="Ex.: Bebidas geladas na sua porta"></label>
             <label class="f">Endereço para retirada<input type="text" id="lEndereco"></label>
             <label class="f">Pedido mínimo (R$) <small>0 = sem mínimo</small><input type="text" inputmode="decimal" class="dinheiro" id="lMinimo" placeholder="0,00"></label>
           </div>
@@ -445,12 +445,13 @@
         </div>
 
         <div class="pf-bloco">
-          <h3>4. Exibição no site</h3>
+          <h3>4. Destacar no site</h3>
           <div class="seg" id="prVitrine">
-            <button data-v="promoDia">Promoção do dia</button>
-            <button data-v="ofertas">Ofertas</button>
-            <button data-v="nenhuma">Somente selo</button>
+            <button data-v="promoDia">Primeira fileira (topo)</button>
+            <button data-v="ofertas">Faixa de ofertas</button>
+            <button data-v="nenhuma">Sem destaque</button>
           </div>
+          <p class="hint" id="prVitrineAjuda"></p>
           <div class="campos-2">
             <label class="f">Texto do selo <small>(vazio = automático)</small><input type="text" id="prSelo" maxlength="24" placeholder="Ex.: Só hoje"></label>
             <label class="f">Limite por pedido <small>(unidades com desconto; 0 = sem limite)</small><input type="number" min="0" step="1" id="prLimite"></label>
@@ -480,11 +481,11 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="data.js"></script>
-  <script src="js/comum/geo.js?v=20261124b"></script>
-  <script src="js/comum/promo.js?v=20261124b"></script>
-  <script src="js/comum/pedido.js?v=20261124b"></script>
-  <script src="js/painel/mescla.js?v=20261124b"></script>
-  <script src="js/painel/acesso.js?v=20261124b"></script>
-  <script src="js/painel/admin.js?v=20261124b"></script>
+  <script src="js/comum/geo.js?v=20261124c"></script>
+  <script src="js/comum/promo.js?v=20261124c"></script>
+  <script src="js/comum/pedido.js?v=20261124c"></script>
+  <script src="js/painel/mescla.js?v=20261124c"></script>
+  <script src="js/painel/acesso.js?v=20261124c"></script>
+  <script src="js/painel/admin.js?v=20261124c"></script>
 </body>
 </html>

@@ -74,7 +74,7 @@ window.carregarDados = (async () => {
   let categoriaAtiva = "Todas";
   let enderecoCep = null, frete = null, calcId = 0;
 
-  document.title = LOJA.nome;
+  document.title = LOJA.slogan ? `${LOJA.nome} · ${LOJA.slogan}` : LOJA.nome;
   $("logoImg").alt = LOJA.nome;
   $("pagamento").innerHTML = LOJA.pagamentos.map((p) => `<option>${esc(p)}</option>`).join("");
   $("retiradaMsg").textContent = "Retirada em: " + LOJA.endereco;
@@ -87,6 +87,7 @@ window.carregarDados = (async () => {
     const redes = (zap ? `<a class="rede rede-zap" href="https://wa.me/${zap}" target="_blank" rel="noopener" aria-label="WhatsApp ${esc(fone)}">${icoZap}<span>${esc(fone)}</span></a>` : "") +
       (insta ? `<a class="rede rede-insta" href="https://instagram.com/${insta}" target="_blank" rel="noopener" aria-label="Instagram @${esc(insta)}">${icoInsta}<span>@${esc(insta)}</span></a>` : "");
     $("rodapeInfo").innerHTML = `<img class="rodape-logo" src="img/logo.webp" alt="${esc(LOJA.nome)}" width="136" height="96" loading="lazy">` +
+      (LOJA.slogan ? `<span class="rodape-slogan">${esc(LOJA.slogan)}</span>` : "") +
       (LOJA.endereco ? `<span>${esc(LOJA.endereco)}</span>` : "") +
       (redes ? `<div class="rodape-redes">${redes}</div>` : "");
     $("rodapeTexto").textContent = LOJA.rodapeTexto || "";

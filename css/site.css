@@ -363,3 +363,5 @@ main, .footer { position: relative; z-index: 1; }
 .footer-info .rede-insta { color: #f0f0f0; }
 .footer-info .rede-insta svg { color: #e1306c; }
 .footer-info .rede-insta:hover { border-color: #e1306c; background: rgba(225, 48, 108, .1); text-decoration: none; }
+/* Slogan da loja (painel → Loja) */
+.footer-info .rodape-slogan { display: block; color: var(--gold); font-weight: 700; font-size: 15px; margin: -2px 0 8px; }

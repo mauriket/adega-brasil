@@ -737,7 +737,12 @@ window.Motion = (() => {
     if (pr.horaInicio || pr.horaFim) partes.push(`${pr.horaInicio || "00:00"} às ${pr.horaFim || "24:00"}`);
     return partes.length ? partes.join(" · ") : "Sempre";
   }
-  const VITRINE = { promoDia: "Promoção do dia", ofertas: "Ofertas", nenhuma: "Somente selo" };
+  const VITRINE = { promoDia: "Primeira fileira do site", ofertas: "Faixa de ofertas", nenhuma: "Sem destaque (só o selo)" };
+  const VITRINE_AJUDA = {
+    promoDia: "O produto aparece logo no topo do site, na seção “Promoção do dia”, com contagem regressiva até a promoção acabar.",
+    ofertas: "O produto aparece na faixa “Ofertas”, logo abaixo do topo do site.",
+    nenhuma: "O produto fica no lugar normal da categoria, só com o selo de desconto.",
+  };
 
   let prFiltro = "";
   function renderPromos() {
@@ -845,6 +850,7 @@ window.Motion = (() => {
     $("prAlvoProdutos").hidden = ed.aplicaEm !== "produtos";
     $("prAlvoCategoria").hidden = ed.aplicaEm !== "categoria";
     $$("#prVitrine button").forEach((b) => b.classList.toggle("on", b.dataset.v === ed.vitrine));
+    $("prVitrineAjuda").textContent = VITRINE_AJUDA[ed.vitrine] || "";
     $("prDias").innerHTML = Promo.DIAS.map((d, i) => `<button data-d="${i}" class="${(ed.dias || []).includes(i) ? "on" : ""}">${d}</button>`).join("");
     renderPicker();
     renderPromoPreview();
