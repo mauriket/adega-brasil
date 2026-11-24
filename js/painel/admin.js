@@ -314,6 +314,39 @@ window.Motion = (() => {
     $("kpis").innerHTML = mapa.map(([ic, lbl, v]) => `<div class="kpi"><span class="ic">${ico(ic, 16)}</span><div><dt>${lbl}</dt><dd>${v}</dd></div></div>`).join("");
   }
 
+  // Janela de confirmação no visual do painel (no lugar do confirm() do navegador). Devolve true/false.
+  //   perigo: botão vermelho (excluir, apagar...). Enter confirma, Esc cancela.
+  function confirmar(titulo, texto = "", { ok = "Confirmar", nao = "Cancelar", perigo = false } = {}) {
+    return new Promise((resolve) => {
+      const d = $("confirma"), bOk = $("confOk"), bNao = $("confNao"), antes = document.activeElement;
+      $("confTitulo").textContent = titulo;
+      $("confTexto").textContent = texto; $("confTexto").hidden = !texto;
+      $("confIco").className = "conf-ico" + (perigo ? " perigo" : "");
+      $("confIco").innerHTML = ico(perigo ? "trash" : "alert", 26);
+      bOk.textContent = ok; bOk.className = "btn " + (perigo ? "perigo" : "accent");
+      bNao.textContent = nao;
+      d.hidden = false;
+      requestAnimationFrame(() => d.classList.add("on"));
+      (perigo ? bNao : bOk).focus({ preventScroll: true }); // no que apaga, o foco começa no "Cancelar"
+      const tecla = (e) => {
+        if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); fim(false); }
+        else if (e.key === "Tab") { e.preventDefault(); (document.activeElement === bOk ? bNao : bOk).focus(); }
+      };
+      function fim(v) {
+        document.removeEventListener("keydown", tecla, true);
+        bOk.onclick = bNao.onclick = d.onclick = null;
+        d.classList.remove("on");
+        setTimeout(() => { d.hidden = true; }, 180);
+        if (antes && antes.focus && document.contains(antes)) antes.focus({ preventScroll: true });
+        resolve(v);
+      }
+      document.addEventListener("keydown", tecla, true);
+      bOk.onclick = () => fim(true);
+      bNao.onclick = () => fim(false);
+      d.onclick = (e) => { if (e.target === d) fim(false); };
+    });
+  }
+
   function vazio(ic, titulo, txt, acao = "") {
     return `<div class="vazio">${ico(ic, 30)}<b>${titulo}</b>${txt}${acao ? `<div style="margin-top:12px">${acao}</div>` : ""}</div>`;
   }
@@ -521,12 +554,12 @@ window.Motion = (() => {
     if (b.dataset.a === "mais") { if (menuBtn === b) fecharMenu(false); else { fecharMenu(false); abrirMenu(b, p); } return; }
     acaoProduto(b.dataset.a, p);
   });
-  function acaoProduto(a, p) {
+  async function acaoProduto(a, p) {
     if (a === "editar") return abrirProduto(p.id);
     if (a === "promo") return abrirPromo(null, { aplicaEm: "produtos", produtos: [p.id], nome: "Promoção " + p.nome });
     if (a === "duplicar") { const c = duplicarProduto(p); renderProdutos(); renderKpis(); toast("Produto duplicado"); return abrirProduto(c.id); }
     if (a === "excluir") {
-      if (!confirm(`Excluir o produto "${p.nome}"? Esta ação não pode ser desfeita após publicar.`)) return;
+      if (!(await confirmar(`Excluir o produto "${p.nome}"?`, "Ele sai do catálogo quando você clicar em Publicar.", { ok: "Excluir", perigo: true }))) return;
       const linha = $("pLista").querySelector(`[data-key="p${p.id}"]`);
       (linha ? Motion.sair(linha) : Promise.resolve()).then(() => {
         liberarImagem(p.imagem, p);
@@ -632,14 +665,14 @@ window.Motion = (() => {
   });
   $("mFotoRemover").onclick = () => { fotoNova = null; fotoRemovida = true; $("mFoto").value = ""; previewFoto(null); };
 
-  function salvarProduto() {
+  async function salvarProduto() {
     const nome = $("mNome").value.trim().replace(/\s+/g, " "), preco = Math.round(num($("mPreco").value) * 100) / 100;
     const erro = (m, campo) => { $("mErro").textContent = m; if (campo) $(campo).focus(); return null; };
     if (!nome) return erro("Informe o nome do produto.", "mNome");
     if (!(preco > 0)) return erro("Informe um preço maior que zero.", "mPreco");
     if (!dados.categorias.includes($("mCategoria").value)) return erro("Escolha uma categoria.", "mCategoria");
     const repetido = dados.produtos.find((x) => x.id !== editId && norm(x.nome) === norm(nome));
-    if (repetido && !confirm(`Já existe um produto chamado "${repetido.nome}". Salvar mesmo assim?`)) return null;
+    if (repetido && !(await confirmar("Produto com nome repetido", `Já existe um produto chamado "${repetido.nome}". Salvar mesmo assim?`, { ok: "Salvar mesmo assim" }))) return null;
 
     let p = editId != null ? dados.produtos.find((x) => x.id === editId) : null;
     if (!p) { p = { id: proxIdProduto(), imagem: "" }; dados.produtos.push(p); }
@@ -655,20 +688,20 @@ window.Motion = (() => {
     renderKpis();
     return p;
   }
-  $("mSalvar").onclick = () => {
+  $("mSalvar").onclick = async () => {
     const novo = editId == null;
-    if (!salvarProduto()) return;
+    if (!(await salvarProduto())) return;
     fecharModal();
     toast(novo ? "Produto cadastrado" : "Produto atualizado");
   };
-  $("mSalvarNovo").onclick = () => {
-    const p = salvarProduto(); if (!p) return;
+  $("mSalvarNovo").onclick = async () => {
+    const p = await salvarProduto(); if (!p) return;
     toast(`"${p.nome}" cadastrado. Preencha o próximo.`);
     abrirProduto(null, p.categoria);
   };
-  $("mDuplicar").onclick = () => {
+  $("mDuplicar").onclick = async () => {
     const p = dados.produtos.find((x) => x.id === editId); if (!p) return;
-    if (!salvarProduto()) return;
+    if (!(await salvarProduto())) return;
     const c = duplicarProduto(p);
     if (abaAtual === "produtos") renderProdutos();
     toast("Produto duplicado. Ajuste os dados da cópia.");
@@ -747,7 +780,7 @@ window.Motion = (() => {
   }
   $("prBusca").addEventListener("input", renderPromos);
   $("prChips").addEventListener("click", (e) => { const c = e.target.closest("[data-f]"); if (c) { prFiltro = c.dataset.f; renderPromos(); } });
-  $("prLista").addEventListener("click", (e) => {
+  $("prLista").addEventListener("click", async (e) => {
     const card = e.target.closest(".pcard"); if (!card) return;
     const pr = dados.promocoes.find((x) => x.id === Number(card.dataset.id)); if (!pr) return;
     const b = e.target.closest("[data-a]");
@@ -758,7 +791,7 @@ window.Motion = (() => {
       dados.promocoes.push(c); toast("Cópia criada (pausada)");
     }
     if (b.dataset.a === "excluir") {
-      if (!confirm(`Excluir a promoção "${pr.nome}"?`)) return;
+      if (!(await confirmar(`Excluir a promoção "${pr.nome}"?`, "Ela sai do site quando você clicar em Publicar.", { ok: "Excluir", perigo: true }))) return;
       Motion.sair(card).then(() => {
         dados.promocoes = dados.promocoes.filter((x) => x !== pr);
         mudou(); renderPromos(); renderKpis(); toast("Promoção excluída");
@@ -898,7 +931,7 @@ window.Motion = (() => {
     renderPromoForm();
   }));
 
-  $("prSalvar").onclick = () => {
+  $("prSalvar").onclick = async () => {
     const erro = (m) => { $("prErro").textContent = m; };
     ed.nome = $("prNome").value.trim();
     ed.ativa = $("prAtiva").checked;
@@ -913,15 +946,15 @@ window.Motion = (() => {
     if (ed.horaInicio && ed.horaFim && ed.horaInicio === ed.horaFim) return erro("O horário de início e de fim são iguais. Para valer o dia todo, deixe os dois vazios.");
     if (ed.tipo === "precoFixo") {
       const caros = dados.produtos.filter((p) => Promo.aplicaA({ ...ed, ativa: true }, p) && n(p.preco) <= n(ed.valor));
-      if (caros.length && !confirm(`O preço promocional (${brl(ed.valor)}) não é menor que o preço de ${plural(caros.length, "produto", "produtos")}. Nesses itens não haverá desconto. Salvar mesmo assim?`)) return;
+      if (caros.length && !(await confirmar("Preço promocional sem desconto", `O preço promocional (${brl(ed.valor)}) não é menor que o preço de ${plural(caros.length, "produto", "produtos")}. Nesses itens não haverá desconto.`, { ok: "Salvar mesmo assim" }))) return;
     }
     if (ed.id == null) { ed.id = proxIdPromo(); dados.promocoes.push(ed); toast("Promoção criada"); }
     else { const i = dados.promocoes.findIndex((x) => x.id === ed.id); dados.promocoes[i] = ed; toast("Promoção salva"); }
     fecharModal(); mudou();
     abrirAba(["inicio", "promocoes", "produtos"].includes(abaAtual) ? abaAtual : "promocoes");
   };
-  $("prExcluir").onclick = () => {
-    if (ed.id == null || !confirm(`Excluir a promoção "${ed.nome}"?`)) return;
+  $("prExcluir").onclick = async () => {
+    if (ed.id == null || !(await confirmar(`Excluir a promoção "${ed.nome}"?`, "Ela sai do site quando você clicar em Publicar.", { ok: "Excluir", perigo: true }))) return;
     dados.promocoes = dados.promocoes.filter((x) => x.id !== ed.id);
     fecharModal(); mudou(); abrirAba(abaAtual); toast("Promoção excluída");
   };
@@ -959,7 +992,7 @@ window.Motion = (() => {
     inp.closest(".cat").dataset.key = novo;
     mudou(); toast("Categoria renomeada");
   });
-  $("cLista").addEventListener("click", (e) => {
+  $("cLista").addEventListener("click", async (e) => {
     const b = e.target.closest("[data-c]"); if (!b) return;
     const i = Number(b.dataset.i), cats = dados.categorias;
     if (b.dataset.c === "up" || b.dataset.c === "down") {
@@ -976,7 +1009,7 @@ window.Motion = (() => {
       // promoções da categoria NÃO passam para outra (daria desconto onde não devia): ficam pausadas
       const promos = dados.promocoes.filter((pr) => pr.aplicaEm === "categoria" && pr.categoria === cats[i]);
       const avisoPromo = promos.length ? `\n\n${plural(promos.length, "promoção desta categoria será pausada", "promoções desta categoria serão pausadas")}: ${promos.map((pr) => pr.nome).join(", ")}.` : "";
-      if (!confirm((qtd ? `Excluir "${cats[i]}"? ${plural(qtd, "produto será movido", "produtos serão movidos")} para "${destino}".` : `Excluir a categoria "${cats[i]}"?`) + avisoPromo)) return;
+      if (!(await confirmar(`Excluir a categoria "${cats[i]}"?`, (qtd ? `${plural(qtd, "produto será movido", "produtos serão movidos")} para "${destino}".` : "A categoria está vazia.") + avisoPromo, { ok: "Excluir", perigo: true }))) return;
       dados.produtos.forEach((p) => { if (p.categoria === cats[i]) p.categoria = destino; });
       promos.forEach((pr) => { pr.ativa = false; pr.categoria = ""; pr.aplicaEm = "produtos"; pr.produtos = []; });
       cats.splice(i, 1);
@@ -1109,8 +1142,8 @@ window.Motion = (() => {
     $$("#msgCenario button").forEach((x) => x.classList.toggle("on", x === b));
     atualizarPreviewMsg();
   });
-  $("msgPadrao").onclick = () => {
-    if (!confirm("Restaurar a mensagem padrão? O modelo atual será substituído.")) return;
+  $("msgPadrao").onclick = async () => {
+    if (!(await confirmar("Restaurar a mensagem padrão?", "O modelo atual será substituído pelo padrão.", { ok: "Restaurar" }))) return;
     dados.loja.mensagem = Pedido.PADRAO;
     dados.loja.mensagemItem = Pedido.PADRAO_ITEM;
     mudou(); renderMensagem(); toast("Mensagem padrão restaurada");
@@ -1287,8 +1320,8 @@ window.Motion = (() => {
   // muda a situação (aparece na hora; se o servidor recusar, volta como estava)
   async function mudarSituacao(id, status) {
     const p = pedidos.find((x) => x.id === id); if (!p) return;
-    if (status === "excluido" && !confirm(`Excluir o pedido ${id} de ${p.cliente || "cliente"}? Ele some de vez (não vai para o histórico).`)) return;
-    if (status === "cancelado" && !confirm(`Cancelar o pedido ${id} de ${p.cliente || "cliente"}? Ele fica no histórico como cancelado.`)) return;
+    if (status === "excluido" && !(await confirmar(`Excluir o pedido ${id}?`, `Pedido de ${p.cliente || "cliente"}. Ele some de vez e não vai para o histórico.`, { ok: "Excluir", perigo: true }))) return;
+    if (status === "cancelado" && !(await confirmar(`Cancelar o pedido ${id}?`, `Pedido de ${p.cliente || "cliente"}. Ele fica no histórico como cancelado.`, { ok: "Cancelar pedido", nao: "Voltar", perigo: true }))) return;
     const antes = { status: p.status, atualizado: p.atualizado, por: p.por };
     const por = sessao && sessao.id !== "chave" ? sessao.nome : "";
     Object.assign(p, { status, atualizado: Date.now(), por });
@@ -1399,7 +1432,7 @@ window.Motion = (() => {
       gMsg(e.status === 401 ? "Chave inválida ou expirada." : e.status === 404 ? "Repositório não encontrado, ou a chave não tem acesso a ele." : "Erro: " + esc(e.message), "bad");
     }
   };
-  $("gEsquecer").onclick = () => { if (confirm("Remover a chave deste aparelho? Você vai precisar entrar de novo com e-mail e senha.")) sair(); };
+  $("gEsquecer").onclick = async () => { if (await confirmar("Remover a chave deste aparelho?", "Você vai precisar entrar de novo com e-mail e senha.", { ok: "Remover", perigo: true })) sair(); };
 
   // =====================================================
   // CONTAS DE ACESSO (e-mail + senha)
@@ -1467,7 +1500,7 @@ window.Motion = (() => {
       let primeira = false;
       await gravarCofre(async (c) => {
         const existe = c.contas.find((x) => x.id === id);
-        if (existe && !confirm(`Já existe a conta "${existe.nome}" com este e-mail. Trocar o nome e a senha dela?`)) throw new Error("cancelado");
+        if (existe && !(await confirmar("Conta já existe", `Já existe a conta "${existe.nome}" com este e-mail. Trocar o nome e a senha dela?`, { ok: "Trocar" }))) throw new Error("cancelado");
         const nova = await Acesso.criarConta({ nome, email, senha, segredo: { token: gh.token, owner: gh.owner, repo: gh.repo, branch: gh.branch } });
         primeira = c.contas.length === 0;
         c.contas = existe ? c.contas.map((x) => (x.id === id ? nova : x)) : [...c.contas, nova];
@@ -1488,9 +1521,9 @@ window.Motion = (() => {
     const b = e.target.closest("[data-rm]"); if (!b) return;
     const conta = (cofre.contas || []).find((c) => c.id === b.dataset.rm); if (!conta) return;
     const ultima = cofre.contas.length === 1;
-    if (!confirm(ultima
+    if (!await confirmar(ultima
       ? `Remover "${conta.nome}", a última conta? Sem contas, o painel volta a abrir só pela chave de publicação.`
-      : `Remover a conta "${conta.nome}"? Essa pessoa não vai mais conseguir entrar.`)) return;
+      : `Remover a conta "${conta.nome}"? Essa pessoa não vai mais conseguir entrar.`, "", { ok: "Remover", perigo: true })) return;
     b.disabled = true;
     try {
       await gravarCofre((c) => { c.contas = c.contas.filter((x) => x.id !== conta.id); return c; }, "Remove conta de acesso do painel");
@@ -1499,7 +1532,7 @@ window.Motion = (() => {
       renderContas();
     } catch (err) { toast("Não foi possível remover: " + err.message, "erro"); b.disabled = false; }
   });
-  $("cSair").onclick = () => { if (confirm("Sair do painel neste aparelho?")) sair(); };
+  $("cSair").onclick = async () => { if (await confirmar("Sair do painel neste aparelho?", "Para entrar de novo, use seu e-mail e senha.", { ok: "Sair" })) sair(); };
 
   // ---------- Tela de login ----------
   function pedirLogin(info) {
@@ -1589,7 +1622,7 @@ window.Motion = (() => {
       const idsPr = d.promocoes.map((p) => p.id);
       if (idsPr.some((id) => !Number.isInteger(id) || id <= 0) || new Set(idsPr).size !== idsPr.length) throw new Error("formato");
       for (const p of d.produtos) if (p.categoria && !d.categorias.includes(p.categoria)) d.categorias.push(p.categoria);
-      if (!confirm(`Importar backup com ${plural(d.produtos.length, "produto", "produtos")} e ${plural(d.promocoes.length, "promoção", "promoções")}? Os dados atuais do painel serão substituídos (o site só muda ao publicar).`)) return;
+      if (!await confirmar(`Importar backup com ${plural(d.produtos.length, "produto", "produtos")} e ${plural(d.promocoes.length, "promoção", "promoções")}? Os dados atuais do painel serão substituídos (o site só muda ao publicar).`)) return;
       dados = d;
       mudou(); abrirAba("inicio"); toast("Backup importado. Confira e clique em Publicar.", null, 4000);
     } catch {
@@ -1624,7 +1657,7 @@ window.Motion = (() => {
       const arq = await lerApi(`contents/data.js?ref=${b.dataset.sha}`);
       const d = Pedido.normalizar(parseDataJs(textoDeB64(arq.content)));
       if (!d || !Array.isArray(d.produtos)) throw new Error("formato");
-      if (!confirm(`Carregar a versão de ${b.dataset.quando}? Ela tem ${plural(d.produtos.length, "produto", "produtos")} (o painel hoje tem ${dados.produtos.length}). O site só muda quando você clicar em Publicar.`)) return;
+      if (!await confirmar(`Carregar a versão de ${b.dataset.quando}? Ela tem ${plural(d.produtos.length, "produto", "produtos")} (o painel hoje tem ${dados.produtos.length}). O site só muda quando você clicar em Publicar.`)) return;
       dados = d; mudou(); abrirAba("produtos");
       toast(`Versão de ${b.dataset.quando} carregada. Confira e clique em Publicar.`, null, 5000);
     } catch { toast("Não foi possível carregar esta versão.", "erro"); }
@@ -1643,13 +1676,13 @@ window.Motion = (() => {
     l.download = `rascunho-antigo-${Promo.ymd(new Date(a.guardadoEm || Date.now()))}.js`;
     l.click(); setTimeout(() => URL.revokeObjectURL(l.href), 2000);
   };
-  $("hAntigoApagar").onclick = () => {
-    if (!confirm("Apagar o rascunho antigo deste aparelho? O site não muda.")) return;
+  $("hAntigoApagar").onclick = async () => {
+    if (!(await confirmar("Apagar o rascunho antigo?", "Ele só existe neste aparelho. O site não muda.", { ok: "Apagar", perigo: true }))) return;
     store.del(LS_DRAFT_ANTIGO); renderAntigo(); toast("Rascunho antigo apagado");
   };
 
-  $("gDescartar").onclick = () => {
-    if (!confirm("Descartar todas as alterações que ainda não foram publicadas?")) return;
+  $("gDescartar").onclick = async () => {
+    if (!(await confirmar("Descartar as alterações?", "Tudo o que ainda não foi publicado neste aparelho será apagado.", { ok: "Descartar", perigo: true }))) return;
     store.del(LS_DRAFT); pendentes = {}; publicado = JSON.stringify(dados); location.reload();
   };
 
@@ -1683,7 +1716,7 @@ window.Motion = (() => {
         // Trava: publicação que tira muitos produtos do site pede confirmação (antes de enviar fotos)
         if (remoto && tentativa === 0) {
           const antes = remoto.produtos.length, depois = enviar.produtos.length;
-          if (antes - depois >= 5 && !confirm(`Atenção: o site tem ${antes} produtos e ficará com ${depois} (${antes - depois} serão removidos). Publicar mesmo assim?`)) {
+          if (antes - depois >= 5 && !(await confirmar(`${antes - depois} produtos vão sair do site`, `O site tem ${antes} produtos e ficará com ${depois}. Publicar mesmo assim?`, { ok: "Publicar mesmo assim", perigo: true }))) {
             throw new Error("cancelado");
           }
         }

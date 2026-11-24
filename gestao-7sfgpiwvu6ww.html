@@ -10,8 +10,8 @@
   <link rel="icon" type="image/png" href="img/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/painel.css?v=20261124a">
-  <script src="js/painel/tema.js?v=20261124a"></script>
+  <link rel="stylesheet" href="css/painel.css?v=20261124b">
+  <script src="js/painel/tema.js?v=20261124b"></script>
 </head>
 <body>
   <!-- ===== Login ===== -->
@@ -348,6 +348,15 @@
   </main>
 
   <!-- ===== Modal: produto ===== -->
+  <!-- Confirmação no visual do painel (no lugar da caixinha do navegador) -->
+  <div class="confirma" id="confirma" role="alertdialog" aria-modal="true" aria-labelledby="confTitulo" aria-describedby="confTexto" hidden>
+    <div class="conf-caixa">
+      <div class="conf-ico" id="confIco"></div>
+      <h2 id="confTitulo"></h2>
+      <p id="confTexto"></p>
+      <div class="conf-botoes"><button class="btn ghost" id="confNao" type="button">Cancelar</button><button class="btn accent" id="confOk" type="button">Confirmar</button></div>
+    </div>
+  </div>
   <div class="scrim" id="scrim" hidden></div>
   <section class="modal" id="mProduto" role="dialog" aria-modal="true" aria-labelledby="mTitulo" hidden>
     <header class="m-head"><h2 id="mTitulo">Produto</h2><button class="circ" data-fechar title="Fechar"><span data-ico="x"></span></button></header>
@@ -471,11 +480,11 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="data.js"></script>
-  <script src="js/comum/geo.js?v=20261124a"></script>
-  <script src="js/comum/promo.js?v=20261124a"></script>
-  <script src="js/comum/pedido.js?v=20261124a"></script>
-  <script src="js/painel/mescla.js?v=20261124a"></script>
-  <script src="js/painel/acesso.js?v=20261124a"></script>
-  <script src="js/painel/admin.js?v=20261124a"></script>
+  <script src="js/comum/geo.js?v=20261124b"></script>
+  <script src="js/comum/promo.js?v=20261124b"></script>
+  <script src="js/comum/pedido.js?v=20261124b"></script>
+  <script src="js/painel/mescla.js?v=20261124b"></script>
+  <script src="js/painel/acesso.js?v=20261124b"></script>
+  <script src="js/painel/admin.js?v=20261124b"></script>
 </body>
 </html>
