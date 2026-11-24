@@ -9,7 +9,7 @@ export const Promo = globalThis.Promo;
 export const Pedido = globalThis.Pedido;
 export const Geo = globalThis.Geo;
 
-export const TRES_DIAS = 3 * 864e5;
+export const GUARDA = 30 * 864e5; // pedidos ficam guardados por 30 dias (histórico)
 export const REPO = (env) => env.REPO || "mauriket/adega-brasil";
 
 export const json = (obj, status = 200) =>

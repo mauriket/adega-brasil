@@ -1,6 +1,6 @@
 // POST /api/pedido — o catálogo manda o pedido aqui ao clicar em "Enviar".
 // O servidor NÃO confia nos valores do cliente: recalcula preços, promoções e frete com os dados publicados.
-import { Promo, Pedido, Geo, TRES_DIAS, json, hash, lerDados } from "../_lib/comum.js";
+import { Promo, Pedido, Geo, GUARDA, json, hash, lerDados } from "../_lib/comum.js";
 
 const texto = (v, max) => String(v ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -86,6 +86,6 @@ export async function onRequestPost({ request, env }) {
     totalCliente: isFinite(totalCliente) ? r2(totalCliente) : null, alertas,
   };
   await env.DB.prepare("INSERT OR IGNORE INTO pedidos (id, criado, ip, dados) VALUES (?, ?, ?, ?)").bind(id, agora, ip, JSON.stringify(pedido)).run();
-  await env.DB.prepare("DELETE FROM pedidos WHERE criado < ?").bind(agora - TRES_DIAS).run(); // some sozinho depois de 3 dias
+  await env.DB.prepare("DELETE FROM pedidos WHERE criado < ?").bind(agora - GUARDA).run(); // some sozinho depois de 30 dias
   return json({ ok: true, id, total });
 }

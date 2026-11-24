@@ -10,8 +10,8 @@
   <link rel="icon" type="image/png" href="img/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/painel.css?v=20261123d">
-  <script src="js/painel/tema.js?v=20261123d"></script>
+  <link rel="stylesheet" href="css/painel.css?v=20261124a">
+  <script src="js/painel/tema.js?v=20261124a"></script>
 </head>
 <body>
   <!-- ===== Login ===== -->
@@ -224,9 +224,10 @@
     <!-- ===== PEDIDOS (chegam sozinhos do site; somem depois de 3 dias) ===== -->
     <section class="tab" id="tab-pedidos" hidden>
       <div class="ped-topo">
-        <p class="help" id="pedInfo">Os pedidos enviados pelo site aparecem aqui sozinhos, com o valor conferido pela loja. Cada pedido some depois de 3 dias.</p>
+        <p class="help" id="pedInfo">Os pedidos enviados pelo site aparecem aqui sozinhos, com o valor conferido pela loja. Ficam guardados por 30 dias.</p>
         <button class="btn ghost sm" id="pedAtualizar"><span data-ico="clock"></span>Atualizar</button>
       </div>
+      <div class="chips ped-filtros" id="pedFiltros"></div>
       <div id="pedLista"></div>
     </section>
 
@@ -470,11 +471,11 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="data.js"></script>
-  <script src="js/comum/geo.js?v=20261123d"></script>
-  <script src="js/comum/promo.js?v=20261123d"></script>
-  <script src="js/comum/pedido.js?v=20261123d"></script>
-  <script src="js/painel/mescla.js?v=20261123d"></script>
-  <script src="js/painel/acesso.js?v=20261123d"></script>
-  <script src="js/painel/admin.js?v=20261123d"></script>
+  <script src="js/comum/geo.js?v=20261124a"></script>
+  <script src="js/comum/promo.js?v=20261124a"></script>
+  <script src="js/comum/pedido.js?v=20261124a"></script>
+  <script src="js/painel/mescla.js?v=20261124a"></script>
+  <script src="js/painel/acesso.js?v=20261124a"></script>
+  <script src="js/painel/admin.js?v=20261124a"></script>
 </body>
 </html>

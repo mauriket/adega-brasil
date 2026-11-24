@@ -1,8 +1,10 @@
-// GET /api/pedidos — lista os pedidos dos últimos 3 dias para o painel.
-// Só responde para quem tem a chave de publicação da loja (a mesma que o login do painel libera):
-// o servidor confere no GitHub se a chave tem permissão de escrita no repositório da loja.
-import { TRES_DIAS, REPO, json, hash } from "../_lib/comum.js";
+// /api/pedidos — só para o painel (precisa da chave de publicação da loja; o servidor confere no GitHub
+// se a chave tem permissão de escrita no repositório da loja).
+//   GET  ?desde=ms  → pedidos dos últimos 30 dias (só os novos ou alterados depois de "desde")
+//   POST {id, status, por} → muda a situação: pendente | pago | entregue | cancelado | excluido
+import { GUARDA, REPO, json, hash } from "../_lib/comum.js";
 
+const SITUACOES = ["pendente", "pago", "entregue", "cancelado", "excluido"];
 const confirmadas = new Map(); // chave (hash) → válida até (ms), para não consultar o GitHub a cada 30 s
 
 async function autorizado(request, env) {
@@ -26,8 +28,25 @@ async function autorizado(request, env) {
 export async function onRequestGet({ request, env }) {
   if (!env.DB) return json({ ok: false, erro: "sem banco" }, 503);
   if (!(await autorizado(request, env))) return json({ ok: false, erro: "acesso" }, 401);
+  const agora = Date.now(), limite = agora - GUARDA;
+  const desde = Number(new URL(request.url).searchParams.get("desde")) || 0;
+  const { results } = await env.DB.prepare(
+    "SELECT dados, status, atualizado, por FROM pedidos WHERE criado > ? AND (criado > ? OR atualizado > ?) ORDER BY criado DESC LIMIT 500"
+  ).bind(limite, desde, desde).all();
+  const pedidos = results.map((r) => Object.assign(JSON.parse(r.dados), { status: r.status || "pendente", atualizado: r.atualizado || 0, por: r.por || "" }));
+  return json({ ok: true, agora, pedidos });
+}
+
+export async function onRequestPost({ request, env }) {
+  if (!env.DB) return json({ ok: false, erro: "sem banco" }, 503);
+  if (!(await autorizado(request, env))) return json({ ok: false, erro: "acesso" }, 401);
+  let b;
+  try { b = JSON.parse(await request.text()); } catch { return json({ ok: false, erro: "formato" }, 400); }
+  const id = b && typeof b.id === "string" && /^[A-Z2-9]{6}$/.test(b.id) ? b.id : null;
+  if (!id || !SITUACOES.includes(b.status)) return json({ ok: false, erro: "formato" }, 400);
+  const por = String(b.por || "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 40);
   const agora = Date.now();
-  const desde = Math.max(Number(new URL(request.url).searchParams.get("desde")) || 0, agora - TRES_DIAS);
-  const { results } = await env.DB.prepare("SELECT dados FROM pedidos WHERE criado > ? ORDER BY criado DESC LIMIT 300").bind(desde).all();
-  return json({ ok: true, agora, pedidos: results.map((r) => JSON.parse(r.dados)) });
+  const r = await env.DB.prepare("UPDATE pedidos SET status = ?, atualizado = ?, por = ? WHERE id = ?").bind(b.status, agora, por, id).run();
+  if (!r.meta || !r.meta.changes) return json({ ok: false, erro: "nao achou" }, 404);
+  return json({ ok: true, id, status: b.status, atualizado: agora, por });
 }

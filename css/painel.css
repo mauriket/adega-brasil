@@ -724,3 +724,8 @@ html.com-login body > :not(.login) { visibility: hidden; }
 .tecnico > details > summary { cursor: pointer; color: var(--muted); font-size: 14px; }
 .tecnico > details > summary b { color: var(--text); }
 .tecnico > details[open] > summary { margin-bottom: 12px; }
+.ped-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.ped-acoes .btn.danger { margin-left: auto; }
+.pedido.st-entregue, .pedido.st-cancelado { opacity: .78; }
+.pedido.st-cancelado .ped-total { text-decoration: line-through; color: var(--muted); }
+.pedido.st-pago { border-color: rgba(140, 196, 255, .45); }

@@ -1164,14 +1164,26 @@ window.Motion = (() => {
   $("lNome").addEventListener("blur", () => { if (!$("lNome").value.trim()) { $("lNome").value = dados.loja.nome || ""; toast("O nome da loja não pode ficar vazio.", "erro"); } });
   $("lMinimo").addEventListener("input", () => { dados.loja.pedidoMinimo = Math.max(0, num($("lMinimo").value)); mudou(); });
   // =====================================================
-  // PEDIDOS: chegam sozinhos do site (servidor da Cloudflare) e somem depois de 3 dias. Só para ver.
+  // PEDIDOS: chegam sozinhos do site (servidor da Cloudflare); ficam 30 dias. Situação: pendente → pago → entregue, ou cancelado.
   // =====================================================
   const LS_VISTOS = "adega_admin_pedidos_vistos";
   const vistos = new Set(store.get(LS_VISTOS, []));
-  const salvarVistos = () => store.set(LS_VISTOS, [...vistos].slice(-500));
+  const salvarVistos = () => store.set(LS_VISTOS, [...vistos].slice(-800));
   const destaque = new Map(); // pedido ainda não visto → quando chegou (fica verde por 10 min)
-  let pedidos = [], pedStatus = "", pedUltimo = 0, pedCarregando = false, pedJaCarregou = false, pedAssinatura = "";
+  const SIT = {
+    pendente: { nome: "Pendente", cor: "ouro" }, pago: { nome: "Pago", cor: "azul" },
+    entregue: { nome: "Entregue", cor: "verde" }, cancelado: { nome: "Cancelado", cor: "vermelho" },
+  };
+  const FILTROS = [
+    ["abertos", "Em aberto", (p) => p.status === "pendente" || p.status === "pago"],
+    ["pago", "Pagos", (p) => p.status === "pago"],
+    ["entregue", "Entregues", (p) => p.status === "entregue"],
+    ["cancelado", "Cancelados", (p) => p.status === "cancelado"],
+    ["todos", "Todos", () => true],
+  ];
+  let pedidos = [], pedStatus = "", pedUltimo = 0, pedCarregando = false, pedJaCarregou = false, pedAssinatura = "", pedFiltro = "abertos";
   const horaPed = (ms) => new Date(ms).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  const assinaturaPed = () => pedStatus + "|" + pedFiltro + "|" + pedidos.map((p) => p.id + p.status + p.atualizado).join(",");
 
   async function carregarPedidos(tudo) {
     if (!gh.token || pedCarregando) return;
@@ -1183,12 +1195,12 @@ window.Motion = (() => {
       if (!r.ok) throw new Error(String(r.status));
       const j = await r.json();
       const mapa = new Map((tudo ? [] : pedidos).map((p) => [p.id, p]));
-      const chegaram = j.pedidos.filter((p) => !mapa.has(p.id) && !vistos.has(p.id));
+      const chegaram = j.pedidos.filter((p) => !mapa.has(p.id) && !vistos.has(p.id) && p.status === "pendente");
       chegaram.forEach((p) => destaque.set(p.id, Date.now()));
       j.pedidos.forEach((p) => mapa.set(p.id, p));
-      const limite = j.agora - 3 * 864e5;
-      pedidos = [...mapa.values()].filter((p) => p.criado > limite).sort((a, b) => b.criado - a.criado);
-      if (pedidos.length) pedUltimo = Math.max(pedUltimo, pedidos[0].criado);
+      const limite = j.agora - 30 * 864e5;
+      pedidos = [...mapa.values()].filter((p) => p.criado > limite && p.status !== "excluido").sort((a, b) => b.criado - a.criado);
+      for (const p of j.pedidos) pedUltimo = Math.max(pedUltimo, p.criado, p.atualizado || 0);
       pedStatus = "ok";
       if (chegaram.length && pedJaCarregou) toast(chegaram.length === 1 ? `Novo pedido de ${chegaram[0].cliente || "cliente"}!` : `${chegaram.length} pedidos novos!`, null, 6000);
       pedJaCarregou = true;
@@ -1196,47 +1208,64 @@ window.Motion = (() => {
     finally {
       pedCarregando = false;
       badgePedidos();
-      // só redesenha se algo mudou (não recarrega os mapas à toa)
-      const ass = pedStatus + "|" + pedidos.map((p) => p.id).join(",");
-      if (abaAtual === "pedidos" && ass !== pedAssinatura) renderPedidos();
+      if (abaAtual === "pedidos" && assinaturaPed() !== pedAssinatura) renderPedidos(); // só redesenha se algo mudou
     }
   }
   function badgePedidos() {
-    const n = pedidos.filter((p) => !vistos.has(p.id)).length, b = $("pedNovos");
+    const n = pedidos.filter((p) => p.status === "pendente" && !vistos.has(p.id)).length, b = $("pedNovos");
     b.textContent = n; b.hidden = !n;
   }
   function renderPedidos() {
     const L = $("pedLista");
-    pedAssinatura = pedStatus + "|" + pedidos.map((p) => p.id).join(",");
+    pedAssinatura = assinaturaPed();
+    const conta = (f) => pedidos.filter(f).length;
+    $("pedFiltros").innerHTML = pedStatus === "ok" ? FILTROS.map(([k, nome, f]) => `<button class="chip${pedFiltro === k ? " on" : ""}" data-pf="${k}">${nome} <em>${conta(f)}</em></button>`).join("") : "";
     if (!gh.token) { L.innerHTML = vazio("key", "Entre com sua conta", "Os pedidos aparecem depois do login."); return; }
     if (!pedStatus) { L.innerHTML = '<p class="hint"><span class="spin"></span>Carregando pedidos…</p>'; if (!pedCarregando) carregarPedidos(true); return; }
     if (pedStatus === "sem-servidor") { L.innerHTML = vazio("alert", "Pedidos só no endereço novo", "Abra o painel pelo endereço adega-brasil.pages.dev para ver os pedidos."); return; }
     if (pedStatus === "acesso") { L.innerHTML = vazio("key", "Sem acesso aos pedidos", "Saia deste aparelho e entre de novo com seu e-mail e senha."); return; }
     if (pedStatus === "erro") { L.innerHTML = vazio("alert", "Não foi possível carregar agora", "Confira a internet. O painel tenta de novo sozinho."); return; }
-    if (!pedidos.length) { L.innerHTML = vazio("box", "Nenhum pedido nos últimos 3 dias", "Quando um cliente enviar um pedido pelo site, ele aparece aqui sozinho."); return; }
-    L.innerHTML = pedidos.map(cartaoPedido).join("");
+    const filtro = (FILTROS.find((x) => x[0] === pedFiltro) || FILTROS[0])[2];
+    const lista = pedidos.filter(filtro);
+    if (!lista.length) {
+      L.innerHTML = pedidos.length ? vazio("box", "Nenhum pedido aqui", "Troque o filtro acima para ver os outros pedidos.")
+        : vazio("box", "Nenhum pedido ainda", "Quando um cliente enviar um pedido pelo site, ele aparece aqui sozinho.");
+    } else L.innerHTML = lista.map(cartaoPedido).join("");
     pedidos.forEach((p) => vistos.add(p.id)); // conta como visto (o destaque verde continua por 10 min)
     salvarVistos(); badgePedidos();
   }
+  function botoesPedido(p) {
+    const b = (st, rotulo, cls, icone) => `<button class="btn ${cls} sm" data-ped="${esc(p.id)}" data-st="${st}">${ico(icone, 15)}${rotulo}</button>`;
+    const out = [];
+    if (p.status === "pendente") out.push(b("pago", "Marcar como pago", "ghost", "check"));
+    if (p.status === "pendente" || p.status === "pago") out.push(b("entregue", "Marcar como entregue", "accent", "send"));
+    if (p.status === "pendente" || p.status === "pago") out.push(b("cancelado", "Cancelar", "ghost", "x"));
+    if (p.status === "entregue" || p.status === "cancelado") out.push(b("pendente", "Reabrir", "ghost", "undo"));
+    out.push(b("excluido", "Excluir", "danger", "trash"));
+    return `<div class="ped-acoes">${out.join("")}</div>`;
+  }
   function cartaoPedido(p) {
-    const novo = Date.now() - (destaque.get(p.id) || 0) < 10 * 60e3, e = p.endereco || {}, f = p.frete || {};
+    const novo = Date.now() - (destaque.get(p.id) || 0) < 10 * 60e3 && p.status === "pendente", e = p.endereco || {}, f = p.frete || {};
+    const sit = SIT[p.status] || SIT.pendente;
     let tel = String(p.telefone || "").replace(/\D/g, "");
     if (tel.length === 10 || tel.length === 11) tel = "55" + tel;
     const telHTML = p.telefone ? " · " + (tel.length >= 12 ? `<a class="link" target="_blank" rel="noopener" href="https://wa.me/${tel}">${esc(p.telefone)}</a>` : esc(p.telefone)) : "";
     const ende = p.retirada ? "<b>Retirada na loja</b>"
       : `${esc(e.rua)}, ${esc(e.numero)}${e.complemento ? " - " + esc(e.complemento) : ""}<br>${esc(e.bairro)} - ${esc(e.cidade)}/${esc(e.uf)} · CEP ${esc(e.cep)}${e.referencia ? `<br><small>Referência: ${esc(e.referencia)}</small>` : ""}`;
     let mapa = "";
-    if (p.pos) {
+    const aberto = p.status === "pendente" || p.status === "pago";
+    if (p.pos && aberto) {
       const lat = Number(p.pos.lat), lng = Number(p.pos.lng);
       const osm = `https://www.openstreetmap.org/export/embed.html?bbox=${(lng - .006).toFixed(6)},${(lat - .004).toFixed(6)},${(lng + .006).toFixed(6)},${(lat + .004).toFixed(6)}&layer=mapnik&marker=${lat},${lng}`;
       mapa = `<div class="ped-mapa"><iframe loading="lazy" title="Local da entrega" src="${osm}"></iframe>
         <div class="row"><a class="btn ghost sm" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">${ico("pin", 15)}Google Maps</a>
         <a class="btn ghost sm" target="_blank" rel="noopener" href="https://waze.com/ul?ll=${lat},${lng}&navigate=yes">${ico("send", 15)}Waze</a></div></div>`;
-    } else if (!p.retirada) mapa = `<div class="ped-mapa sem"><p class="hint">Endereço não localizado no mapa. Confira com o cliente.</p></div>`;
+    } else if (!p.retirada && aberto) mapa = `<div class="ped-mapa sem"><p class="hint">Endereço não localizado no mapa. Confira com o cliente.</p></div>`;
     const itens = (p.itens || []).map((i) => `<tr><td>${i.qtd}×</td><td>${esc(i.nome)}${i.promo ? ` <small>(${esc(i.promo)})</small>` : ""}</td><td class="num">${brl(i.total)}</td></tr>`).join("");
-    return `<article class="card pedido${novo ? " novo" : ""}">
-      <header><div><h2>Pedido ${esc(p.id)}${novo ? ' <span class="tag verde">Novo</span>' : ""}</h2><small class="hint">${esc(horaPed(p.criado))}</small></div><b class="ped-total">${brl(p.total)}</b></header>
-      ${p.alertas && p.alertas.length ? `<ul class="ped-alertas">${p.alertas.map((a) => `<li>${esc(a)}</li>`).join("")}</ul>` : ""}
+    const quem = p.status !== "pendente" && p.atualizado ? `<small class="hint">${sit.nome}${p.por ? " por " + esc(p.por) : ""} · ${esc(horaPed(p.atualizado))}</small>` : "";
+    return `<article class="card pedido st-${esc(p.status)}${novo ? " novo" : ""}">
+      <header><div><h2>Pedido ${esc(p.id)} <span class="tag ${sit.cor}">${sit.nome}</span>${novo ? ' <span class="tag verde">Novo</span>' : ""}</h2><small class="hint">${esc(horaPed(p.criado))}</small> ${quem}</div><b class="ped-total">${brl(p.total)}</b></header>
+      ${p.alertas && p.alertas.length && aberto ? `<ul class="ped-alertas">${p.alertas.map((a) => `<li>${esc(a)}</li>`).join("")}</ul>` : ""}
       <div class="ped-grid">
         <div>
           <p class="ped-cli"><b>${esc(p.cliente || "Sem nome")}</b>${telHTML}</p>
@@ -1252,10 +1281,36 @@ window.Motion = (() => {
         </div>
         ${mapa}
       </div>
+      ${botoesPedido(p)}
     </article>`;
   }
+  // muda a situação (aparece na hora; se o servidor recusar, volta como estava)
+  async function mudarSituacao(id, status) {
+    const p = pedidos.find((x) => x.id === id); if (!p) return;
+    if (status === "excluido" && !confirm(`Excluir o pedido ${id} de ${p.cliente || "cliente"}? Ele some de vez (não vai para o histórico).`)) return;
+    if (status === "cancelado" && !confirm(`Cancelar o pedido ${id} de ${p.cliente || "cliente"}? Ele fica no histórico como cancelado.`)) return;
+    const antes = { status: p.status, atualizado: p.atualizado, por: p.por };
+    const por = sessao && sessao.id !== "chave" ? sessao.nome : "";
+    Object.assign(p, { status, atualizado: Date.now(), por });
+    if (status === "excluido") pedidos = pedidos.filter((x) => x !== p);
+    renderPedidos();
+    try {
+      const r = await fetch("api/pedidos", { method: "POST", headers: { Authorization: `Bearer ${gh.token}`, "content-type": "application/json" }, body: JSON.stringify({ id, status, por }) });
+      if (!r.ok) throw new Error(String(r.status));
+      const j = await r.json(); p.atualizado = j.atualizado;
+      pedUltimo = Math.max(pedUltimo, j.atualizado);
+      toast({ pago: "Marcado como pago", entregue: "Marcado como entregue", cancelado: "Pedido cancelado", pendente: "Pedido reaberto", excluido: "Pedido excluído" }[status]);
+    } catch {
+      Object.assign(p, antes);
+      if (status === "excluido") { pedidos.push(p); pedidos.sort((a, b) => b.criado - a.criado); }
+      renderPedidos();
+      toast("Não foi possível salvar agora. Confira a internet e tente de novo.", "erro", 4000);
+    }
+  }
+  $("pedLista").addEventListener("click", (e) => { const b = e.target.closest("[data-ped]"); if (b) mudarSituacao(b.dataset.ped, b.dataset.st); });
+  $("pedFiltros").addEventListener("click", (e) => { const b = e.target.closest("[data-pf]"); if (b) { pedFiltro = b.dataset.pf; renderPedidos(); } });
   $("pedAtualizar").onclick = () => carregarPedidos(true);
-  setInterval(() => { if (!document.hidden) carregarPedidos(false); }, 30000); // novos pedidos a cada 30 s
+  setInterval(() => { if (!document.hidden) carregarPedidos(false); }, 30000); // novos pedidos e mudanças do outro aparelho a cada 30 s
   document.addEventListener("visibilitychange", () => { if (!document.hidden) carregarPedidos(false); });
 
   // ---------- Rodapé: Instagram, WhatsApp e aviso ----------
