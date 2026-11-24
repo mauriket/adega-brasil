@@ -38,7 +38,8 @@ window.DADOS = {
   },
   "categorias": [
     "Cervejas",
-    "Combos",
+    "Combos com energético 2 litros",
+    "Combos com 5 RedBull",
     "Destilados",
     "Licores",
     "Vinhos",
@@ -1068,11 +1069,119 @@ window.DADOS = {
       "destaque": false,
       "ativo": true,
       "esgotado": false
+    },
+    {
+      "id": 118,
+      "imagem": "img/produtos/p118-1795524378490.jpg",
+      "nome": "Red Label",
+      "preco": 135,
+      "categoria": "Combos com energético 2 litros",
+      "emoji": "",
+      "descricao": "4 gelos saborizados e 1 energético de 2 litros.",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 119,
+      "imagem": "img/produtos/p119-1795524427234.jpg",
+      "nome": "Jack Daniel's",
+      "preco": 180,
+      "categoria": "Combos com energético 2 litros",
+      "emoji": "",
+      "descricao": "4 gelos saborizados e 1 energético de 2 litros.",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 120,
+      "imagem": "img/produtos/p120-1795524501658.jpg",
+      "nome": "Chivas Regal",
+      "preco": 165,
+      "categoria": "Combos com energético 2 litros",
+      "emoji": "",
+      "descricao": "4 gelos saborizados e 1 energético de 2 litros.",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 121,
+      "imagem": "img/produtos/p121-1795524631410.jpg",
+      "nome": "Old Parr",
+      "preco": 185,
+      "categoria": "Combos com energético 2 litros",
+      "emoji": "",
+      "descricao": "4 gelos saborizados e 1 energético de 2 litros.",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 122,
+      "imagem": "img/produtos/p122-1795524678650.jpg",
+      "nome": "Tanqueray",
+      "preco": 140,
+      "categoria": "Combos com energético 2 litros",
+      "emoji": "",
+      "descricao": "4 gelos saborizados e 1 energético de 2 litros.",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 123,
+      "imagem": "img/produtos/p123-1795524906602.jpg",
+      "nome": "Beefeater",
+      "preco": 135,
+      "categoria": "Combos com energético 2 litros",
+      "emoji": "",
+      "descricao": "4 gelos saborizados e 1 energético de 2 litros.",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 124,
+      "imagem": "img/produtos/p124-1795524840418.jpg",
+      "nome": "Cavalo Branco",
+      "preco": 126,
+      "categoria": "Combos com energético 2 litros",
+      "emoji": "",
+      "descricao": "4 gelos saborizados e 1 energético de 2 litros.",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 125,
+      "imagem": "img/produtos/p125-1795524940322.jpg",
+      "nome": "Ballantine's",
+      "preco": 126,
+      "categoria": "Combos com energético 2 litros",
+      "emoji": "",
+      "descricao": "4 gelos saborizados e 1 energético de 2 litros.",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 126,
+      "imagem": "img/produtos/p126-1795524979114.jpg",
+      "nome": "Smirnoff",
+      "preco": 75,
+      "categoria": "Combos com energético 2 litros",
+      "emoji": "",
+      "descricao": "4 gelos saborizados e 1 energético de 2 litros.",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
     }
   ],
   "promocoes": [],
   "ultimoId": {
-    "produto": 117,
+    "produto": 126,
     "promo": 2
   }
 };
