@@ -1072,7 +1072,7 @@ window.DADOS = {
     },
     {
       "id": 119,
-      "imagem": "img/produtos/p119-1795524427234.jpg",
+      "imagem": "img/produtos/p119-1795528436839.jpg",
       "nome": "Jack Daniel's",
       "preco": 180,
       "categoria": "Combos com energético 2 litros",
@@ -1120,7 +1120,7 @@ window.DADOS = {
     },
     {
       "id": 123,
-      "imagem": "img/produtos/p123-1795524906602.jpg",
+      "imagem": "img/produtos/p123-1795528464215.jpg",
       "nome": "Beefeater",
       "preco": 135,
       "categoria": "Combos com energético 2 litros",
