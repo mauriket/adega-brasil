@@ -579,18 +579,6 @@ window.DADOS = {
       "esgotado": false
     },
     {
-      "id": 77,
-      "imagem": "img/produtos/p77-1795436120571.jpg",
-      "nome": "Ballena Chocolate com Caramelo 750 ML",
-      "preco": 145,
-      "categoria": "Licores",
-      "emoji": "",
-      "descricao": "",
-      "destaque": false,
-      "ativo": true,
-      "esgotado": false
-    },
-    {
       "id": 78,
       "imagem": "img/produtos/p78-1795436149075.jpg",
       "nome": "Campari 748 ML",
