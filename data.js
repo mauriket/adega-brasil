@@ -1180,7 +1180,7 @@ window.DADOS = {
     },
     {
       "id": 128,
-      "imagem": "img/produtos/p128-1795525382602.jpg",
+      "imagem": "img/produtos/p128-1795528408815.jpg",
       "nome": "Jack Daniel's",
       "preco": 235,
       "categoria": "Combos com 5 RedBull",
