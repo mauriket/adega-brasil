@@ -1177,11 +1177,83 @@ window.DADOS = {
       "destaque": false,
       "ativo": true,
       "esgotado": false
+    },
+    {
+      "id": 127,
+      "imagem": "img/produtos/p127-1795525349882.jpg",
+      "nome": "Red Label",
+      "preco": 180,
+      "categoria": "Combos com 5 RedBull",
+      "emoji": "",
+      "descricao": "4 gelos saborizados e 5 unidades de Red Bull.",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 128,
+      "imagem": "img/produtos/p128-1795525382602.jpg",
+      "nome": "Jack Daniel's",
+      "preco": 235,
+      "categoria": "Combos com 5 RedBull",
+      "emoji": "",
+      "descricao": "4 gelos saborizados e 5 unidades de Red Bull.",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 129,
+      "imagem": "img/produtos/p129-1795525403186.jpg",
+      "nome": "Chivas Regal",
+      "preco": 210,
+      "categoria": "Combos com 5 RedBull",
+      "emoji": "",
+      "descricao": "4 gelos saborizados e 5 unidades de Red Bull.",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 130,
+      "imagem": "img/produtos/p130-1795525425050.jpg",
+      "nome": "Old Parr",
+      "preco": 235,
+      "categoria": "Combos com 5 RedBull",
+      "emoji": "",
+      "descricao": "4 gelos saborizados e 5 unidades de Red Bull.",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 131,
+      "imagem": "img/produtos/p131-1795525463674.jpg",
+      "nome": "Tanqueray",
+      "preco": 195,
+      "categoria": "Combos com 5 RedBull",
+      "emoji": "",
+      "descricao": "4 gelos saborizados e 5 unidades de Red Bull.",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 132,
+      "imagem": "img/produtos/p132-1795525468874.jpg",
+      "nome": "Beefeater",
+      "preco": 180,
+      "categoria": "Combos com 5 RedBull",
+      "emoji": "",
+      "descricao": "4 gelos saborizados e 5 unidades de Red Bull.",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
     }
   ],
   "promocoes": [],
   "ultimoId": {
-    "produto": 126,
+    "produto": 132,
     "promo": 2
   }
 };
