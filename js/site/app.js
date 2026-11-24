@@ -454,6 +454,7 @@ window.carregarDados = (async () => {
           endereco: retirada ? null : { rua: v("rua"), numero: v("numero"), complemento: v("complemento"), bairro: v("bairro"),
             cidade: enderecoCep.cidade, uf: enderecoCep.uf, cep: enderecoCep.cep, referencia: v("referencia") },
           pos: !retirada && frete && frete.pos ? frete.pos : null,
+          km: !retirada && frete && frete.km != null ? Math.round(frete.km * 100) / 100 : null,
         }),
       }).catch(() => {});
     } catch (e) { /* sem servidor (ex.: cópia antiga): segue só pelo WhatsApp */ }

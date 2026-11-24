@@ -54,7 +54,13 @@ export async function onRequestPost({ request, env }) {
     const temLoja = F.lojaLat != null && F.lojaLng != null && F.lojaLat !== "" && F.lojaLng !== "";
     if (lim > 0 && subtotal >= lim) frete = { valor: 0, texto: `Grátis (pedido acima de ${brl(lim)})` };
     else if (pos && temLoja) {
-      const { km, metodo } = await Geo.distanciaKm({ lat: Number(F.lojaLat), lng: Number(F.lojaLng) }, pos);
+      const loja = { lat: Number(F.lojaLat), lng: Number(F.lojaLng) };
+      let { km, metodo } = await Geo.distanciaKm(loja, pos);
+      if (metodo === "estimada") {
+        // sem rota agora: usa a distância que o site do cliente calculou, se for plausível (entre a linha reta e 2,2×)
+        const reta = Geo.linhaReta(loja, pos), kmCli = Number(b.km);
+        if (isFinite(kmCli) && kmCli >= reta * 0.95 && kmCli <= reta * 2.2) { km = kmCli; metodo = "rota"; }
+      }
       const v = Geo.valorPorKm(km, F);
       if (v === null) { frete = { valor: null, km: r2(km), texto: "Fora da área de entrega" }; alertas.push(`O endereço fica a ${km.toFixed(1).replace(".", ",")} km, fora do raio de entrega.`); }
       else frete = { valor: v, km: r2(km), texto: (v > 0 ? brl(v) : "Grátis") + ` (${km.toFixed(1).replace(".", ",")} km${metodo === "estimada" ? ", estimado" : ""})` };
@@ -65,7 +71,8 @@ export async function onRequestPost({ request, env }) {
   }
   const total = r2(subtotal + (frete.valor || 0));
   const totalCliente = Number(b.totalCliente);
-  if (isFinite(totalCliente) && frete.valor !== null && Math.abs(totalCliente - total) > 0.01)
+  // só avisa quando o cliente viu um valor MENOR que o certo (sinal de alteração)
+  if (isFinite(totalCliente) && frete.valor !== null && totalCliente < total - 0.01)
     alertas.push(`A tela do cliente mostrou ${brl(totalCliente)}; o valor certo é ${brl(total)}. Confira antes de confirmar.`);
   if (D.loja && D.loja.aberta === false) alertas.push("O pedido chegou com a loja marcada como fechada.");
   const minimo = Number(D.loja && D.loja.pedidoMinimo) || 0;
