@@ -1108,7 +1108,7 @@ window.DADOS = {
     },
     {
       "id": 122,
-      "imagem": "img/produtos/p122-1795524678650.jpg",
+      "imagem": "img/produtos/p122-1795527945175.jpg",
       "nome": "Tanqueray",
       "preco": 140,
       "categoria": "Combos com energético 2 litros",
@@ -1216,7 +1216,7 @@ window.DADOS = {
     },
     {
       "id": 131,
-      "imagem": "img/produtos/p131-1795525463674.jpg",
+      "imagem": "img/produtos/p131-1795527987151.jpg",
       "nome": "Tanqueray",
       "preco": 195,
       "categoria": "Combos com 5 RedBull",
@@ -1228,7 +1228,7 @@ window.DADOS = {
     },
     {
       "id": 132,
-      "imagem": "img/produtos/p132-1795525468874.jpg",
+      "imagem": "img/produtos/p132-1795528290488.jpg",
       "nome": "Beefeater",
       "preco": 180,
       "categoria": "Combos com 5 RedBull",
