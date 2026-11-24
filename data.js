@@ -1072,6 +1072,7 @@ window.DADOS = {
   ],
   "promocoes": [],
   "ultimoId": {
-    "produto": 117
+    "produto": 117,
+    "promo": 1
   }
 };
