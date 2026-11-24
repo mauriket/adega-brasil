@@ -1074,7 +1074,7 @@ window.DADOS = {
     {
       "id": 2,
       "nome": "final de ano",
-      "ativa": true,
+      "ativa": false,
       "tipo": "percentual",
       "valor": 15,
       "leve": 3,
