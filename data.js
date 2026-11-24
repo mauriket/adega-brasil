@@ -1070,30 +1070,7 @@ window.DADOS = {
       "esgotado": false
     }
   ],
-  "promocoes": [
-    {
-      "id": 2,
-      "nome": "final de ano",
-      "ativa": false,
-      "tipo": "percentual",
-      "valor": 15,
-      "leve": 3,
-      "pague": 2,
-      "aplicaEm": "produtos",
-      "produtos": [
-        12
-      ],
-      "categoria": "Cervejas",
-      "inicio": "",
-      "fim": "",
-      "dias": [],
-      "horaInicio": "",
-      "horaFim": "",
-      "vitrine": "ofertas",
-      "limite": 0,
-      "selo": "final de ano"
-    }
-  ],
+  "promocoes": [],
   "ultimoId": {
     "produto": 117,
     "promo": 2
