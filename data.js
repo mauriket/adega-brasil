@@ -1089,9 +1089,9 @@ window.DADOS = {
       "dias": [],
       "horaInicio": "",
       "horaFim": "",
-      "vitrine": "nenhuma",
+      "vitrine": "promoDia",
       "limite": 0,
-      "selo": "promoooooo"
+      "selo": "final de ano"
     }
   ],
   "ultimoId": {
