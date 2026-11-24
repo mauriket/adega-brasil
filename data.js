@@ -1089,7 +1089,7 @@ window.DADOS = {
       "dias": [],
       "horaInicio": "",
       "horaFim": "",
-      "vitrine": "promoDia",
+      "vitrine": "ofertas",
       "limite": 0,
       "selo": "final de ano"
     }
