@@ -303,7 +303,7 @@ window.DADOS = {
     },
     {
       "id": 54,
-      "imagem": "img/produtos/p54-1795435305916.jpg",
+      "imagem": "img/produtos/p54-1795523670428.jpg",
       "nome": "Budweiser 269 ML",
       "preco": 4,
       "categoria": "Cervejas",
@@ -363,7 +363,7 @@ window.DADOS = {
     },
     {
       "id": 59,
-      "imagem": "img/produtos/p59-1795436504018.jpg",
+      "imagem": "img/produtos/p59-1795523884467.jpg",
       "nome": "Extra Power 473 ML",
       "preco": 10,
       "categoria": "Energéticos e Refri",
@@ -375,7 +375,7 @@ window.DADOS = {
     },
     {
       "id": 60,
-      "imagem": "img/produtos/p60-1795436412754.jpg",
+      "imagem": "img/produtos/p60-1795523815899.jpg",
       "nome": "Red Bull 250 ML",
       "preco": 12,
       "categoria": "Energéticos e Refri",
