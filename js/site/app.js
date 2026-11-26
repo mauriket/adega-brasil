@@ -74,7 +74,7 @@ window.carregarDados = (async () => {
   let categoriaAtiva = "Todas";
   let enderecoCep = null, frete = null, calcId = 0;
 
-  document.title = LOJA.slogan ? `${LOJA.nome} · ${LOJA.slogan}` : LOJA.nome;
+  document.title = (LOJA.slogan ? `${LOJA.nome} · ${LOJA.slogan}` : LOJA.nome) + (FRETE && FRETE.cidade ? ` | ${FRETE.cidade}` : "");
   $("logoImg").alt = LOJA.nome;
   $("pagamento").innerHTML = LOJA.pagamentos.map((p) => `<option>${esc(p)}</option>`).join("");
   $("retiradaMsg").textContent = "Retirada em: " + LOJA.endereco;
