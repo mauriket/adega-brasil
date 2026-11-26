@@ -365,3 +365,24 @@ main, .footer { position: relative; z-index: 1; }
 .footer-info .rede-insta:hover { border-color: #e1306c; background: rgba(225, 48, 108, .1); text-decoration: none; }
 /* Slogan da loja (painel → Loja) */
 .footer-info .rodape-slogan { display: block; color: var(--gold); font-weight: 700; font-size: 15px; margin: -2px 0 8px; }
+
+/* ============ Marcar a casa no mapa (js/site/mapa.js) ============ */
+.cep-ajuda { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 8px 0 2px; font-size: 14px; }
+.cep-ajuda button, .cep-ajuda a { background: none; border: 0; padding: 0; color: var(--gold); font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.cep-ajuda .ico { width: 16px; height: 16px; vertical-align: -3px; margin-right: 2px; }
+.mapa-tela { position: fixed; inset: 0; z-index: 120; display: flex; flex-direction: column; background: var(--bg); animation: fadeIn .2s; }
+.mapa-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.mapa-topo b { display: block; font-size: 17px; }
+.mapa-topo span { display: block; color: var(--muted); font-size: 13px; }
+.mapa-fechar { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-2); background: var(--surface-2); color: var(--text); font-size: 16px; cursor: pointer; }
+.mapa-area { position: relative; flex: 1; min-height: 0; background: #1b1914; }
+.mapa-area .leaflet-container, .mapa-area.leaflet-container { background: #1b1914; font: inherit; }
+.mapa-carregando { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: var(--muted); }
+/* alfinete fixo no centro: o cliente move o mapa por baixo dele */
+.mapa-alvo { position: absolute; left: 50%; top: 50%; z-index: 500; width: 34px; height: 34px; margin: -34px 0 0 -17px; pointer-events: none;
+  background: var(--gold); border: 3px solid #0a0a0a; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 6px 14px rgba(0, 0, 0, .45); }
+.mapa-alvo::after { content: ""; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #0a0a0a; }
+.mapa-rodape { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); background: var(--surface-2); }
+.mapa-end { margin: 0 0 10px; min-height: 20px; font-size: 14px; }
+.mapa-botoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 420px) { .mapa-botoes { grid-template-columns: 1fr; } }

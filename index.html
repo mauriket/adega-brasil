@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://raw.githubusercontent.com; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://viacep.com.br https://brasilapi.com.br https://nominatim.openstreetmap.org https://router.project-osrm.org; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://raw.githubusercontent.com https://tile.openstreetmap.org; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://viacep.com.br https://brasilapi.com.br https://nominatim.openstreetmap.org https://router.project-osrm.org; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Adega Brasil · Bebidas geladas com entrega em Anápolis</title>
   <meta name="description" content="Adega Brasil em Anápolis: cervejas, destilados, vinhos, energéticos e petiscos gelados com entrega. Monte seu pedido no site e envie pelo WhatsApp.">
@@ -25,7 +25,7 @@
   <link rel="preload" as="image" href="img/logo.webp">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/site.css?v=20261126a">
+  <link rel="stylesheet" href="css/site.css?v=20261126b">
 </head>
 <body>
 
@@ -43,7 +43,7 @@
   </div>
   <!-- Fundo: bolhas de cerveja subindo -->
   <div class="bolhas-bg" id="bolhasBg" aria-hidden="true"></div>
-  <script src="js/site/inicio.js?v=20261126a"></script>
+  <script src="js/site/inicio.js?v=20261126b"></script>
 
   <header class="topbar">
     <div class="container topbar-inner">
@@ -121,6 +121,10 @@
             <input type="text" id="cep" aria-label="CEP" inputmode="numeric" maxlength="9" placeholder="CEP (00000-000)">
             <button class="btn btn-secondary" id="calcFrete">Calcular</button>
           </div>
+          <div class="cep-ajuda">
+            <button type="button" id="abrirMapa"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Marcar minha casa no mapa</button>
+            <a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener">Não sei meu CEP</a>
+          </div>
           <p class="hint" id="freteMsg" aria-live="polite"></p>
           <div id="enderecoCampos" hidden>
             <input type="text" id="rua" aria-label="Rua" placeholder="Rua">
@@ -170,9 +174,10 @@
 
   <!-- Produtos: direto do GitHub (instantâneo). Reserva: data.js do Pages. -->
   <script src="data.js"></script>
-  <script src="js/comum/geo.js?v=20261126a"></script>
-  <script src="js/comum/promo.js?v=20261126a"></script>
-  <script src="js/comum/pedido.js?v=20261126a"></script>
-  <script src="js/site/app.js?v=20261126a"></script>
+  <script src="js/comum/geo.js?v=20261126b"></script>
+  <script src="js/comum/promo.js?v=20261126b"></script>
+  <script src="js/comum/pedido.js?v=20261126b"></script>
+  <script src="js/site/mapa.js?v=20261126b"></script>
+  <script src="js/site/app.js?v=20261126b"></script>
 </body>
 </html>

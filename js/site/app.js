@@ -345,6 +345,26 @@ window.carregarDados = (async () => {
   });
   $("cep").addEventListener("keydown", (e) => e.key === "Enter" && buscarCep());
   $("calcFrete").onclick = buscarCep;
+
+  // Marcar a casa no mapa: o endereço vem do ponto marcado e o frete sai pela distância exata
+  $("abrirMapa").onclick = async () => {
+    const tem = (v) => v != null && v !== "" && isFinite(Number(v));
+    const centro = frete && frete.pos ? [frete.pos.lat, frete.pos.lng]
+      : tem(FRETE.lojaLat) && tem(FRETE.lojaLng) ? [Number(FRETE.lojaLat), Number(FRETE.lojaLng)] : [-16.3285, -48.9534];
+    const r = await MapaEntrega.abrir({ centro, zoom: frete && frete.pos ? 17 : 14 });
+    if (!r) return;
+    const e = r.end || {};
+    const cep = e.cep && e.cep.length === 8 ? `${e.cep.slice(0, 5)}-${e.cep.slice(5)}` : "";
+    calcId++;
+    enderecoCep = { rua: e.rua || "", bairro: e.bairro || "", cidade: e.cidade || FRETE.cidade, uf: e.uf || FRETE.uf, cep, lat: r.lat, lng: r.lng };
+    $("cep").value = cep;
+    if (e.rua) $("rua").value = e.rua;
+    $("bairro").value = e.bairro || $("bairro").value;
+    $("bairro").readOnly = false;
+    $("enderecoCampos").hidden = false;
+    await calcularDistancia();
+    $("numero").focus();
+  };
   function msgFrete(txt, cls) { $("freteMsg").className = "hint " + (cls || ""); $("freteMsg").innerHTML = txt; }
 
   async function buscarCep() {
@@ -381,7 +401,7 @@ window.carregarDados = (async () => {
     frete = null;
     msgFrete('<span class="spin"></span> Calculando distância até você...');
     renderCarrinho();
-    const end = { rua: $("rua").value.trim(), bairro: $("bairro").value.trim(), cidade: enderecoCep.cidade, uf: enderecoCep.uf };
+    const end = { rua: $("rua").value.trim(), bairro: $("bairro").value.trim(), cidade: enderecoCep.cidade, uf: enderecoCep.uf, lat: enderecoCep.lat, lng: enderecoCep.lng };
     const r = await Geo.calcularFrete(end, FRETE);
     if (id !== calcId) return;
     if (!r.ok) {
@@ -410,7 +430,7 @@ window.carregarDados = (async () => {
     if (!lista.length) return erro("Seu carrinho está vazio.");
     if (sub < Number(LOJA.pedidoMinimo || 0)) return erro(`Pedido mínimo de ${brl(LOJA.pedidoMinimo)}.`);
     if (!retirada) {
-      if (!enderecoCep) return erro("Informe seu CEP.");
+      if (!enderecoCep) return erro("Informe seu CEP ou marque sua casa no mapa.");
       if (!$("rua").value.trim()) return erro("Informe a rua.");
       if (!$("numero").value.trim()) return erro("Informe o número do endereço.");
       if (!$("bairro").value.trim()) return erro("Informe o bairro.");
@@ -436,7 +456,8 @@ window.carregarDados = (async () => {
       endereco: retirada ? [] : [
         linhaRua,
         `${v("bairro")} - ${enderecoCep.cidade}/${enderecoCep.uf}`,
-        `CEP: ${enderecoCep.cep}`,
+        enderecoCep.cep ? `CEP: ${enderecoCep.cep}` : "",
+        frete && frete.pos ? `Localização: https://maps.google.com/?q=${frete.pos.lat},${frete.pos.lng}` : "",
         v("referencia") ? `Referência: ${v("referencia")}` : "",
       ],
       pagamento: $("pagamento").value,
