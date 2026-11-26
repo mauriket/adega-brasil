@@ -354,16 +354,18 @@ window.carregarDados = (async () => {
     const r = await MapaEntrega.abrir({ centro, zoom: frete && frete.pos ? 17 : 14 });
     if (!r) return;
     const e = r.end || {};
-    const cep = e.cep && e.cep.length === 8 ? `${e.cep.slice(0, 5)}-${e.cep.slice(5)}` : "";
+    // CEP do mapa só vale se os Correios (ViaCEP) confirmarem; senão fica sem CEP (a localização exata vai no pedido)
+    let cep = "";
+    if (e.cep && e.cep.length === 8) { const ok = await Geo.buscarCep(e.cep); if (ok) cep = `${e.cep.slice(0, 5)}-${e.cep.slice(5)}`; }
     calcId++;
     enderecoCep = { rua: e.rua || "", bairro: e.bairro || "", cidade: e.cidade || FRETE.cidade, uf: e.uf || FRETE.uf, cep, lat: r.lat, lng: r.lng };
     $("cep").value = cep;
-    if (e.rua) $("rua").value = e.rua;
-    $("bairro").value = e.bairro || $("bairro").value;
+    $("rua").value = e.rua || "";
+    $("bairro").value = e.bairro || "";
     $("bairro").readOnly = false;
     $("enderecoCampos").hidden = false;
     await calcularDistancia();
-    $("numero").focus();
+    if (!e.rua || !e.bairro) { $(e.rua ? "bairro" : "rua").focus(); toast("Confira a rua e o bairro"); } else $("numero").focus();
   };
   function msgFrete(txt, cls) { $("freteMsg").className = "hint " + (cls || ""); $("freteMsg").innerHTML = txt; }
 

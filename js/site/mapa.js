@@ -38,7 +38,7 @@ window.MapaEntrega = (() => {
 
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const textoEnd = (e) => !e ? "Endereço não identificado. Confira o lugar do alfinete."
-    : [e.rua, e.bairro, e.cidade && e.uf ? `${e.cidade}/${e.uf}` : e.cidade, e.cep ? `CEP ${e.cep.slice(0, 5)}-${e.cep.slice(5)}` : ""].filter(Boolean).join(" · ") || "Endereço não identificado. Confira o lugar do alfinete.";
+    : [e.rua, e.bairro, e.cidade && e.uf ? `${e.cidade}/${e.uf}` : e.cidade].filter(Boolean).join(" · ") || "Endereço não identificado. Confira o lugar do alfinete.";
 
   // Abre o mapa em tela cheia. Devolve { lat, lng, end } ou null (fechou sem confirmar).
   function abrir({ centro, zoom = 15 }) {
@@ -61,8 +61,10 @@ window.MapaEntrega = (() => {
       document.documentElement.classList.add("travado");
       const $ = (sel) => tela.querySelector(sel);
       const foco = document.activeElement;
-      let mapa = null, atual = null, seq = 0, espera = null;
+      let mapa = null, atual = null, seq = 0, espera = null, fechado = false;
       function fechar(valor) {
+        if (fechado) return;
+        fechado = true; clearTimeout(espera);
         document.removeEventListener("keydown", tecla, true);
         if (mapa) mapa.remove();
         tela.remove();
@@ -70,13 +72,22 @@ window.MapaEntrega = (() => {
         if (foco && foco.focus) foco.focus({ preventScroll: true });
         resolve(valor);
       }
-      const tecla = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); fechar(null); } };
+      const tecla = (e) => {
+        if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); fechar(null); return; }
+        if (e.key !== "Tab") return; // o Tab fica dentro da tela do mapa
+        const f = [...tela.querySelectorAll("button:not([disabled]), a[href]")].filter((x) => x.offsetParent !== null);
+        if (!f.length) return;
+        const i = f.indexOf(document.activeElement);
+        if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+        else if (!e.shiftKey && (i === -1 || i === f.length - 1)) { e.preventDefault(); f[0].focus(); }
+      };
       document.addEventListener("keydown", tecla, true);
       $(".mapa-fechar").onclick = () => fechar(null);
       $(".mapa-fechar").focus();
 
       try { await carregarLeaflet(); }
-      catch { $(".mapa-carregando").textContent = "Não foi possível abrir o mapa agora. Confira a internet e tente de novo."; return; }
+      catch { if (!fechado) $(".mapa-carregando").textContent = "Não foi possível abrir o mapa agora. Confira a internet e tente de novo."; return; }
+      if (fechado) return; // fechou antes do mapa carregar
       $(".mapa-carregando").remove();
       mapa = L.map($(".mapa-area"), { zoomControl: true, attributionControl: true }).setView(centro, zoom);
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -91,7 +102,7 @@ window.MapaEntrega = (() => {
         clearTimeout(espera);
         espera = setTimeout(async () => {
           const end = await enderecoDe(c.lat.toFixed(6), c.lng.toFixed(6));
-          if (meu !== seq) return;
+          if (meu !== seq || fechado) return;
           atual = { lat: +c.lat.toFixed(6), lng: +c.lng.toFixed(6), end };
           $(".mapa-end").innerHTML = esc(textoEnd(end));
           $("[data-ok]").disabled = false;
