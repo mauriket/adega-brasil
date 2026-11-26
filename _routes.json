@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "description": "Servidor da Cloudflare: roda nas páginas e na API; arquivos (imagens, scripts, estilos, dados) vão direto, sem gastar o limite do servidor.",
+  "include": ["/*"],
+  "exclude": ["/js/*", "/css/*", "/img/*", "/data.js", "/acesso.json", "/robots.txt", "/sitemap.xml", "/404.html", "/favicon.ico"]
+}
