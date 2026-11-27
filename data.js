@@ -30,7 +30,7 @@ window.DADOS = {
     "lojaLat": -16.366539,
     "lojaLng": -48.964843,
     "precoKm": 1.5,
-    "taxaFixa": 5,
+    "taxaFixa": 2,
     "taxaMinima": 0,
     "raioMaximoKm": 0,
     "taxaPadrao": 0,
