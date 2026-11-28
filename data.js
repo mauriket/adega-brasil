@@ -1249,11 +1249,23 @@ window.DADOS = {
       "destaque": false,
       "ativo": true,
       "esgotado": false
+    },
+    {
+      "id": 134,
+      "imagem": "img/produtos/p134-1795852800646.jpg",
+      "nome": "Tanqueray Bossa Nova",
+      "preco": 195,
+      "categoria": "Combos com energético 2 litros",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
     }
   ],
   "promocoes": [],
   "ultimoId": {
-    "produto": 133,
+    "produto": 134,
     "promo": 2
   }
 };
