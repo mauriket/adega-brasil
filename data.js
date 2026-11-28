@@ -1277,7 +1277,7 @@ window.DADOS = {
     {
       "id": 136,
       "imagem": "img/produtos/p136-1795853111446.jpg",
-      "nome": "Jack Daniel's Maçã Verde",
+      "nome": "Jack Daniel's Maçã Verde 1L",
       "preco": 165,
       "categoria": "Destilados",
       "emoji": "",
@@ -1289,7 +1289,7 @@ window.DADOS = {
     {
       "id": 137,
       "imagem": "img/produtos/p137-1795853579165.jpg",
-      "nome": "Jack Daniel's Tradicional",
+      "nome": "Jack Daniel's Tradicional 1L",
       "preco": 165,
       "categoria": "Destilados",
       "emoji": "",
