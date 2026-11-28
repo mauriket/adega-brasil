@@ -1288,7 +1288,7 @@ window.DADOS = {
     },
     {
       "id": 137,
-      "imagem": "img/produtos/p137-1795853397525.jpg",
+      "imagem": "img/produtos/p137-1795853579165.jpg",
       "nome": "Jack Daniel's Tradicional",
       "preco": 165,
       "categoria": "Destilados",
