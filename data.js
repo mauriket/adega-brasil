@@ -1309,11 +1309,23 @@ window.DADOS = {
       "destaque": false,
       "ativo": true,
       "esgotado": false
+    },
+    {
+      "id": 139,
+      "imagem": "img/produtos/p139-1795854352067.jpg",
+      "nome": "Chivas 700 mL",
+      "preco": 160,
+      "categoria": "Destilados",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
     }
   ],
   "promocoes": [],
   "ultimoId": {
-    "produto": 138,
+    "produto": 139,
     "promo": 2
   }
 };
