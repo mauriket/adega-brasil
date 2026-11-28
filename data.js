@@ -1273,11 +1273,35 @@ window.DADOS = {
       "destaque": false,
       "ativo": true,
       "esgotado": false
+    },
+    {
+      "id": 136,
+      "imagem": "img/produtos/p136-1795853111446.jpg",
+      "nome": "Jack Daniel's Maçã Verde",
+      "preco": 165,
+      "categoria": "Destilados",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
+    },
+    {
+      "id": 137,
+      "imagem": "img/produtos/p137-1795853397525.jpg",
+      "nome": "Jack Daniel's Tradicional",
+      "preco": 165,
+      "categoria": "Destilados",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
     }
   ],
   "promocoes": [],
   "ultimoId": {
-    "produto": 135,
+    "produto": 137,
     "promo": 2
   }
 };
