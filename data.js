@@ -1216,7 +1216,7 @@ window.DADOS = {
     },
     {
       "id": 131,
-      "imagem": "img/produtos/p131-1795851778072.jpg",
+      "imagem": "img/produtos/p131-1795851971735.jpg",
       "nome": "Tanqueray",
       "preco": 195,
       "categoria": "Combos com 5 RedBull",
