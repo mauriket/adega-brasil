@@ -1321,11 +1321,23 @@ window.DADOS = {
       "destaque": false,
       "ativo": true,
       "esgotado": false
+    },
+    {
+      "id": 140,
+      "imagem": "img/produtos/p140-1795854535003.jpg",
+      "nome": "Beefeater London 700 ml",
+      "preco": 135,
+      "categoria": "Destilados",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
     }
   ],
   "promocoes": [],
   "ultimoId": {
-    "produto": 139,
+    "produto": 140,
     "promo": 2
   }
 };
