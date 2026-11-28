@@ -1237,11 +1237,23 @@ window.DADOS = {
       "destaque": false,
       "ativo": true,
       "esgotado": false
+    },
+    {
+      "id": 133,
+      "imagem": "img/produtos/p133-1795850556210.jpg",
+      "nome": "Carvão 4 kg",
+      "preco": 13,
+      "categoria": "Gelo e Petiscos",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
     }
   ],
   "promocoes": [],
   "ultimoId": {
-    "produto": 132,
+    "produto": 133,
     "promo": 2
   }
 };
