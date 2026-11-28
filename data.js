@@ -1261,11 +1261,23 @@ window.DADOS = {
       "destaque": false,
       "ativo": true,
       "esgotado": false
+    },
+    {
+      "id": 135,
+      "imagem": "img/produtos/p135-1795852889094.jpg",
+      "nome": "Tanqueray Bossa Nova",
+      "preco": 230,
+      "categoria": "Combos com 5 RedBull",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
     }
   ],
   "promocoes": [],
   "ultimoId": {
-    "produto": 134,
+    "produto": 135,
     "promo": 2
   }
 };
