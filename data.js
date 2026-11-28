@@ -1108,7 +1108,7 @@ window.DADOS = {
     },
     {
       "id": 122,
-      "imagem": "img/produtos/p122-1795851554289.jpg",
+      "imagem": "img/produtos/p122-1795851597809.jpg",
       "nome": "Tanqueray",
       "preco": 140,
       "categoria": "Combos com energético 2 litros",
