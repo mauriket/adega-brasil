@@ -1333,11 +1333,23 @@ window.DADOS = {
       "destaque": false,
       "ativo": true,
       "esgotado": false
+    },
+    {
+      "id": 141,
+      "imagem": "img/produtos/p141-1795854630747.jpg",
+      "nome": "Beefeater Pink 700 ml",
+      "preco": 145,
+      "categoria": "Destilados",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
     }
   ],
   "promocoes": [],
   "ultimoId": {
-    "produto": 140,
+    "produto": 141,
     "promo": 2
   }
 };
