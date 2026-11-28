@@ -1297,11 +1297,23 @@ window.DADOS = {
       "destaque": false,
       "ativo": true,
       "esgotado": false
+    },
+    {
+      "id": 138,
+      "imagem": "img/produtos/p138-1795854174108.jpg",
+      "nome": "Ballantine's 1L",
+      "preco": 100,
+      "categoria": "Destilados",
+      "emoji": "",
+      "descricao": "",
+      "destaque": false,
+      "ativo": true,
+      "esgotado": false
     }
   ],
   "promocoes": [],
   "ultimoId": {
-    "produto": 137,
+    "produto": 138,
     "promo": 2
   }
 };
